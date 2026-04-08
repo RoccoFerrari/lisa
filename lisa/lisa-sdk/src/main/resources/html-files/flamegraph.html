@@ -83,9 +83,17 @@
 			.attr("height", height);
 		const zoomLayer = svg.append("g");
 		const zoom = d3.zoom()
-			.scaleExtent([0.1, 50])
+			.scaleExtent([1, 500])
 			.on("zoom", (event) => {
-				zoomLayer.attr("transform", event.transform);
+				const t = event.transform;
+				const scale = t.k;
+				const maxX = 0;
+				const maxY = 0;
+				const minX = Math.min(width - width * scale, 0);
+				const minY = Math.min(height - height * scale, 0);
+				const clampedX = Math.max(Math.min(t.x, maxX), minX);
+				const clampedY = Math.max(Math.min(t.y, maxY), minY);
+				zoomLayer.attr("transform", `translate(${clampedX},${clampedY}) scale(${scale})`);
 				updateLabels();
 			});
 		svg.call(zoom);
