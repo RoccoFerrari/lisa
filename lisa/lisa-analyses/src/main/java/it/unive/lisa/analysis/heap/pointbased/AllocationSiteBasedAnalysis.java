@@ -61,8 +61,6 @@ public abstract class AllocationSiteBasedAnalysis<
 		implements
 		BaseHeapDomain<L> {
 
-	private final Rewriter rewriter = new Rewriter();
-
 	@Override
 	public Pair<L, List<HeapReplacement>> assign(
 			L state,
@@ -358,16 +356,6 @@ public abstract class AllocationSiteBasedAnalysis<
 		return Pair.of(state, List.of());
 	}
 
-	@Override
-	public ExpressionSet rewrite(
-			L state,
-			SymbolicExpression expression,
-			ProgramPoint pp,
-			SemanticOracle oracle)
-			throws SemanticException {
-		return expression.accept(rewriter, state, pp);
-	}
-
 	/**
 	 * Resolves the identifier {@code v} to the set of allocation sites that it
 	 * points to, if it is not a memory pointer and this domain instance
@@ -396,246 +384,225 @@ public abstract class AllocationSiteBasedAnalysis<
 		return result;
 	}
 
-	/**
-	 * A {@link it.unive.lisa.analysis.heap.BaseHeapDomain.Rewriter} for the
-	 * {@link AllocationSiteBasedAnalysis} domain.
-	 * 
-	 * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
+	/*
+	 * note that all the cases where we are adding a plain expression to the
+	 * result set in these methods is because it could have been already
+	 * rewritten by other rewrite methods to an allocation site
 	 */
-	public class Rewriter
-			extends
-			BaseHeapDomain.Rewriter {
 
-		/*
-		 * note that all the cases where we are adding a plain expression to the
-		 * result set in these methods is because it could have been already
-		 * rewritten by other rewrite methods to an allocation site
-		 */
-
-		@Override
-		public ExpressionSet visit(
-				AccessChild expression,
-				ExpressionSet receiver,
-				ExpressionSet child,
-				Object... params)
-				throws SemanticException {
-			Set<SymbolicExpression> result = new HashSet<>();
-			@SuppressWarnings("unchecked")
-			L state = (L) params[0];
-			ProgramPoint pp = (ProgramPoint) params[1];
-
-			Set<SymbolicExpression> toProcess = new HashSet<>();
-			for (SymbolicExpression rec : receiver) {
-				rec = rec.removeTypingExpressions();
-				if (rec instanceof Identifier)
-					toProcess.addAll(resolveIdentifier(state, (Identifier) rec, pp));
-				else
-					toProcess.add(rec);
-			}
-
-			for (SymbolicExpression rec : toProcess)
-				if (rec instanceof MemoryPointer) {
-					MemoryPointer pid = (MemoryPointer) rec;
-					AllocationSite site = (AllocationSite) pid.getReferencedLocation();
-					AllocationSite e;
-					if (site instanceof StackAllocationSite)
-						e = new StackAllocationSite(
-								expression.getStaticType(),
-								site.getLocationName(),
-								true,
-								expression.getCodeLocation());
-					else
-						e = new HeapAllocationSite(
-								expression.getStaticType(),
-								site.getLocationName(),
-								true,
-								expression.getCodeLocation());
-
-					// propagates the annotations of the child value expression
-					// to the newly created allocation site
-					for (SymbolicExpression f : child)
-						if (f instanceof Identifier)
-							for (Annotation ann : e.getAnnotations())
-								e.addAnnotation(ann);
-
-					result.add(e);
-				} else if (rec instanceof AllocationSite)
-					result.add(((AllocationSite) rec).withType(expression.getStaticType()));
-
-			return new ExpressionSet(result);
-		}
-
-		@Override
-		public ExpressionSet visit(
-				MemoryAllocation expression,
-				Object... params)
-				throws SemanticException {
-			AllocationSite id;
-			if (expression.isStackAllocation())
-				id = new StackAllocationSite(
-						expression.getStaticType(),
-						expression.getCodeLocation().getCodeLocation(),
-						true,
-						expression.getCodeLocation());
+	@Override
+	public ExpressionSet rewriteAccessChild(
+			AccessChild expression,
+			ExpressionSet receiver,
+			ExpressionSet child,
+			L state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		Set<SymbolicExpression> result = new HashSet<>();
+		Set<SymbolicExpression> toProcess = new HashSet<>();
+		for (SymbolicExpression rec : receiver) {
+			rec = rec.removeTypingExpressions();
+			if (rec instanceof Identifier)
+				toProcess.addAll(resolveIdentifier(state, (Identifier) rec, pp));
 			else
-				id = new HeapAllocationSite(
-						expression.getStaticType(),
-						expression.getCodeLocation().getCodeLocation(),
-						true,
-						expression.getCodeLocation());
-			id.setAllocation(true);
-
-			// propagates the annotations of expression
-			// to the newly created allocation site
-			for (Annotation ann : expression.getAnnotations())
-				id.addAnnotation(ann);
-
-			return new ExpressionSet(id);
+				toProcess.add(rec);
 		}
 
-		@Override
-		public ExpressionSet visit(
-				HeapReference expression,
-				ExpressionSet arg,
-				Object... params)
-				throws SemanticException {
-			Set<SymbolicExpression> result = new HashSet<>();
-			@SuppressWarnings("unchecked")
-			L state = (L) params[0];
-			ProgramPoint pp = (ProgramPoint) params[1];
-
-			Set<SymbolicExpression> toProcess = new HashSet<>();
-			for (SymbolicExpression loc : arg) {
-				loc = loc.removeTypingExpressions();
-				if (loc instanceof Identifier)
-					toProcess.addAll(resolveIdentifier(state, (Identifier) loc, pp));
+		for (SymbolicExpression rec : toProcess)
+			if (rec instanceof MemoryPointer) {
+				MemoryPointer pid = (MemoryPointer) rec;
+				AllocationSite site = (AllocationSite) pid.getReferencedLocation();
+				AllocationSite e;
+				if (site instanceof StackAllocationSite)
+					e = new StackAllocationSite(
+							expression.getStaticType(),
+							site.getLocationName(),
+							true,
+							expression.getCodeLocation());
 				else
-					toProcess.add(loc);
-			}
+					e = new HeapAllocationSite(
+							expression.getStaticType(),
+							site.getLocationName(),
+							true,
+							expression.getCodeLocation());
 
-			for (SymbolicExpression loc : toProcess)
-				if (loc instanceof AllocationSite) {
-					AllocationSite allocSite = (AllocationSite) loc;
-					MemoryPointer e = new MemoryPointer(
-							pp.getProgram().getTypes().getReference(loc.getStaticType()),
-							allocSite,
-							loc.getCodeLocation());
+				// propagates the annotations of the child value expression
+				// to the newly created allocation site
+				for (SymbolicExpression f : child)
+					if (f instanceof Identifier)
+						for (Annotation ann : ((Identifier) f).getAnnotations())
+							e.addAnnotation(ann);
 
-					// propagates the annotations of the allocation site
-					// to the newly created memory pointer
-					for (Annotation ann : allocSite.getAnnotations())
-						e.addAnnotation(ann);
+				result.add(e);
+			} else if (rec instanceof AllocationSite)
+				result.add(((AllocationSite) rec).withType(expression.getStaticType()));
 
-					result.add(e);
-				} else
-					result.add(loc);
+		return new ExpressionSet(result);
+	}
 
-			return new ExpressionSet(result);
-		}
-
-		@Override
-		public ExpressionSet visit(
-				HeapDereference expression,
-				ExpressionSet arg,
-				Object... params)
-				throws SemanticException {
-			Set<SymbolicExpression> result = new HashSet<>();
-			@SuppressWarnings("unchecked")
-			L state = (L) params[0];
-			ProgramPoint pp = (ProgramPoint) params[1];
-
-			Set<SymbolicExpression> toProcess = new HashSet<>();
-			for (SymbolicExpression rec : arg) {
-				rec = rec.removeTypingExpressions();
-				if (rec instanceof Identifier)
-					toProcess.addAll(resolveIdentifier(state, (Identifier) rec, pp));
-				else
-					toProcess.add(rec);
-			}
-
-			for (SymbolicExpression ref : toProcess)
-				if (ref instanceof MemoryPointer)
-					result.add(((MemoryPointer) ref).getReferencedLocation());
-				else if (ref instanceof Identifier) {
-					// this could be aliasing!
-					Identifier id = (Identifier) ref;
-					if (state.getKeys().contains(id))
-						result.addAll(resolveIdentifier(state, id, pp));
-					else if (id instanceof Variable) {
-						// this is a variable from the program that we know
-						// nothing about
-						CodeLocation loc = expression.getCodeLocation();
-						AllocationSite site;
-						if (id.getStaticType().isPointerType())
-							site = new HeapAllocationSite(id.getStaticType(), "unknown@" + id.getName(), true, loc);
-						else if (id.getStaticType().isInMemoryType() || id.getStaticType().isUntyped())
-							site = new StackAllocationSite(id.getStaticType(), "unknown@" + id.getName(), true, loc);
-						else
-							throw new SemanticException(
-									"The type " + id.getStaticType()
-											+ " cannot be allocated by point-based heap domains");
-
-						// propagates the annotations of the variable
-						// to the newly created allocation site
-						for (Annotation ann : id.getAnnotations())
-							site.addAnnotation(ann);
-
-						result.add(site);
-					}
-				} else
-					result.add(ref);
-
-			return new ExpressionSet(result);
-		}
-
-		@Override
-		public ExpressionSet visit(
-				Identifier expression,
-				Object... params)
-				throws SemanticException {
-			return new ExpressionSet(expression);
-		}
-
-		@Override
-		public ExpressionSet visit(
-				PushAny expression,
-				Object... params)
-				throws SemanticException {
-			if (expression.getStaticType().isPointerType()) {
-				Type inner = expression.getStaticType().asPointerType().getInnerType();
-				CodeLocation loc = expression.getCodeLocation();
-				HeapAllocationSite site = new HeapAllocationSite(
-						inner,
-						"unknown@" + loc.getCodeLocation(),
-						false,
-						loc);
-				return new ExpressionSet(new MemoryPointer(expression.getStaticType(), site, loc));
-			} else if (expression.getStaticType().isInMemoryType()) {
-				Type type = expression.getStaticType();
-				CodeLocation loc = expression.getCodeLocation();
-				StackAllocationSite site = new StackAllocationSite(
-						type,
-						"unknown@" + loc.getCodeLocation(),
-						false,
-						loc);
-				return new ExpressionSet(new MemoryPointer(expression.getStaticType(), site, loc));
-			}
-			return new ExpressionSet(expression);
-		}
-
-		@Override
-		public ExpressionSet visit(
-				NullConstant expression,
-				Object... params)
-				throws SemanticException {
-			ProgramPoint pp = (ProgramPoint) params[1];
-			MemoryPointer mp = new MemoryPointer(
-					pp.getProgram().getTypes().getReference(NullType.INSTANCE),
-					NullAllocationSite.INSTANCE,
+	@Override
+	public ExpressionSet rewriteMemoryAllocation(
+			MemoryAllocation expression,
+			L state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		AllocationSite id;
+		if (expression.isStackAllocation())
+			id = new StackAllocationSite(
+					expression.getStaticType(),
+					expression.getCodeLocation().getCodeLocation(),
+					true,
 					expression.getCodeLocation());
-			return new ExpressionSet(mp);
+		else
+			id = new HeapAllocationSite(
+					expression.getStaticType(),
+					expression.getCodeLocation().getCodeLocation(),
+					true,
+					expression.getCodeLocation());
+		id.setAllocation(true);
+
+		// propagates the annotations of expression
+		// to the newly created allocation site
+		for (Annotation ann : expression.getAnnotations())
+			id.addAnnotation(ann);
+
+		return new ExpressionSet(id);
+	}
+
+	@Override
+	public ExpressionSet rewriteHeapReference(
+			HeapReference expression,
+			ExpressionSet arg,
+			L state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		Set<SymbolicExpression> result = new HashSet<>();
+		Set<SymbolicExpression> toProcess = new HashSet<>();
+		for (SymbolicExpression loc : arg) {
+			loc = loc.removeTypingExpressions();
+			if (loc instanceof Identifier)
+				toProcess.addAll(resolveIdentifier(state, (Identifier) loc, pp));
+			else
+				toProcess.add(loc);
 		}
 
+		for (SymbolicExpression loc : toProcess)
+			if (loc instanceof AllocationSite) {
+				AllocationSite allocSite = (AllocationSite) loc;
+				MemoryPointer e = new MemoryPointer(
+						pp.getProgram().getTypes().getReference(loc.getStaticType()),
+						allocSite,
+						loc.getCodeLocation());
+
+				// propagates the annotations of the allocation site
+				// to the newly created memory pointer
+				for (Annotation ann : allocSite.getAnnotations())
+					e.addAnnotation(ann);
+
+				result.add(e);
+			} else
+				result.add(loc);
+
+		return new ExpressionSet(result);
+	}
+
+	@Override
+	public ExpressionSet rewriteHeapDereference(
+			HeapDereference expression,
+			ExpressionSet arg,
+			L state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		Set<SymbolicExpression> result = new HashSet<>();
+		Set<SymbolicExpression> toProcess = new HashSet<>();
+		for (SymbolicExpression rec : arg) {
+			rec = rec.removeTypingExpressions();
+			if (rec instanceof Identifier)
+				toProcess.addAll(resolveIdentifier(state, (Identifier) rec, pp));
+			else
+				toProcess.add(rec);
+		}
+
+		for (SymbolicExpression ref : toProcess)
+			if (ref instanceof MemoryPointer)
+				result.add(((MemoryPointer) ref).getReferencedLocation());
+			else if (ref instanceof Identifier) {
+				// this could be aliasing!
+				Identifier id = (Identifier) ref;
+				if (state.getKeys().contains(id))
+					result.addAll(resolveIdentifier(state, id, pp));
+				else if (id instanceof Variable) {
+					// this is a variable from the program that we know
+					// nothing about
+					CodeLocation loc = expression.getCodeLocation();
+					AllocationSite site;
+					if (id.getStaticType().isPointerType())
+						site = new HeapAllocationSite(id.getStaticType(), "unknown@" + id.getName(), true, loc);
+					else if (id.getStaticType().isInMemoryType() || id.getStaticType().isUntyped())
+						site = new StackAllocationSite(id.getStaticType(), "unknown@" + id.getName(), true, loc);
+					else
+						throw new SemanticException(
+								"The type " + id.getStaticType()
+										+ " cannot be allocated by point-based heap domains");
+
+					// propagates the annotations of the variable
+					// to the newly created allocation site
+					for (Annotation ann : id.getAnnotations())
+						site.addAnnotation(ann);
+
+					result.add(site);
+				}
+			} else
+				result.add(ref);
+
+		return new ExpressionSet(result);
+	}
+
+	@Override
+	public ExpressionSet rewritePushAny(
+			PushAny expression,
+			L state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		if (expression.getStaticType().isPointerType()) {
+			Type inner = expression.getStaticType().asPointerType().getInnerType();
+			CodeLocation loc = expression.getCodeLocation();
+			HeapAllocationSite site = new HeapAllocationSite(
+					inner,
+					"unknown@" + loc.getCodeLocation(),
+					false,
+					loc);
+			return new ExpressionSet(new MemoryPointer(expression.getStaticType(), site, loc));
+		} else if (expression.getStaticType().isInMemoryType()) {
+			Type type = expression.getStaticType();
+			CodeLocation loc = expression.getCodeLocation();
+			StackAllocationSite site = new StackAllocationSite(
+					type,
+					"unknown@" + loc.getCodeLocation(),
+					false,
+					loc);
+			return new ExpressionSet(new MemoryPointer(expression.getStaticType(), site, loc));
+		}
+		return new ExpressionSet(expression);
+	}
+
+	@Override
+	public ExpressionSet rewriteNullConstant(
+			NullConstant expression,
+			L state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		MemoryPointer mp = new MemoryPointer(
+				pp.getProgram().getTypes().getReference(NullType.INSTANCE),
+				NullAllocationSite.INSTANCE,
+				expression.getCodeLocation());
+		return new ExpressionSet(mp);
 	}
 
 	@Override

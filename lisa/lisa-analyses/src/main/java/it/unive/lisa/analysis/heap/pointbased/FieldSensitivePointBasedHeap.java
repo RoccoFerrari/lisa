@@ -40,8 +40,6 @@ public class FieldSensitivePointBasedHeap
 		extends
 		AllocationSiteBasedAnalysis<HeapEnvWithFields> {
 
-	private final Rewriter rewriter = new Rewriter();
-
 	@Override
 	public HeapEnvWithFields makeLattice() {
 		return new HeapEnvWithFields();
@@ -212,126 +210,104 @@ public class FieldSensitivePointBasedHeap
 	}
 
 	@Override
-	public ExpressionSet rewrite(
+	public ExpressionSet rewriteAccessChild(
+			AccessChild expression,
+			ExpressionSet receiver,
+			ExpressionSet child,
 			HeapEnvWithFields state,
-			SymbolicExpression expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
 			throws SemanticException {
-		return expression.accept(rewriter, state, pp);
+		Set<SymbolicExpression> result = new HashSet<>();
+		Set<SymbolicExpression> toProcess = new HashSet<>();
+		for (SymbolicExpression rec : receiver) {
+			rec = rec.removeTypingExpressions();
+			if (rec instanceof Identifier)
+				toProcess.addAll(resolveIdentifier(state, (Identifier) rec, pp));
+			else
+				toProcess.add(rec);
+		}
+
+		for (SymbolicExpression rec : toProcess) {
+			if (rec instanceof MemoryPointer) {
+				AllocationSite site = (AllocationSite) ((MemoryPointer) rec).getReferencedLocation();
+				if (site.equals(NullAllocationSite.INSTANCE))
+					result.add(site);
+				else
+					populate(expression, child, result, site);
+			} else if (rec instanceof AllocationSite) {
+				AllocationSite site = (AllocationSite) rec;
+				if (site.equals(NullAllocationSite.INSTANCE))
+					result.add(site);
+				else
+					populate(expression, child, result, site);
+			}
+		}
+
+		return new ExpressionSet(result);
 	}
 
-	/**
-	 * A {@link it.unive.lisa.analysis.heap.BaseHeapDomain.Rewriter} for the
-	 * {@link FieldSensitivePointBasedHeap} domain.
-	 * 
-	 * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
-	 */
-	public class Rewriter
-			extends
-			AllocationSiteBasedAnalysis<HeapEnvWithFields>.Rewriter {
-
-		@Override
-		public ExpressionSet visit(
-				AccessChild expression,
-				ExpressionSet receiver,
-				ExpressionSet child,
-				Object... params)
-				throws SemanticException {
-			Set<SymbolicExpression> result = new HashSet<>();
-			HeapEnvWithFields state = (HeapEnvWithFields) params[0];
-			ProgramPoint pp = (ProgramPoint) params[1];
-
-			Set<SymbolicExpression> toProcess = new HashSet<>();
-			for (SymbolicExpression rec : receiver) {
-				rec = rec.removeTypingExpressions();
-				if (rec instanceof Identifier)
-					toProcess.addAll(resolveIdentifier(state, (Identifier) rec, pp));
-				else
-					toProcess.add(rec);
-			}
-
-			for (SymbolicExpression rec : toProcess) {
-				if (rec instanceof MemoryPointer) {
-					AllocationSite site = (AllocationSite) ((MemoryPointer) rec).getReferencedLocation();
-					if (site.equals(NullAllocationSite.INSTANCE))
-						result.add(site);
-					else
-						populate(expression, child, result, site);
-				} else if (rec instanceof AllocationSite) {
-					AllocationSite site = (AllocationSite) rec;
-					if (site.equals(NullAllocationSite.INSTANCE))
-						result.add(site);
-					else
-						populate(expression, child, result, site);
-				}
-			}
-
-			return new ExpressionSet(result);
-		}
-
-		private void populate(
-				AccessChild expression,
-				ExpressionSet child,
-				Set<SymbolicExpression> result,
-				AllocationSite site) {
-			for (SymbolicExpression target : child) {
-				AllocationSite e;
-
-				if (site instanceof StackAllocationSite)
-					e = new StackAllocationSite(
-							expression.getStaticType(),
-							site.getLocationName(),
-							target,
-							site.isWeak(),
-							site.getCodeLocation());
-				else
-					e = new HeapAllocationSite(
-							expression.getStaticType(),
-							site.getLocationName(),
-							target,
-							site.isWeak(),
-							site.getCodeLocation());
-
-				// propagates the annotations of the child value expression to
-				// the newly created allocation site
-				if (target instanceof Identifier)
-					for (Annotation ann : e.getAnnotations())
-						e.addAnnotation(ann);
-
-				result.add(e);
-			}
-		}
-
-		@Override
-		public ExpressionSet visit(
-				MemoryAllocation expression,
-				Object... params)
-				throws SemanticException {
-			String pp = expression.getCodeLocation().getCodeLocation();
-			HeapEnvWithFields state = (HeapEnvWithFields) params[0];
-
-			boolean weak;
-			if (!getAllocatedAt(state, pp).isEmpty())
-				weak = true;
-			else
-				weak = false;
-
+	private void populate(
+			AccessChild expression,
+			ExpressionSet child,
+			Set<SymbolicExpression> result,
+			AllocationSite site) {
+		for (SymbolicExpression target : child) {
 			AllocationSite e;
-			if (expression.isStackAllocation())
-				e = new StackAllocationSite(expression.getStaticType(), pp, weak, expression.getCodeLocation());
+
+			if (site instanceof StackAllocationSite)
+				e = new StackAllocationSite(
+						expression.getStaticType(),
+						site.getLocationName(),
+						target,
+						site.isWeak(),
+						site.getCodeLocation());
 			else
-				e = new HeapAllocationSite(expression.getStaticType(), pp, weak, expression.getCodeLocation());
-			e.setAllocation(true);
+				e = new HeapAllocationSite(
+						expression.getStaticType(),
+						site.getLocationName(),
+						target,
+						site.isWeak(),
+						site.getCodeLocation());
 
-			// propagates the annotations of expression
-			// to the newly created allocation site
-			for (Annotation ann : expression.getAnnotations())
-				e.getAnnotations().addAnnotation(ann);
+			// propagates the annotations of the child value expression to
+			// the newly created allocation site
+			if (target instanceof Identifier)
+				for (Annotation ann : ((Identifier) target).getAnnotations())
+					e.addAnnotation(ann);
 
-			return new ExpressionSet(e);
+			result.add(e);
 		}
+	}
 
+	@Override
+	public ExpressionSet rewriteMemoryAllocation(
+			MemoryAllocation expression,
+			HeapEnvWithFields state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		String loc = expression.getCodeLocation().getCodeLocation();
+
+		boolean weak;
+		if (!getAllocatedAt(state, loc).isEmpty())
+			weak = true;
+		else
+			weak = false;
+
+		AllocationSite e;
+		if (expression.isStackAllocation())
+			e = new StackAllocationSite(expression.getStaticType(), loc, weak, expression.getCodeLocation());
+		else
+			e = new HeapAllocationSite(expression.getStaticType(), loc, weak, expression.getCodeLocation());
+		e.setAllocation(true);
+
+		// propagates the annotations of expression
+		// to the newly created allocation site
+		for (Annotation ann : expression.getAnnotations())
+			e.getAnnotations().addAnnotation(ann);
+
+		return new ExpressionSet(e);
 	}
 
 }
