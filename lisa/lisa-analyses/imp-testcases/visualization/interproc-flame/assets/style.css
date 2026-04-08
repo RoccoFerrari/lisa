@@ -232,6 +232,11 @@ g.edge>text {
 #heatmap-chart {
 	background: white;
 	overflow: hidden;
+
+	svg:active,
+	.grabbing {
+		cursor: grabbing !important;
+	}
 }
 
 .heatmap-node {
@@ -255,7 +260,7 @@ g.edge>text {
 .heatmap-tooltip {
 	position: absolute;
 	pointer-events: none;
-	background: rgba(0,0,0,0.85);
+	background: rgba(0, 0, 0, 0.85);
 	color: white;
 	padding: 6px 8px;
 	border-radius: 4px;

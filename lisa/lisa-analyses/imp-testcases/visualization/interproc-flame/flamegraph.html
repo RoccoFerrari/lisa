@@ -39,7 +39,7 @@
 	</div>
 	<script>
 		/*<![CDATA[*/
-		const graph = "{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"56541156\",\"start_ns\":\"54031060\",\"text\":\"Fixpoint of untyped A::A(A*)\"},{\"children\":[],\"end_ns\":\"78792442\",\"start_ns\":\"59395736\",\"text\":\"Fixpoint of untyped A::getOne(A*)\"},{\"children\":[],\"end_ns\":\"83536163\",\"start_ns\":\"80910418\",\"text\":\"Fixpoint of untyped A::getPositive(A*, untyped)\"},{\"children\":[],\"end_ns\":\"86634077\",\"start_ns\":\"86137313\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"},{\"children\":[],\"end_ns\":\"89445291\",\"start_ns\":\"88894394\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"},{\"children\":[{\"children\":[],\"end_ns\":\"94057875\",\"start_ns\":\"93473532\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"}],\"end_ns\":\"94559016\",\"start_ns\":\"91976702\",\"text\":\"Fixpoint of untyped tests::helper(tests*, untyped, untyped)\"}],\"end_ns\":\"95364199\",\"start_ns\":\"26833881\",\"text\":\"Fixpoint of untyped tests::main(tests*)\"}],\"end_ns\":\"96742977\",\"start_ns\":\"758152\",\"text\":\"Program-wide fixpoint iteration 1\"}],\"end_ns\":\"96766546\",\"start_ns\":\"0\",\"text\":\"Program-wide fixpoint\"}";
+		const graph = "{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"1039640\",\"start_ns\":\"821594\",\"text\":\"Fixpoint of untyped A::A(A*)\"},{\"children\":[],\"end_ns\":\"3015650\",\"start_ns\":\"1449466\",\"text\":\"Fixpoint of untyped A::getOne(A*)\"},{\"children\":[],\"end_ns\":\"4224275\",\"start_ns\":\"3509480\",\"text\":\"Fixpoint of untyped A::getPositive(A*, untyped)\"},{\"children\":[],\"end_ns\":\"5055759\",\"start_ns\":\"4886844\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"},{\"children\":[],\"end_ns\":\"5866845\",\"start_ns\":\"5697630\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"},{\"children\":[{\"children\":[],\"end_ns\":\"6984985\",\"start_ns\":\"6824538\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"}],\"end_ns\":\"7166236\",\"start_ns\":\"6423279\",\"text\":\"Fixpoint of untyped tests::helper(tests*, untyped, untyped)\"}],\"end_ns\":\"7387352\",\"start_ns\":\"348829\",\"text\":\"Fixpoint of untyped tests::main(tests*)\"}],\"end_ns\":\"7579549\",\"start_ns\":\"60282\",\"text\":\"Program-wide fixpoint iteration 1\"}],\"end_ns\":\"7586125\",\"start_ns\":\"0\",\"text\":\"Program-wide fixpoint\"}";
 		/*]]>*/
 
 		// flatten tree
@@ -77,18 +77,125 @@
 			.range([0, width]);
 
 		// SVG & zoom
+		const axisHeight = 24;
 		const svg = d3.select("#heatmap-chart")
 			.append("svg")
 			.attr("width", width)
 			.attr("height", height);
-		const zoomLayer = svg.append("g");
+		const zoomLayer = svg.append("g")
+			.attr("transform", `translate(0, ${axisHeight})`);
+
+		// Add time axis at the top
+		function formatTime(d) {
+			// d is nanoseconds offset from minTime
+			const ms = (d - minTime) / 1e6;
+			if (ms < 1) return ((d - minTime) / 1e3).toFixed(0) + " μs";
+			if (ms < 1000) return ms.toFixed(0) + " ms";
+			const s = ms / 1000;
+			if (s < 60) return s.toFixed(2) + " s";
+			const m = Math.floor(s / 60);
+			const sec = s % 60;
+			if (m < 60) return `${m}m ${sec.toFixed(1)}s`;
+			const h = Math.floor(m / 60);
+			const min = m % 60;
+			return `${h}h ${min}m`;
+		}
+		const axis = d3.axisTop(xScale)
+			.ticks(Math.max(5, width / 180))
+			.tickFormat(formatTime);
+		// white background behind labels
+		svg.append("rect")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", width)
+			.attr("height", axisHeight)
+			.attr("fill", "#fff")
+			.attr("pointer-events", "none")
+			.on("mousedown.zoomcursor", () => svg.classed("grabbing", true))
+			.on("mouseup.zoomcursor", () => svg.classed("grabbing", false))
+			.on("mouseleave.zoomcursor", () => svg.classed("grabbing", false));
+		const axisGroup = svg.append("g")
+			.attr("transform", `translate(0,${axisHeight})`)
+			.call(axis);
+		// Add vertical grid lines
+		function drawGridLines(currentScale) {
+			// Remove old grid lines
+			axisGroup.selectAll(".grid-line").remove();
+			// Add new grid lines for each tick
+			axisGroup.selectAll(".tick").each(function (d) {
+				axisGroup.append("line")
+					.attr("class", "grid-line")
+					.attr("x1", currentScale(d))
+					.attr("x2", currentScale(d))
+					.attr("y1", 0)
+					.attr("y2", height)
+					.attr("stroke", "#ccc")
+					.attr("stroke-width", 1)
+					.attr("pointer-events", "none");
+			});
+		}
+		drawGridLines(xScale);
+
 		const zoom = d3.zoom()
-			.scaleExtent([0.1, 50])
+			.scaleExtent([1, 100])
 			.on("zoom", (event) => {
-				zoomLayer.attr("transform", event.transform);
+				const t = event.transform;
+				const scale = t.k;
+
+				const maxX = 0;
+				const maxY = 0;
+				const minX = Math.min(width - width * scale, 0);
+				const minY = Math.min(height - height * scale, 0);
+				const clampedX = Math.max(Math.min(t.x, maxX), minX);
+				const clampedY = Math.max(Math.min(t.y, maxY), minY);
+
+				let clamped = false;
+				if (t.x !== clampedX || t.y !== clampedY) clamped = true;
+
+				zoomLayer.attr("transform", `translate(${clampedX},${clampedY + axisHeight}) scale(${scale})`);
 				updateLabels();
+
+				const newTransform = d3.zoomIdentity.translate(clampedX, 0).scale(scale);
+				const newX = newTransform.rescaleX(xScale);
+				// Clamp the axis domain to [minTime, maxTime]
+				const domain = newX.domain();
+				if (domain[0] < minTime || domain[1] > maxTime) {
+					// If out of bounds, reset axis to [minTime, maxTime]
+					axisGroup.call(axis.scale(xScale));
+					drawGridLines(xScale);
+				} else {
+					axisGroup.call(axis.scale(newX));
+					drawGridLines(newX);
+				}
+
+				if (clamped) {
+					svg.call(zoom.transform, d3.zoomIdentity.translate(clampedX, clampedY).scale(scale));
+				}
 			});
 		svg.call(zoom);
+
+		// Disable default wheel zoom
+		svg.on("wheel.zoom", null);
+
+		// Custom wheel handler
+		svg.on("wheel.custom", function (event) {
+			event.preventDefault();
+			if (event.ctrlKey) {
+				// Zoom (scale) when Ctrl is held
+				d3.select(this).call(
+					zoom.scaleBy,
+					event.deltaY < 0 ? 1.1 : 1 / 1.1,
+					[event.offsetX, event.offsetY]
+				);
+			} else {
+				// Pan when Ctrl is not held
+				d3.select(this).call(
+					zoom.translateBy,
+					-event.deltaX,
+					-event.deltaY
+				);
+			}
+		});
 
 		// draw nodes
 		const tooltip = d3.select("#heatmap-tooltip");
