@@ -77,24 +77,90 @@
 			.range([0, width]);
 
 		// SVG & zoom
+		const axisHeight = 24;
 		const svg = d3.select("#heatmap-chart")
 			.append("svg")
 			.attr("width", width)
 			.attr("height", height);
-		const zoomLayer = svg.append("g");
+		const zoomLayer = svg.append("g")
+			.attr("transform", `translate(0, ${axisHeight})`);
+
+		// Add time axis at the top
+		function formatTime(d) {
+			// d is nanoseconds offset from minTime
+			const ms = (d - minTime) / 1e6;
+			if (ms < 1) return ((d - minTime) / 1e3).toFixed(0) + " μs";
+			if (ms < 1000) return ms.toFixed(0) + " ms";
+			const s = ms / 1000;
+			if (s < 60) return s.toFixed(2) + " s";
+			const m = Math.floor(s / 60);
+			const sec = s % 60;
+			if (m < 60) return `${m}m ${sec.toFixed(1)}s`;
+			const h = Math.floor(m / 60);
+			const min = m % 60;
+			return `${h}h ${min}m`;
+		}
+		const axis = d3.axisTop(xScale)
+			.ticks(Math.max(5, width / 180))
+			.tickFormat(formatTime);
+		// white background behind labels
+		svg.append("rect")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", width)
+			.attr("height", axisHeight)
+			.attr("fill", "#fff")
+			.attr("pointer-events", "none");
+		const axisGroup = svg.append("g")
+			.attr("transform", `translate(0,${axisHeight})`)
+			.call(axis);
+		// Add vertical grid lines
+		function drawGridLines(currentScale) {
+			// Remove old grid lines
+			axisGroup.selectAll(".grid-line").remove();
+			// Add new grid lines for each tick
+			axisGroup.selectAll(".tick").each(function (d) {
+				axisGroup.append("line")
+					.attr("class", "grid-line")
+					.attr("x1", currentScale(d))
+					.attr("x2", currentScale(d))
+					.attr("y1", 0)
+					.attr("y2", height)
+					.attr("stroke", "#ccc")
+					.attr("stroke-width", 1)
+					.attr("pointer-events", "none");
+			});
+		}
+		drawGridLines(xScale);
+
 		const zoom = d3.zoom()
-			.scaleExtent([1, 500])
+			.scaleExtent([1, 100])
 			.on("zoom", (event) => {
 				const t = event.transform;
 				const scale = t.k;
+
 				const maxX = 0;
 				const maxY = 0;
 				const minX = Math.min(width - width * scale, 0);
 				const minY = Math.min(height - height * scale, 0);
 				const clampedX = Math.max(Math.min(t.x, maxX), minX);
 				const clampedY = Math.max(Math.min(t.y, maxY), minY);
-				zoomLayer.attr("transform", `translate(${clampedX},${clampedY}) scale(${scale})`);
+
+				zoomLayer.attr("transform", `translate(${clampedX},${clampedY + axisHeight}) scale(${scale})`);
 				updateLabels();
+
+				const newTransform = d3.zoomIdentity.translate(clampedX, 0).scale(scale);
+				const newX = newTransform.rescaleX(xScale);
+				// Clamp the axis domain to [minTime, maxTime]
+				const domain = newX.domain();
+				if (domain[0] < minTime || domain[1] > maxTime) {
+					// If out of bounds, reset axis to [minTime, maxTime]
+					axisGroup.call(axis.scale(xScale));
+					drawGridLines(xScale);
+				} else {
+					axisGroup.call(axis.scale(newX));
+					drawGridLines(newX);
+				}
 			});
 		svg.call(zoom);
 
