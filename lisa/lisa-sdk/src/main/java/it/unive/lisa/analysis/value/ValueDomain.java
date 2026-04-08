@@ -1,5 +1,7 @@
 package it.unive.lisa.analysis.value;
 
+import it.unive.lisa.analysis.SemanticComponent;
+import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.ValueExpression;
 
 /**
@@ -14,5 +16,5 @@ import it.unive.lisa.symbolic.value.ValueExpression;
  */
 public interface ValueDomain<L extends ValueLattice<L>>
 		extends
-		DomainWithReplacement<L, ValueExpression> {
+		SemanticComponent<L, L, ValueExpression, Identifier> {
 }

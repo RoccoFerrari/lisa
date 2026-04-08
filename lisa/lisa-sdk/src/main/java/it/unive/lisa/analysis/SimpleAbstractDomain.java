@@ -216,8 +216,8 @@ public class SimpleAbstractDomain<H extends HeapLattice<H>, V extends ValueLatti
 				events.post(new SADSubsStart<>(v0, t0, subs));
 
 			for (HeapReplacement repl : subs) {
-				T t = typeDomain.applyReplacement(mo.type, repl, pp, mo);
-				V v = valueDomain.applyReplacement(mo.value, repl, pp, mo);
+				T t = mo.type.applyReplacement(repl, pp);
+				V v = mo.value.applyReplacement(repl, pp);
 				// we update the oracle after both replacements have been
 				// applied to not lose info on the sources that will be removed
 				mo.type = t;
