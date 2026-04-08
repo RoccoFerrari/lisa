@@ -110,7 +110,10 @@
 			.attr("width", width)
 			.attr("height", axisHeight)
 			.attr("fill", "#fff")
-			.attr("pointer-events", "none");
+			.attr("pointer-events", "none")
+			.on("mousedown.zoomcursor", () => svg.classed("grabbing", true))
+			.on("mouseup.zoomcursor", () => svg.classed("grabbing", false))
+			.on("mouseleave.zoomcursor", () => svg.classed("grabbing", false));
 		const axisGroup = svg.append("g")
 			.attr("transform", `translate(0,${axisHeight})`)
 			.call(axis);
@@ -146,6 +149,9 @@
 				const clampedX = Math.max(Math.min(t.x, maxX), minX);
 				const clampedY = Math.max(Math.min(t.y, maxY), minY);
 
+				let clamped = false;
+				if (t.x !== clampedX || t.y !== clampedY) clamped = true;
+
 				zoomLayer.attr("transform", `translate(${clampedX},${clampedY + axisHeight}) scale(${scale})`);
 				updateLabels();
 
@@ -161,8 +167,35 @@
 					axisGroup.call(axis.scale(newX));
 					drawGridLines(newX);
 				}
+
+				if (clamped) {
+					svg.call(zoom.transform, d3.zoomIdentity.translate(clampedX, clampedY).scale(scale));
+				}
 			});
 		svg.call(zoom);
+
+		// Disable default wheel zoom
+		svg.on("wheel.zoom", null);
+
+		// Custom wheel handler
+		svg.on("wheel.custom", function (event) {
+			event.preventDefault();
+			if (event.ctrlKey) {
+				// Zoom (scale) when Ctrl is held
+				d3.select(this).call(
+					zoom.scaleBy,
+					event.deltaY < 0 ? 1.1 : 1 / 1.1,
+					[event.offsetX, event.offsetY]
+				);
+			} else {
+				// Pan when Ctrl is not held
+				d3.select(this).call(
+					zoom.translateBy,
+					-event.deltaX,
+					-event.deltaY
+				);
+			}
+		});
 
 		// draw nodes
 		const tooltip = d3.select("#heatmap-tooltip");
