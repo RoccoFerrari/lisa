@@ -273,7 +273,7 @@ public class FieldSensitivePointBasedHeap
 			// propagates the annotations of the child value expression to
 			// the newly created allocation site
 			if (target instanceof Identifier)
-				for (Annotation ann : e.getAnnotations())
+				for (Annotation ann : ((Identifier) target).getAnnotations())
 					e.addAnnotation(ann);
 
 			result.add(e);

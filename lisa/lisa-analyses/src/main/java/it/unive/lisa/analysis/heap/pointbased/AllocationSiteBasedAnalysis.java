@@ -431,7 +431,7 @@ public abstract class AllocationSiteBasedAnalysis<
 				// to the newly created allocation site
 				for (SymbolicExpression f : child)
 					if (f instanceof Identifier)
-						for (Annotation ann : e.getAnnotations())
+						for (Annotation ann : ((Identifier) f).getAnnotations())
 							e.addAnnotation(ann);
 
 				result.add(e);
