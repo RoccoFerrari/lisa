@@ -21,14 +21,25 @@
 			<input id="search" type="text" class="searchbar" placeholder="Search node..." />
 			<input id="next" type="button" value="Next" class="button" disabled />
 			<input id="prev" type="button" value="Previous" class="button" disabled />
-			<button id="centerButton" class="button">Center graph</button>
+			<button id="centerButton" class="button">Reset zoom &amp; recenter</button>
+			<button id="legendButton" class="button">Legend</button>
 		</header>
+		<div id="legend" class="modal">
+			<div class="modal-content">
+				<span class="close">&times;</span>
+				<b>Interprocedural event: <font color="red">red</font></b>
+				<b>Fixpoint event: <font color="blue">blue</font></b>
+				<b>Analysis event: <font color="green">green</font></b>
+				<b>Domain event: <font color="#d3d609">yellow</font></b>
+				<b>The lighter the color, the shorter the execution time</b>
+			</div>
+		</div>
 		<div id="heatmap-chart"></div>
 		<div class="heatmap-tooltip" id="heatmap-tooltip"></div>
 	</div>
 	<script>
 		/*<![CDATA[*/
-		const graph = "{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"1103389\",\"start_ns\":\"941806\",\"text\":\"Fixpoint of untyped A::A(A*)\"},{\"children\":[],\"end_ns\":\"4802718\",\"start_ns\":\"1783523\",\"text\":\"Fixpoint of untyped A::getOne(A*)\"},{\"children\":[],\"end_ns\":\"5858888\",\"start_ns\":\"5237340\",\"text\":\"Fixpoint of untyped A::getPositive(A*, untyped)\"},{\"children\":[],\"end_ns\":\"6511408\",\"start_ns\":\"6372278\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"},{\"children\":[],\"end_ns\":\"7382756\",\"start_ns\":\"7229219\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"},{\"children\":[{\"children\":[],\"end_ns\":\"8227553\",\"start_ns\":\"8097709\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"}],\"end_ns\":\"8359703\",\"start_ns\":\"7867533\",\"text\":\"Fixpoint of untyped tests::helper(tests*, untyped, untyped)\"}],\"end_ns\":\"8592830\",\"start_ns\":\"302046\",\"text\":\"Fixpoint of untyped tests::main(tests*)\"}],\"end_ns\":\"8795222\",\"start_ns\":\"54447\",\"text\":\"Program-wide fixpoint iteration 1\"}],\"end_ns\":\"8832838\",\"start_ns\":\"0\",\"text\":\"Program-wide fixpoint\"}";
+		const graph = "{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"56541156\",\"start_ns\":\"54031060\",\"text\":\"Fixpoint of untyped A::A(A*)\"},{\"children\":[],\"end_ns\":\"78792442\",\"start_ns\":\"59395736\",\"text\":\"Fixpoint of untyped A::getOne(A*)\"},{\"children\":[],\"end_ns\":\"83536163\",\"start_ns\":\"80910418\",\"text\":\"Fixpoint of untyped A::getPositive(A*, untyped)\"},{\"children\":[],\"end_ns\":\"86634077\",\"start_ns\":\"86137313\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"},{\"children\":[],\"end_ns\":\"89445291\",\"start_ns\":\"88894394\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"},{\"children\":[{\"children\":[],\"end_ns\":\"94057875\",\"start_ns\":\"93473532\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"}],\"end_ns\":\"94559016\",\"start_ns\":\"91976702\",\"text\":\"Fixpoint of untyped tests::helper(tests*, untyped, untyped)\"}],\"end_ns\":\"95364199\",\"start_ns\":\"26833881\",\"text\":\"Fixpoint of untyped tests::main(tests*)\"}],\"end_ns\":\"96742977\",\"start_ns\":\"758152\",\"text\":\"Program-wide fixpoint iteration 1\"}],\"end_ns\":\"96766546\",\"start_ns\":\"0\",\"text\":\"Program-wide fixpoint\"}";
 		/*]]>*/
 
 		// flatten tree
@@ -44,7 +55,13 @@
 			}
 
 			const duration = end - start;
-			nodes.push({text, start, end, duration, depth});
+			let kind;
+			if (text.startsWith("Analysis:")) kind = "Analysis";
+			else if (text.match(/^[a-zA-Z0-9_]+:/)) kind = "Domain";
+			else if (text.toLowerCase().includes("fixpoint")) kind = "Interprocedural";
+			else kind = "Fixpoint";
+
+			nodes.push({text, start, end, duration, kind, depth});
 			for (const c of node.children || []) walk(c, depth + 1);
 		}
 		walk(JSON.parse(graph));
@@ -52,16 +69,12 @@
 		// layout
 		const rowHeight = 22;
 		const width = window.innerWidth;
-		const maxDepth = d3.max(nodes, d => d.depth);
-		const height = (maxDepth + 2) * rowHeight;
+		const height = window.innerHeight;
 		const minTime = d3.min(nodes, d => d.start);
 		const maxTime = d3.max(nodes, d => d.end);
 		const xScale = d3.scaleLinear()
 			.domain([minTime, maxTime])
 			.range([0, width]);
-		const colorScale = d3.scaleSequential()
-			.domain(d3.extent(nodes, d => d.duration))
-			.interpolator(d3.interpolateYlOrRd);
 
 		// SVG & zoom
 		const svg = d3.select("#heatmap-chart")
@@ -82,7 +95,7 @@
 		function showTooltip(event, d) {
 			tooltip
 				.style("opacity", 1)
-				.html(`<b>${d.text}</b><br/>${(d.duration / 1e6).toFixed(2)} ms`);
+				.html(`<b>${d.text}</b><br/>${(d.duration / 1e6).toFixed(2)} ms<br/>Kind: ${d.kind}`);
 
 			moveTooltip(event);
 		}
@@ -102,6 +115,27 @@
 		function hideTooltip() {
 			tooltip.style("opacity", 0);
 		}
+		const categoryHue = {
+			Interprocedural: 0, // red
+			Fixpoint: 210,      // blue
+			Analysis: 120,      // green
+			Domain: 60,         // yellow
+			unknown: 0
+		};
+		const durationByKind = d3.group(nodes, d => d.kind);
+		const scalesByKind = new Map(
+			Array.from(durationByKind, ([kind, arr]) => [
+				kind,
+				d3.scaleLinear()
+					.domain(d3.extent(arr, d => d.duration))
+					.range([90, 40])
+			])
+		);
+		function nodeColor(d) {
+			const hue = categoryHue[d.kind] ?? categoryHue.unknown;
+			const scale = scalesByKind.get(d.kind);
+			return `hsl(${hue}, 70%, ${scale(d.duration)}%)`;
+		}
 		const rects = zoomLayer.selectAll("rect")
 			.data(nodes)
 			.enter()
@@ -111,7 +145,7 @@
 			.attr("y", d => d.depth * rowHeight)
 			.attr("width", d => xScale(d.end) - xScale(d.start))
 			.attr("height", rowHeight - 2)
-			.attr("fill", d => colorScale(d.duration))
+			.attr("fill", nodeColor)
 			.on("mouseenter", showTooltip)
 			.on("mousemove", moveTooltip)
 			.on("mouseleave", hideTooltip);
@@ -202,6 +236,17 @@
 				zoom.transform,
 				d3.zoomIdentity
 			);
+		});
+
+		/* Legend modal */
+		var modal = d3.select("#legend").on("click", function () {
+			d3.select(this).style("display", "none");
+		});
+		var btn = d3.select("#legendButton").on("click", function () {
+			modal.style("display", "block");
+		});
+		var span = d3.select(".close").on("click", function () {
+			modal.style("display", "none");
 		});
 	</script>
 </body>
