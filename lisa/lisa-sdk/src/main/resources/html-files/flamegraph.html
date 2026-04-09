@@ -159,7 +159,11 @@
 				const maxX = 0;
 				const maxY = 0;
 				const minX = Math.min(width - width * scale, 0);
-				const minY = Math.min(height - height * scale, 0);
+				const viewportHeight = Math.max(height - axisHeight, 0);
+				const contentNode = zoomLayer.node();
+				const contentHeight = contentNode ? contentNode.getBBox().height : viewportHeight;
+				const minY = Math.min(viewportHeight - contentHeight * scale, 0);
+
 				const clampedX = Math.max(Math.min(t.x, maxX), minX);
 				const clampedY = Math.max(Math.min(t.y, maxY), minY);
 				const clamped = t.x !== clampedX || t.y !== clampedY;
@@ -361,11 +365,16 @@
 			const x1 = xScale(Math.max(minTime, visibleMin));
 			const x2 = xScale(Math.min(maxTime, visibleMax));
 
-			const mainGraphHeight = height;
-			const visibleYMin = -ty / scale;
-			const visibleYMax = (mainGraphHeight - ty) / scale;
-			const y1 = Math.max(0, visibleYMin / mainGraphHeight * overviewHeight);
-			const y2 = Math.min(overviewHeight, visibleYMax / mainGraphHeight * overviewHeight);
+			const graphViewportHeight = Math.max(0, height - axisHeight);
+			const svgBounds = svg.node().getBBox();
+			const contentHeight = Math.max(
+				graphViewportHeight,
+				Math.max(0, svgBounds.height - axisHeight)
+			);
+			const visibleYMin = Math.max(0, -ty / scale);
+			const visibleYMax = Math.min(contentHeight, visibleYMin + graphViewportHeight / scale);
+			const y1 = contentHeight === 0 ? 0 : Math.max(0, visibleYMin / contentHeight * overviewHeight);
+			const y2 = contentHeight === 0 ? overviewHeight : Math.min(overviewHeight, visibleYMax / contentHeight * overviewHeight);
 
 			overviewViewport
 				.attr("x", x1)
