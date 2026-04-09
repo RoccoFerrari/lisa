@@ -15,13 +15,12 @@
 
 <body>
 	<div class="box">
-		<header class="row header">
+		<header class="row header" id="lisa-header">
 			<img src="https://raw.githubusercontent.com/lisa-analyzer/lisa/master/logo.png" alt="LiSA logo" />
 			<h1>Analysis Flame Graph</h1>
 			<input id="search" type="text" class="searchbar" placeholder="Search node..." />
 			<input id="next" type="button" value="Next" class="button" disabled />
 			<input id="prev" type="button" value="Previous" class="button" disabled />
-			<button id="centerButton" class="button">Reset zoom &amp; recenter</button>
 			<button id="legendButton" class="button">Legend</button>
 		</header>
 		<div id="legend" class="modal">
@@ -34,15 +33,20 @@
 				<b>The lighter the color, the shorter the execution time</b>
 			</div>
 		</div>
+		<div id="overview-map-container">
+			<svg id="overview-map"></svg>
+		</div>
 		<div id="heatmap-chart"></div>
 		<div class="heatmap-tooltip" id="heatmap-tooltip"></div>
 	</div>
 	<script>
 		/*<![CDATA[*/
-		const graph = "{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"445923\",\"start_ns\":\"366111\",\"text\":\"Analysis: Small step semantics of PUSHANY\"}],\"end_ns\":\"447373\",\"start_ns\":\"320784\",\"text\":\"Semantics of #TOP#\"},{\"children\":[{\"children\":[],\"end_ns\":\"462468\",\"start_ns\":\"455806\",\"text\":\"Analysis: Small step semantics of this\"}],\"end_ns\":\"462911\",\"start_ns\":\"451247\",\"text\":\"Semantics of this\"},{\"children\":[],\"end_ns\":\"550434\",\"start_ns\":\"468345\",\"text\":\"Analysis: Assignment of this to PUSHANY\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"652564\",\"start_ns\":\"620595\",\"text\":\"Analysis: Small step semantics of new A\"},{\"children\":[],\"end_ns\":\"697839\",\"start_ns\":\"692327\",\"text\":\"Analysis: Small step semantics of $rec@'imp-testcases\/visualization\/visualization.imp':29:22\"},{\"children\":[],\"end_ns\":\"763000\",\"start_ns\":\"703330\",\"text\":\"Analysis: Assignment of $rec@'imp-testcases\/visualization\/visualization.imp':29:22 to ref$new A\"},{\"children\":[],\"end_ns\":\"1045543\",\"start_ns\":\"1028178\",\"text\":\"Analysis: Assignment of this to ['imp-testcases\/visualization\/visualization.imp':29:22]:$rec@'imp-testcases\/visualization\/visualization.imp':29:22\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"1132134\",\"start_ns\":\"1126508\",\"text\":\"Analysis: Small step semantics of 0\"}],\"end_ns\":\"1132939\",\"start_ns\":\"1124118\",\"text\":\"Semantics of 0\"},{\"children\":[{\"children\":[],\"end_ns\":\"1144268\",\"start_ns\":\"1137839\",\"text\":\"Analysis: Small step semantics of i1\"}],\"end_ns\":\"1144719\",\"start_ns\":\"1134191\",\"text\":\"Semantics of i1\"},{\"children\":[],\"end_ns\":\"1178647\",\"start_ns\":\"1148279\",\"text\":\"Analysis: Assignment of i1 to 0\"}],\"end_ns\":\"1181821\",\"start_ns\":\"1122100\",\"text\":\"Semantics of i1 = 0\"},{\"children\":[],\"end_ns\":\"1241647\",\"start_ns\":\"1221736\",\"text\":\"Traversal of [ i1 = 0 ] ---> [ ret ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"1251969\",\"start_ns\":\"1248624\",\"text\":\"Analysis: Small step semantics of skip\"}],\"end_ns\":\"1252151\",\"start_ns\":\"1246570\",\"text\":\"Semantics of ret\"}],\"end_ns\":\"1277716\",\"start_ns\":\"1051194\",\"text\":\"Fixpoint of untyped A::A(A*)\"},{\"children\":[],\"end_ns\":\"1359251\",\"start_ns\":\"1354237\",\"text\":\"Analysis: Transferring throwers from untyped A::A(A*) [at 'imp-testcases\/visualization\/visualization.imp':2:4] to A::A($rec@'imp-testcases\/visualization\/visualization.imp':29:22)\"},{\"children\":[],\"end_ns\":\"1364377\",\"start_ns\":\"1360368\",\"text\":\"Analysis: Returning from call [1 targets] A::A($rec@'imp-testcases\/visualization\/visualization.imp':29:22)\"},{\"children\":[],\"end_ns\":\"1374382\",\"start_ns\":\"1371777\",\"text\":\"Analysis: Small step semantics of skip\"}],\"end_ns\":\"1381015\",\"start_ns\":\"613068\",\"text\":\"Semantics of new A()\"},{\"children\":[{\"children\":[],\"end_ns\":\"1392153\",\"start_ns\":\"1386421\",\"text\":\"Analysis: Small step semantics of a\"}],\"end_ns\":\"1392613\",\"start_ns\":\"1383564\",\"text\":\"Semantics of a\"},{\"children\":[],\"end_ns\":\"1411983\",\"start_ns\":\"1395083\",\"text\":\"Analysis: Assignment of a to $rec@'imp-testcases\/visualization\/visualization.imp':29:22\"}],\"end_ns\":\"1415278\",\"start_ns\":\"610651\",\"text\":\"Semantics of a = new A()\"},{\"children\":[],\"end_ns\":\"1461042\",\"start_ns\":\"1436678\",\"text\":\"Traversal of [ a = new A() ] ---> [ one = getPositive(a, getOne(a)) ]\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"1474087\",\"start_ns\":\"1469749\",\"text\":\"Analysis: Small step semantics of a\"}],\"end_ns\":\"1474392\",\"start_ns\":\"1467856\",\"text\":\"Semantics of a\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"1479206\",\"start_ns\":\"1476676\",\"text\":\"Analysis: Small step semantics of a\"}],\"end_ns\":\"1479352\",\"start_ns\":\"1475915\",\"text\":\"Semantics of a\"},{\"children\":[],\"end_ns\":\"1692686\",\"start_ns\":\"1676454\",\"text\":\"Analysis: Assignment of this to ['imp-testcases\/visualization\/visualization.imp':30:41]:a\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"1779217\",\"start_ns\":\"1743180\",\"text\":\"Analysis: Small step semantics of new tests\"},{\"children\":[],\"end_ns\":\"1809712\",\"start_ns\":\"1804792\",\"text\":\"Analysis: Small step semantics of $rec@'imp-testcases\/visualization\/visualization.imp':6:25\"},{\"children\":[],\"end_ns\":\"1859086\",\"start_ns\":\"1813866\",\"text\":\"Analysis: Assignment of $rec@'imp-testcases\/visualization\/visualization.imp':6:25 to ref$new tests\"},{\"children\":[],\"end_ns\":\"6011293\",\"start_ns\":\"5981285\",\"text\":\"Analysis: Small step semantics of open_call_ret_value@'imp-testcases\/visualization\/visualization.imp':6:25\"}],\"end_ns\":\"6037441\",\"start_ns\":\"1736732\",\"text\":\"Semantics of new tests()\"},{\"children\":[{\"children\":[],\"end_ns\":\"6052352\",\"start_ns\":\"6047708\",\"text\":\"Analysis: Small step semantics of rec\"}],\"end_ns\":\"6052847\",\"start_ns\":\"6042407\",\"text\":\"Semantics of rec\"},{\"children\":[],\"end_ns\":\"6120891\",\"start_ns\":\"6058624\",\"text\":\"Analysis: Assignment of rec to $rec@'imp-testcases\/visualization\/visualization.imp':6:25\"}],\"end_ns\":\"6131602\",\"start_ns\":\"1735067\",\"text\":\"Semantics of rec = new tests()\"},{\"children\":[],\"end_ns\":\"6213337\",\"start_ns\":\"6169894\",\"text\":\"Traversal of [ rec = new tests() ] ---> [ x = open(rec) ]\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"6231924\",\"start_ns\":\"6226439\",\"text\":\"Analysis: Small step semantics of rec\"}],\"end_ns\":\"6232247\",\"start_ns\":\"6223969\",\"text\":\"Semantics of rec\"},{\"children\":[],\"end_ns\":\"6352821\",\"start_ns\":\"6347659\",\"text\":\"Analysis: Small step semantics of open_call_ret_value@'imp-testcases\/visualization\/visualization.imp':7:22\"}],\"end_ns\":\"6360815\",\"start_ns\":\"6222965\",\"text\":\"Semantics of open(rec)\"},{\"children\":[{\"children\":[],\"end_ns\":\"6368025\",\"start_ns\":\"6365029\",\"text\":\"Analysis: Small step semantics of x\"}],\"end_ns\":\"6368396\",\"start_ns\":\"6362873\",\"text\":\"Semantics of x\"},{\"children\":[],\"end_ns\":\"6413864\",\"start_ns\":\"6371458\",\"text\":\"Analysis: Assignment of x to open_call_ret_value@'imp-testcases\/visualization\/visualization.imp':7:22\"}],\"end_ns\":\"6417490\",\"start_ns\":\"6220636\",\"text\":\"Semantics of x = open(rec)\"},{\"children\":[],\"end_ns\":\"6481767\",\"start_ns\":\"6452239\",\"text\":\"Traversal of [ x = open(rec) ] ---> [ <(x, 10) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"6495535\",\"start_ns\":\"6490861\",\"text\":\"Analysis: Small step semantics of x\"}],\"end_ns\":\"6495841\",\"start_ns\":\"6489090\",\"text\":\"Semantics of x\"},{\"children\":[{\"children\":[],\"end_ns\":\"6502734\",\"start_ns\":\"6498952\",\"text\":\"Analysis: Small step semantics of 10\"}],\"end_ns\":\"6502966\",\"start_ns\":\"6496523\",\"text\":\"Semantics of 10\"},{\"children\":[],\"end_ns\":\"6551386\",\"start_ns\":\"6533305\",\"text\":\"Analysis: Small step semantics of x < 10\"}],\"end_ns\":\"6554115\",\"start_ns\":\"6488202\",\"text\":\"Semantics of <(x, 10)\"},{\"children\":[{\"children\":[],\"end_ns\":\"6739707\",\"start_ns\":\"6621021\",\"text\":\"Analysis: Assume of x < 10\"}],\"end_ns\":\"6743889\",\"start_ns\":\"6606238\",\"text\":\"Traversal of [ <(x, 10) ] -T-> [ x = +(x, 1) ]\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"6759017\",\"start_ns\":\"6754461\",\"text\":\"Analysis: Small step semantics of x\"}],\"end_ns\":\"6759276\",\"start_ns\":\"6751853\",\"text\":\"Semantics of x\"},{\"children\":[{\"children\":[],\"end_ns\":\"6764360\",\"start_ns\":\"6761947\",\"text\":\"Analysis: Small step semantics of 1\"}],\"end_ns\":\"6764589\",\"start_ns\":\"6759891\",\"text\":\"Semantics of 1\"},{\"children\":[],\"end_ns\":\"6827717\",\"start_ns\":\"6815841\",\"text\":\"Analysis: Small step semantics of x + 1\"},{\"children\":[],\"end_ns\":\"6873807\",\"start_ns\":\"6861246\",\"text\":\"Analysis: Small step semantics of x + 1\"}],\"end_ns\":\"6887410\",\"start_ns\":\"6750967\",\"text\":\"Semantics of +(x, 1)\"},{\"children\":[{\"children\":[],\"end_ns\":\"6895024\",\"start_ns\":\"6891422\",\"text\":\"Analysis: Small step semantics of x\"}],\"end_ns\":\"6895408\",\"start_ns\":\"6889477\",\"text\":\"Semantics of x\"},{\"children\":[],\"end_ns\":\"7021205\",\"start_ns\":\"6897823\",\"text\":\"Analysis: Assignment of x to x + 1\"}],\"end_ns\":\"7023940\",\"start_ns\":\"6748554\",\"text\":\"Semantics of x = +(x, 1)\"},{\"children\":[],\"end_ns\":\"7084449\",\"start_ns\":\"7058388\",\"text\":\"Traversal of [ x = open(rec) ] ---> [ <(x, 10) ]\"},{\"children\":[],\"end_ns\":\"7097909\",\"start_ns\":\"7090423\",\"text\":\"Traversal of [ x = +(x, 1) ] ---> [ <(x, 10) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"7175102\",\"start_ns\":\"7169875\",\"text\":\"Analysis: Small step semantics of x\"}],\"end_ns\":\"7175389\",\"start_ns\":\"7167545\",\"text\":\"Semantics of x\"},{\"children\":[{\"children\":[],\"end_ns\":\"7180593\",\"start_ns\":\"7178002\",\"text\":\"Analysis: Small step semantics of 10\"}],\"end_ns\":\"7180788\",\"start_ns\":\"7175920\",\"text\":\"Semantics of 10\"},{\"children\":[],\"end_ns\":\"7219400\",\"start_ns\":\"7208103\",\"text\":\"Analysis: Small step semantics of x < 10\"}],\"end_ns\":\"7229437\",\"start_ns\":\"7166538\",\"text\":\"Semantics of <(x, 10)\"},{\"children\":[{\"children\":[],\"end_ns\":\"7401122\",\"start_ns\":\"7303618\",\"text\":\"Analysis: Assume of ! x < 10\"}],\"end_ns\":\"7404834\",\"start_ns\":\"7289245\",\"text\":\"Traversal of [ <(x, 10) ] -F-> [ return 1 ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"7415521\",\"start_ns\":\"7412926\",\"text\":\"Analysis: Small step semantics of 1\"}],\"end_ns\":\"7415797\",\"start_ns\":\"7411445\",\"text\":\"Semantics of 1\"},{\"children\":[],\"end_ns\":\"7444604\",\"start_ns\":\"7424989\",\"text\":\"Analysis: Assignment of ret_value@getOne to 1\"}],\"end_ns\":\"7447933\",\"start_ns\":\"7408829\",\"text\":\"Semantics of return 1\"}],\"end_ns\":\"7480787\",\"start_ns\":\"1698276\",\"text\":\"Fixpoint of untyped A::getOne(A*)\"},{\"children\":[],\"end_ns\":\"7564933\",\"start_ns\":\"7551238\",\"text\":\"Analysis: Assignment of ['imp-testcases\/visualization\/visualization.imp':30:41]:call_ret_value@'imp-testcases\/visualization\/visualization.imp':30:41 to ret_value@getOne\"},{\"children\":[],\"end_ns\":\"7592863\",\"start_ns\":\"7588136\",\"text\":\"Analysis: Transferring throwers from untyped A::getOne(A*) [at 'imp-testcases\/visualization\/visualization.imp':5:4] to getOne(a)\"},{\"children\":[],\"end_ns\":\"7597718\",\"start_ns\":\"7594376\",\"text\":\"Analysis: Returning from call [1 targets] getOne(a)\"}],\"end_ns\":\"7614016\",\"start_ns\":\"1475602\",\"text\":\"Semantics of getOne(a)\"},{\"children\":[],\"end_ns\":\"7887830\",\"start_ns\":\"7847476\",\"text\":\"Analysis: Assignment of this to ['imp-testcases\/visualization\/visualization.imp':30:42]:a\"},{\"children\":[],\"end_ns\":\"7903357\",\"start_ns\":\"7891542\",\"text\":\"Analysis: Assignment of i to ['imp-testcases\/visualization\/visualization.imp':30:42]:call_ret_value@'imp-testcases\/visualization\/visualization.imp':30:41\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"7975811\",\"start_ns\":\"7967154\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"7976192\",\"start_ns\":\"7964485\",\"text\":\"Semantics of i\"},{\"children\":[{\"children\":[],\"end_ns\":\"7982584\",\"start_ns\":\"7979676\",\"text\":\"Analysis: Small step semantics of 0\"}],\"end_ns\":\"7982823\",\"start_ns\":\"7976875\",\"text\":\"Semantics of 0\"},{\"children\":[],\"end_ns\":\"8018482\",\"start_ns\":\"8002891\",\"text\":\"Analysis: Small step semantics of i <= 0\"}],\"end_ns\":\"8020931\",\"start_ns\":\"7963688\",\"text\":\"Semantics of <=(i, 0)\"},{\"children\":[{\"children\":[],\"end_ns\":\"8141152\",\"start_ns\":\"8067393\",\"text\":\"Analysis: Assume of i <= 0\"}],\"end_ns\":\"8144938\",\"start_ns\":\"8050438\",\"text\":\"Traversal of [ <=(i, 0) ] -T-> [ i = 1 ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"8156142\",\"start_ns\":\"8153243\",\"text\":\"Analysis: Small step semantics of 1\"}],\"end_ns\":\"8156875\",\"start_ns\":\"8151513\",\"text\":\"Semantics of 1\"},{\"children\":[{\"children\":[],\"end_ns\":\"8165041\",\"start_ns\":\"8160324\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"8165443\",\"start_ns\":\"8158383\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"8171736\",\"start_ns\":\"8167947\",\"text\":\"Analysis: Assignment of i to 1\"}],\"end_ns\":\"8174843\",\"start_ns\":\"8148920\",\"text\":\"Semantics of i = 1\"},{\"children\":[{\"children\":[],\"end_ns\":\"8275703\",\"start_ns\":\"8214365\",\"text\":\"Analysis: Assume of ! i <= 0\"}],\"end_ns\":\"8278595\",\"start_ns\":\"8201273\",\"text\":\"Traversal of [ <=(i, 0) ] -F-> [ i = 10 ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"8287911\",\"start_ns\":\"8285456\",\"text\":\"Analysis: Small step semantics of 10\"}],\"end_ns\":\"8288424\",\"start_ns\":\"8284027\",\"text\":\"Semantics of 10\"},{\"children\":[{\"children\":[],\"end_ns\":\"8295822\",\"start_ns\":\"8291522\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"8296215\",\"start_ns\":\"8290012\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"8318268\",\"start_ns\":\"8298100\",\"text\":\"Analysis: Assignment of i to 10\"}],\"end_ns\":\"8320707\",\"start_ns\":\"8282459\",\"text\":\"Semantics of i = 10\"},{\"children\":[],\"end_ns\":\"8353399\",\"start_ns\":\"8344276\",\"text\":\"Traversal of [ i = 1 ] ---> [ return i ]\"},{\"children\":[],\"end_ns\":\"8366231\",\"start_ns\":\"8357699\",\"text\":\"Traversal of [ i = 10 ] ---> [ return i ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"8392626\",\"start_ns\":\"8387791\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"8392848\",\"start_ns\":\"8386379\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"8419110\",\"start_ns\":\"8401500\",\"text\":\"Analysis: Assignment of ret_value@getPositive to i\"}],\"end_ns\":\"8422293\",\"start_ns\":\"8383927\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"8447695\",\"start_ns\":\"7908173\",\"text\":\"Fixpoint of untyped A::getPositive(A*, untyped)\"},{\"children\":[],\"end_ns\":\"8525548\",\"start_ns\":\"8509483\",\"text\":\"Analysis: Assignment of ['imp-testcases\/visualization\/visualization.imp':30:42]:call_ret_value@'imp-testcases\/visualization\/visualization.imp':30:42 to ret_value@getPositive\"},{\"children\":[],\"end_ns\":\"8552693\",\"start_ns\":\"8547903\",\"text\":\"Analysis: Transferring throwers from untyped A::getPositive(A*, untyped) [at 'imp-testcases\/visualization\/visualization.imp':12:4] to getPositive(a, getOne(a))\"},{\"children\":[],\"end_ns\":\"8557349\",\"start_ns\":\"8553837\",\"text\":\"Analysis: Returning from call [1 targets] getPositive(a, getOne(a))\"}],\"end_ns\":\"8574455\",\"start_ns\":\"1466530\",\"text\":\"Semantics of getPositive(a, getOne(a))\"},{\"children\":[{\"children\":[],\"end_ns\":\"8585122\",\"start_ns\":\"8580129\",\"text\":\"Analysis: Small step semantics of one\"}],\"end_ns\":\"8585577\",\"start_ns\":\"8576741\",\"text\":\"Semantics of one\"},{\"children\":[],\"end_ns\":\"8601734\",\"start_ns\":\"8588229\",\"text\":\"Analysis: Assignment of one to call_ret_value@'imp-testcases\/visualization\/visualization.imp':30:42\"}],\"end_ns\":\"8604055\",\"start_ns\":\"1465067\",\"text\":\"Semantics of one = getPositive(a, getOne(a))\"},{\"children\":[],\"end_ns\":\"8648393\",\"start_ns\":\"8625432\",\"text\":\"Traversal of [ one = getPositive(a, getOne(a)) ] ---> [ positive = identity(a, one) ]\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"8660044\",\"start_ns\":\"8655715\",\"text\":\"Analysis: Small step semantics of a\"}],\"end_ns\":\"8660332\",\"start_ns\":\"8654045\",\"text\":\"Semantics of a\"},{\"children\":[{\"children\":[],\"end_ns\":\"8664704\",\"start_ns\":\"8662112\",\"text\":\"Analysis: Small step semantics of one\"}],\"end_ns\":\"8664904\",\"start_ns\":\"8660986\",\"text\":\"Semantics of one\"},{\"children\":[],\"end_ns\":\"14417170\",\"start_ns\":\"14363524\",\"text\":\"Analysis: Assignment of this to ['imp-testcases\/visualization\/visualization.imp':31:37]:a\"},{\"children\":[],\"end_ns\":\"14436183\",\"start_ns\":\"14422133\",\"text\":\"Analysis: Assignment of i to ['imp-testcases\/visualization\/visualization.imp':31:37]:one\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"14510138\",\"start_ns\":\"14503473\",\"text\":\"Analysis: Small step semantics of 1\"}],\"end_ns\":\"14511195\",\"start_ns\":\"14500399\",\"text\":\"Semantics of 1\"},{\"children\":[{\"children\":[],\"end_ns\":\"14636842\",\"start_ns\":\"14627858\",\"text\":\"Analysis: Small step semantics of i3\"}],\"end_ns\":\"14637441\",\"start_ns\":\"14617532\",\"text\":\"Semantics of i3\"},{\"children\":[],\"end_ns\":\"14669059\",\"start_ns\":\"14641824\",\"text\":\"Analysis: Assignment of i3 to 1\"}],\"end_ns\":\"14672427\",\"start_ns\":\"14497685\",\"text\":\"Semantics of i3 = 1\"},{\"children\":[],\"end_ns\":\"14741866\",\"start_ns\":\"14719522\",\"text\":\"Traversal of [ i3 = 1 ] ---> [ return i ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"14756456\",\"start_ns\":\"14751678\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"14756808\",\"start_ns\":\"14750207\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"14781682\",\"start_ns\":\"14764182\",\"text\":\"Analysis: Assignment of ret_value@identity to i\"}],\"end_ns\":\"14785238\",\"start_ns\":\"14747039\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"14803509\",\"start_ns\":\"14444384\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"},{\"children\":[],\"end_ns\":\"14885691\",\"start_ns\":\"14870723\",\"text\":\"Analysis: Assignment of ['imp-testcases\/visualization\/visualization.imp':31:37]:call_ret_value@'imp-testcases\/visualization\/visualization.imp':31:37 to ret_value@identity\"},{\"children\":[],\"end_ns\":\"14916066\",\"start_ns\":\"14910759\",\"text\":\"Analysis: Transferring throwers from untyped A::identity(A*, untyped) [at 'imp-testcases\/visualization\/visualization.imp':19:4] to identity(a, one)\"},{\"children\":[],\"end_ns\":\"15098192\",\"start_ns\":\"14917323\",\"text\":\"Analysis: Returning from call [1 targets] identity(a, one)\"}],\"end_ns\":\"15141076\",\"start_ns\":\"8653435\",\"text\":\"Semantics of identity(a, one)\"},{\"children\":[{\"children\":[],\"end_ns\":\"15306647\",\"start_ns\":\"15173734\",\"text\":\"Analysis: Small step semantics of positive\"}],\"end_ns\":\"15318137\",\"start_ns\":\"15159065\",\"text\":\"Semantics of positive\"},{\"children\":[],\"end_ns\":\"15545953\",\"start_ns\":\"15334104\",\"text\":\"Analysis: Assignment of positive to call_ret_value@'imp-testcases\/visualization\/visualization.imp':31:37\"}],\"end_ns\":\"15564910\",\"start_ns\":\"8651981\",\"text\":\"Semantics of positive = identity(a, one)\"},{\"children\":[],\"end_ns\":\"15732130\",\"start_ns\":\"15666809\",\"text\":\"Traversal of [ positive = identity(a, one) ] ---> [ minusone = -1 ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"15884184\",\"start_ns\":\"15796903\",\"text\":\"Analysis: Small step semantics of -1\"}],\"end_ns\":\"15898926\",\"start_ns\":\"15783706\",\"text\":\"Semantics of -1\"},{\"children\":[{\"children\":[],\"end_ns\":\"16067481\",\"start_ns\":\"15926523\",\"text\":\"Analysis: Small step semantics of minusone\"}],\"end_ns\":\"16077697\",\"start_ns\":\"15910813\",\"text\":\"Semantics of minusone\"},{\"children\":[],\"end_ns\":\"16183471\",\"start_ns\":\"16092743\",\"text\":\"Analysis: Assignment of minusone to -1\"}],\"end_ns\":\"16187838\",\"start_ns\":\"15769117\",\"text\":\"Semantics of minusone = -1\"},{\"children\":[],\"end_ns\":\"16231216\",\"start_ns\":\"16215128\",\"text\":\"Traversal of [ minusone = -1 ] ---> [ negative = identity(a, minusone) ]\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"16248055\",\"start_ns\":\"16241764\",\"text\":\"Analysis: Small step semantics of a\"}],\"end_ns\":\"16248328\",\"start_ns\":\"16239662\",\"text\":\"Semantics of a\"},{\"children\":[{\"children\":[],\"end_ns\":\"16252695\",\"start_ns\":\"16250305\",\"text\":\"Analysis: Small step semantics of minusone\"}],\"end_ns\":\"16252817\",\"start_ns\":\"16249045\",\"text\":\"Semantics of minusone\"},{\"children\":[],\"end_ns\":\"16586438\",\"start_ns\":\"16549512\",\"text\":\"Analysis: Assignment of this to ['imp-testcases\/visualization\/visualization.imp':33:42]:a\"},{\"children\":[],\"end_ns\":\"16602613\",\"start_ns\":\"16590493\",\"text\":\"Analysis: Assignment of i to ['imp-testcases\/visualization\/visualization.imp':33:42]:minusone\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"16650187\",\"start_ns\":\"16646025\",\"text\":\"Analysis: Small step semantics of 1\"}],\"end_ns\":\"16650857\",\"start_ns\":\"16643432\",\"text\":\"Semantics of 1\"},{\"children\":[{\"children\":[],\"end_ns\":\"16660219\",\"start_ns\":\"16654964\",\"text\":\"Analysis: Small step semantics of i3\"}],\"end_ns\":\"16660609\",\"start_ns\":\"16652079\",\"text\":\"Semantics of i3\"},{\"children\":[],\"end_ns\":\"16683069\",\"start_ns\":\"16663477\",\"text\":\"Analysis: Assignment of i3 to 1\"}],\"end_ns\":\"16685381\",\"start_ns\":\"16641358\",\"text\":\"Semantics of i3 = 1\"},{\"children\":[],\"end_ns\":\"16717680\",\"start_ns\":\"16703010\",\"text\":\"Traversal of [ i3 = 1 ] ---> [ return i ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"16728888\",\"start_ns\":\"16724559\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"16729128\",\"start_ns\":\"16723205\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"16753335\",\"start_ns\":\"16737648\",\"text\":\"Analysis: Assignment of ret_value@identity to i\"}],\"end_ns\":\"16756781\",\"start_ns\":\"16721291\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"16777739\",\"start_ns\":\"16607048\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"},{\"children\":[],\"end_ns\":\"16835559\",\"start_ns\":\"16820612\",\"text\":\"Analysis: Assignment of ['imp-testcases\/visualization\/visualization.imp':33:42]:call_ret_value@'imp-testcases\/visualization\/visualization.imp':33:42 to ret_value@identity\"},{\"children\":[],\"end_ns\":\"16862754\",\"start_ns\":\"16857926\",\"text\":\"Analysis: Transferring throwers from untyped A::identity(A*, untyped) [at 'imp-testcases\/visualization\/visualization.imp':19:4] to identity(a, minusone)\"},{\"children\":[],\"end_ns\":\"16867458\",\"start_ns\":\"16863881\",\"text\":\"Analysis: Returning from call [1 targets] identity(a, minusone)\"}],\"end_ns\":\"16884154\",\"start_ns\":\"16238444\",\"text\":\"Semantics of identity(a, minusone)\"},{\"children\":[{\"children\":[],\"end_ns\":\"16892223\",\"start_ns\":\"16887747\",\"text\":\"Analysis: Small step semantics of negative\"}],\"end_ns\":\"16892642\",\"start_ns\":\"16885928\",\"text\":\"Semantics of negative\"},{\"children\":[],\"end_ns\":\"16908999\",\"start_ns\":\"16895048\",\"text\":\"Analysis: Assignment of negative to call_ret_value@'imp-testcases\/visualization\/visualization.imp':33:42\"}],\"end_ns\":\"16911520\",\"start_ns\":\"16236691\",\"text\":\"Semantics of negative = identity(a, minusone)\"},{\"children\":[],\"end_ns\":\"16965654\",\"start_ns\":\"16929686\",\"text\":\"Traversal of [ negative = identity(a, minusone) ] ---> [ top = helper(this, one, a) ]\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"16977311\",\"start_ns\":\"16972888\",\"text\":\"Analysis: Small step semantics of this\"}],\"end_ns\":\"16977611\",\"start_ns\":\"16971396\",\"text\":\"Semantics of this\"},{\"children\":[{\"children\":[],\"end_ns\":\"16981629\",\"start_ns\":\"16979275\",\"text\":\"Analysis: Small step semantics of one\"}],\"end_ns\":\"16981767\",\"start_ns\":\"16978122\",\"text\":\"Semantics of one\"},{\"children\":[{\"children\":[],\"end_ns\":\"16984931\",\"start_ns\":\"16982698\",\"text\":\"Analysis: Small step semantics of a\"}],\"end_ns\":\"16985083\",\"start_ns\":\"16982017\",\"text\":\"Semantics of a\"},{\"children\":[],\"end_ns\":\"17287169\",\"start_ns\":\"17254619\",\"text\":\"Analysis: Assignment of this to ['imp-testcases\/visualization\/visualization.imp':34:36]:this\"},{\"children\":[],\"end_ns\":\"17303380\",\"start_ns\":\"17290826\",\"text\":\"Analysis: Assignment of i to ['imp-testcases\/visualization\/visualization.imp':34:36]:one\"},{\"children\":[],\"end_ns\":\"17330542\",\"start_ns\":\"17305773\",\"text\":\"Analysis: Assignment of dispatcher to ['imp-testcases\/visualization\/visualization.imp':34:36]:a\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"17378890\",\"start_ns\":\"17372824\",\"text\":\"Analysis: Small step semantics of dispatcher\"}],\"end_ns\":\"17379191\",\"start_ns\":\"17370628\",\"text\":\"Semantics of dispatcher\"},{\"children\":[{\"children\":[],\"end_ns\":\"17383022\",\"start_ns\":\"17380531\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"17383158\",\"start_ns\":\"17379682\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"17660615\",\"start_ns\":\"17629015\",\"text\":\"Analysis: Assignment of this to ['imp-testcases\/visualization\/visualization.imp':38:36]:dispatcher\"},{\"children\":[],\"end_ns\":\"17676413\",\"start_ns\":\"17663856\",\"text\":\"Analysis: Assignment of i to ['imp-testcases\/visualization\/visualization.imp':38:36]:i\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"19582617\",\"start_ns\":\"19573927\",\"text\":\"Analysis: Small step semantics of 1\"}],\"end_ns\":\"19583654\",\"start_ns\":\"19570610\",\"text\":\"Semantics of 1\"},{\"children\":[{\"children\":[],\"end_ns\":\"19604022\",\"start_ns\":\"19593296\",\"text\":\"Analysis: Small step semantics of i3\"}],\"end_ns\":\"19604435\",\"start_ns\":\"19586967\",\"text\":\"Semantics of i3\"},{\"children\":[],\"end_ns\":\"19659899\",\"start_ns\":\"19608422\",\"text\":\"Analysis: Assignment of i3 to 1\"}],\"end_ns\":\"19665872\",\"start_ns\":\"19566449\",\"text\":\"Semantics of i3 = 1\"},{\"children\":[],\"end_ns\":\"19711986\",\"start_ns\":\"19689370\",\"text\":\"Traversal of [ i3 = 1 ] ---> [ return i ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"19726179\",\"start_ns\":\"19721547\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"19726546\",\"start_ns\":\"19720144\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"19758836\",\"start_ns\":\"19736515\",\"text\":\"Analysis: Assignment of ret_value@identity to i\"}],\"end_ns\":\"19762532\",\"start_ns\":\"19716611\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"19785571\",\"start_ns\":\"17680581\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"},{\"children\":[],\"end_ns\":\"19853308\",\"start_ns\":\"19838662\",\"text\":\"Analysis: Assignment of ['imp-testcases\/visualization\/visualization.imp':38:36]:call_ret_value@'imp-testcases\/visualization\/visualization.imp':38:36 to ret_value@identity\"},{\"children\":[],\"end_ns\":\"19889561\",\"start_ns\":\"19884425\",\"text\":\"Analysis: Transferring throwers from untyped A::identity(A*, untyped) [at 'imp-testcases\/visualization\/visualization.imp':19:4] to identity(dispatcher, i)\"},{\"children\":[],\"end_ns\":\"19894691\",\"start_ns\":\"19890739\",\"text\":\"Analysis: Returning from call [1 targets] identity(dispatcher, i)\"}],\"end_ns\":\"19910270\",\"start_ns\":\"17370153\",\"text\":\"Semantics of identity(dispatcher, i)\"},{\"children\":[],\"end_ns\":\"19928220\",\"start_ns\":\"19914438\",\"text\":\"Analysis: Assignment of ret_value@helper to call_ret_value@'imp-testcases\/visualization\/visualization.imp':38:36\"}],\"end_ns\":\"19954360\",\"start_ns\":\"17368210\",\"text\":\"Semantics of return identity(dispatcher, i)\"}],\"end_ns\":\"19968169\",\"start_ns\":\"17334897\",\"text\":\"Fixpoint of untyped tests::helper(tests*, untyped, untyped)\"},{\"children\":[],\"end_ns\":\"20025229\",\"start_ns\":\"20011910\",\"text\":\"Analysis: Assignment of ['imp-testcases\/visualization\/visualization.imp':34:36]:call_ret_value@'imp-testcases\/visualization\/visualization.imp':34:36 to ret_value@helper\"},{\"children\":[],\"end_ns\":\"20043671\",\"start_ns\":\"20041227\",\"text\":\"Analysis: Transferring throwers from untyped tests::helper(tests*, untyped, untyped) [at 'imp-testcases\/visualization\/visualization.imp':37:4] to helper(this, one, a)\"},{\"children\":[],\"end_ns\":\"20046200\",\"start_ns\":\"20044174\",\"text\":\"Analysis: Returning from call [1 targets] helper(this, one, a)\"}],\"end_ns\":\"20059364\",\"start_ns\":\"16970776\",\"text\":\"Semantics of helper(this, one, a)\"},{\"children\":[{\"children\":[],\"end_ns\":\"20069131\",\"start_ns\":\"20063581\",\"text\":\"Analysis: Small step semantics of top\"}],\"end_ns\":\"20069492\",\"start_ns\":\"20061278\",\"text\":\"Semantics of top\"},{\"children\":[],\"end_ns\":\"20085517\",\"start_ns\":\"20072349\",\"text\":\"Analysis: Assignment of top to call_ret_value@'imp-testcases\/visualization\/visualization.imp':34:36\"}],\"end_ns\":\"20088060\",\"start_ns\":\"16969504\",\"text\":\"Semantics of top = helper(this, one, a)\"},{\"children\":[],\"end_ns\":\"20134991\",\"start_ns\":\"20110775\",\"text\":\"Traversal of [ top = helper(this, one, a) ] ---> [ ret ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"20144342\",\"start_ns\":\"20141184\",\"text\":\"Analysis: Small step semantics of skip\"}],\"end_ns\":\"20144560\",\"start_ns\":\"20139516\",\"text\":\"Semantics of ret\"}],\"end_ns\":\"20180408\",\"start_ns\":\"557990\",\"text\":\"Fixpoint of untyped tests::main(tests*)\"}],\"end_ns\":\"20361002\",\"start_ns\":\"101471\",\"text\":\"Program-wide fixpoint iteration 1\"}],\"end_ns\":\"20362349\",\"start_ns\":\"0\",\"text\":\"Program-wide fixpoint\"}";
+		const graph = "{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"244089\",\"start_ns\":\"228560\",\"text\":\"Analysis: Small step semantics of PUSHANY\"}],\"end_ns\":\"245047\",\"start_ns\":\"221605\",\"text\":\"Semantics of #TOP#\"},{\"children\":[{\"children\":[],\"end_ns\":\"257265\",\"start_ns\":\"252145\",\"text\":\"Analysis: Small step semantics of this\"}],\"end_ns\":\"257553\",\"start_ns\":\"247980\",\"text\":\"Semantics of this\"},{\"children\":[],\"end_ns\":\"339815\",\"start_ns\":\"267901\",\"text\":\"Analysis: Assignment of this to PUSHANY\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"404014\",\"start_ns\":\"383308\",\"text\":\"Analysis: Small step semantics of new A\"},{\"children\":[],\"end_ns\":\"425137\",\"start_ns\":\"419895\",\"text\":\"Analysis: Small step semantics of $rec@'imp-testcases\/visualization\/visualization.imp':29:22\"},{\"children\":[],\"end_ns\":\"503526\",\"start_ns\":\"430982\",\"text\":\"Analysis: Assignment of $rec@'imp-testcases\/visualization\/visualization.imp':29:22 to ref$new A\"},{\"children\":[],\"end_ns\":\"745297\",\"start_ns\":\"727380\",\"text\":\"Analysis: Assignment of this to ['imp-testcases\/visualization\/visualization.imp':29:22]:$rec@'imp-testcases\/visualization\/visualization.imp':29:22\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"795636\",\"start_ns\":\"791180\",\"text\":\"Analysis: Small step semantics of 0\"}],\"end_ns\":\"796136\",\"start_ns\":\"790189\",\"text\":\"Semantics of 0\"},{\"children\":[{\"children\":[],\"end_ns\":\"805745\",\"start_ns\":\"800427\",\"text\":\"Analysis: Small step semantics of i1\"}],\"end_ns\":\"806339\",\"start_ns\":\"797455\",\"text\":\"Semantics of i1\"},{\"children\":[],\"end_ns\":\"854778\",\"start_ns\":\"808667\",\"text\":\"Analysis: Assignment of i1 to 0\"}],\"end_ns\":\"857371\",\"start_ns\":\"788650\",\"text\":\"Semantics of i1 = 0\"},{\"children\":[],\"end_ns\":\"914524\",\"start_ns\":\"894198\",\"text\":\"Traversal of [ i1 = 0 ] ---> [ ret ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"933014\",\"start_ns\":\"923666\",\"text\":\"Analysis: Small step semantics of skip\"}],\"end_ns\":\"933261\",\"start_ns\":\"920926\",\"text\":\"Semantics of ret\"}],\"end_ns\":\"960889\",\"start_ns\":\"750818\",\"text\":\"Fixpoint of untyped A::A(A*)\"},{\"children\":[],\"end_ns\":\"1039415\",\"start_ns\":\"1032720\",\"text\":\"Analysis: Transferring throwers from untyped A::A(A*) [at 'imp-testcases\/visualization\/visualization.imp':2:4] to A::A($rec@'imp-testcases\/visualization\/visualization.imp':29:22)\"},{\"children\":[],\"end_ns\":\"1044875\",\"start_ns\":\"1040656\",\"text\":\"Analysis: Returning from call [1 targets] A::A($rec@'imp-testcases\/visualization\/visualization.imp':29:22)\"},{\"children\":[],\"end_ns\":\"1058869\",\"start_ns\":\"1052205\",\"text\":\"Analysis: Small step semantics of skip\"}],\"end_ns\":\"1064413\",\"start_ns\":\"377859\",\"text\":\"Semantics of new A()\"},{\"children\":[{\"children\":[],\"end_ns\":\"1074192\",\"start_ns\":\"1068605\",\"text\":\"Analysis: Small step semantics of a\"}],\"end_ns\":\"1074520\",\"start_ns\":\"1066287\",\"text\":\"Semantics of a\"},{\"children\":[],\"end_ns\":\"1094060\",\"start_ns\":\"1076810\",\"text\":\"Analysis: Assignment of a to $rec@'imp-testcases\/visualization\/visualization.imp':29:22\"}],\"end_ns\":\"1097067\",\"start_ns\":\"376851\",\"text\":\"Semantics of a = new A()\"},{\"children\":[],\"end_ns\":\"1166124\",\"start_ns\":\"1116648\",\"text\":\"Traversal of [ a = new A() ] ---> [ one = getPositive(a, getOne(a)) ]\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"1186395\",\"start_ns\":\"1181681\",\"text\":\"Analysis: Small step semantics of a\"}],\"end_ns\":\"1186668\",\"start_ns\":\"1179812\",\"text\":\"Semantics of a\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"1191194\",\"start_ns\":\"1188720\",\"text\":\"Analysis: Small step semantics of a\"}],\"end_ns\":\"1191356\",\"start_ns\":\"1187888\",\"text\":\"Semantics of a\"},{\"children\":[],\"end_ns\":\"1384439\",\"start_ns\":\"1363179\",\"text\":\"Analysis: Assignment of this to ['imp-testcases\/visualization\/visualization.imp':30:41]:a\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"1476086\",\"start_ns\":\"1428088\",\"text\":\"Analysis: Small step semantics of new tests\"},{\"children\":[],\"end_ns\":\"1506166\",\"start_ns\":\"1493494\",\"text\":\"Analysis: Small step semantics of $rec@'imp-testcases\/visualization\/visualization.imp':6:25\"},{\"children\":[],\"end_ns\":\"1560718\",\"start_ns\":\"1510331\",\"text\":\"Analysis: Assignment of $rec@'imp-testcases\/visualization\/visualization.imp':6:25 to ref$new tests\"},{\"children\":[],\"end_ns\":\"1663360\",\"start_ns\":\"1656296\",\"text\":\"Analysis: Small step semantics of open_call_ret_value@'imp-testcases\/visualization\/visualization.imp':6:25\"}],\"end_ns\":\"1672164\",\"start_ns\":\"1422811\",\"text\":\"Semantics of new tests()\"},{\"children\":[{\"children\":[],\"end_ns\":\"1681591\",\"start_ns\":\"1678060\",\"text\":\"Analysis: Small step semantics of rec\"}],\"end_ns\":\"1682060\",\"start_ns\":\"1675978\",\"text\":\"Semantics of rec\"},{\"children\":[],\"end_ns\":\"1722628\",\"start_ns\":\"1688418\",\"text\":\"Analysis: Assignment of rec to $rec@'imp-testcases\/visualization\/visualization.imp':6:25\"}],\"end_ns\":\"1725747\",\"start_ns\":\"1421261\",\"text\":\"Semantics of rec = new tests()\"},{\"children\":[],\"end_ns\":\"1770769\",\"start_ns\":\"1746410\",\"text\":\"Traversal of [ rec = new tests() ] ---> [ x = open(rec) ]\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"1789112\",\"start_ns\":\"1784613\",\"text\":\"Analysis: Small step semantics of rec\"}],\"end_ns\":\"1789400\",\"start_ns\":\"1782887\",\"text\":\"Semantics of rec\"},{\"children\":[],\"end_ns\":\"1871509\",\"start_ns\":\"1864393\",\"text\":\"Analysis: Small step semantics of open_call_ret_value@'imp-testcases\/visualization\/visualization.imp':7:22\"}],\"end_ns\":\"1877135\",\"start_ns\":\"1778315\",\"text\":\"Semantics of open(rec)\"},{\"children\":[{\"children\":[],\"end_ns\":\"1882444\",\"start_ns\":\"1880041\",\"text\":\"Analysis: Small step semantics of x\"}],\"end_ns\":\"1882781\",\"start_ns\":\"1878506\",\"text\":\"Semantics of x\"},{\"children\":[],\"end_ns\":\"1927709\",\"start_ns\":\"1888038\",\"text\":\"Analysis: Assignment of x to open_call_ret_value@'imp-testcases\/visualization\/visualization.imp':7:22\"}],\"end_ns\":\"1930407\",\"start_ns\":\"1776956\",\"text\":\"Semantics of x = open(rec)\"},{\"children\":[],\"end_ns\":\"1984398\",\"start_ns\":\"1963495\",\"text\":\"Traversal of [ x = open(rec) ] ---> [ <(x, 10) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"1999455\",\"start_ns\":\"1991288\",\"text\":\"Analysis: Small step semantics of x\"}],\"end_ns\":\"1999952\",\"start_ns\":\"1989595\",\"text\":\"Semantics of x\"},{\"children\":[{\"children\":[],\"end_ns\":\"2004364\",\"start_ns\":\"2001454\",\"text\":\"Analysis: Small step semantics of 10\"}],\"end_ns\":\"2004474\",\"start_ns\":\"2000731\",\"text\":\"Semantics of 10\"},{\"children\":[],\"end_ns\":\"2051455\",\"start_ns\":\"2035503\",\"text\":\"Analysis: Small step semantics of x < 10\"}],\"end_ns\":\"2053831\",\"start_ns\":\"1988829\",\"text\":\"Semantics of <(x, 10)\"},{\"children\":[{\"children\":[],\"end_ns\":\"2253971\",\"start_ns\":\"2109684\",\"text\":\"Analysis: Assume of x < 10\"}],\"end_ns\":\"2257815\",\"start_ns\":\"2094524\",\"text\":\"Traversal of [ <(x, 10) ] -T-> [ x = +(x, 1) ]\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"2276510\",\"start_ns\":\"2271215\",\"text\":\"Analysis: Small step semantics of x\"}],\"end_ns\":\"2276829\",\"start_ns\":\"2269000\",\"text\":\"Semantics of x\"},{\"children\":[{\"children\":[],\"end_ns\":\"2280859\",\"start_ns\":\"2278449\",\"text\":\"Analysis: Small step semantics of 1\"}],\"end_ns\":\"2281034\",\"start_ns\":\"2277831\",\"text\":\"Semantics of 1\"},{\"children\":[],\"end_ns\":\"2354952\",\"start_ns\":\"2341735\",\"text\":\"Analysis: Small step semantics of x + 1\"},{\"children\":[],\"end_ns\":\"2398046\",\"start_ns\":\"2387106\",\"text\":\"Analysis: Small step semantics of x + 1\"}],\"end_ns\":\"2409900\",\"start_ns\":\"2268337\",\"text\":\"Semantics of +(x, 1)\"},{\"children\":[{\"children\":[],\"end_ns\":\"2419153\",\"start_ns\":\"2415770\",\"text\":\"Analysis: Small step semantics of x\"}],\"end_ns\":\"2419588\",\"start_ns\":\"2413944\",\"text\":\"Semantics of x\"},{\"children\":[],\"end_ns\":\"2552574\",\"start_ns\":\"2421995\",\"text\":\"Analysis: Assignment of x to x + 1\"}],\"end_ns\":\"2555047\",\"start_ns\":\"2262324\",\"text\":\"Semantics of x = +(x, 1)\"},{\"children\":[],\"end_ns\":\"2605556\",\"start_ns\":\"2583037\",\"text\":\"Traversal of [ x = open(rec) ] ---> [ <(x, 10) ]\"},{\"children\":[],\"end_ns\":\"2623658\",\"start_ns\":\"2616969\",\"text\":\"Traversal of [ x = +(x, 1) ] ---> [ <(x, 10) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"2704112\",\"start_ns\":\"2698929\",\"text\":\"Analysis: Small step semantics of x\"}],\"end_ns\":\"2704361\",\"start_ns\":\"2697056\",\"text\":\"Semantics of x\"},{\"children\":[{\"children\":[],\"end_ns\":\"2708602\",\"start_ns\":\"2705591\",\"text\":\"Analysis: Small step semantics of 10\"}],\"end_ns\":\"2708833\",\"start_ns\":\"2705049\",\"text\":\"Semantics of 10\"},{\"children\":[],\"end_ns\":\"2768554\",\"start_ns\":\"2746285\",\"text\":\"Analysis: Small step semantics of x < 10\"}],\"end_ns\":\"2770962\",\"start_ns\":\"2696263\",\"text\":\"Semantics of <(x, 10)\"},{\"children\":[{\"children\":[],\"end_ns\":\"2963886\",\"start_ns\":\"2849959\",\"text\":\"Analysis: Assume of ! x < 10\"}],\"end_ns\":\"2967816\",\"start_ns\":\"2831284\",\"text\":\"Traversal of [ <(x, 10) ] -F-> [ return 1 ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"2977085\",\"start_ns\":\"2974188\",\"text\":\"Analysis: Small step semantics of 1\"}],\"end_ns\":\"2977328\",\"start_ns\":\"2973709\",\"text\":\"Semantics of 1\"},{\"children\":[],\"end_ns\":\"3006219\",\"start_ns\":\"2983705\",\"text\":\"Analysis: Assignment of ret_value@getOne to 1\"}],\"end_ns\":\"3009579\",\"start_ns\":\"2971768\",\"text\":\"Semantics of return 1\"}],\"end_ns\":\"3043893\",\"start_ns\":\"1389222\",\"text\":\"Fixpoint of untyped A::getOne(A*)\"},{\"children\":[],\"end_ns\":\"3146324\",\"start_ns\":\"3114907\",\"text\":\"Analysis: Assignment of ['imp-testcases\/visualization\/visualization.imp':30:41]:call_ret_value@'imp-testcases\/visualization\/visualization.imp':30:41 to ret_value@getOne\"},{\"children\":[],\"end_ns\":\"3176036\",\"start_ns\":\"3169017\",\"text\":\"Analysis: Transferring throwers from untyped A::getOne(A*) [at 'imp-testcases\/visualization\/visualization.imp':5:4] to getOne(a)\"},{\"children\":[],\"end_ns\":\"3180698\",\"start_ns\":\"3177204\",\"text\":\"Analysis: Returning from call [1 targets] getOne(a)\"}],\"end_ns\":\"3199567\",\"start_ns\":\"1187581\",\"text\":\"Semantics of getOne(a)\"},{\"children\":[],\"end_ns\":\"3481515\",\"start_ns\":\"3426351\",\"text\":\"Analysis: Assignment of this to ['imp-testcases\/visualization\/visualization.imp':30:42]:a\"},{\"children\":[],\"end_ns\":\"3498864\",\"start_ns\":\"3485059\",\"text\":\"Analysis: Assignment of i to ['imp-testcases\/visualization\/visualization.imp':30:42]:call_ret_value@'imp-testcases\/visualization\/visualization.imp':30:41\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"3563105\",\"start_ns\":\"3555169\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"3563835\",\"start_ns\":\"3553009\",\"text\":\"Semantics of i\"},{\"children\":[{\"children\":[],\"end_ns\":\"3572603\",\"start_ns\":\"3565192\",\"text\":\"Analysis: Small step semantics of 0\"}],\"end_ns\":\"3572778\",\"start_ns\":\"3564560\",\"text\":\"Semantics of 0\"},{\"children\":[],\"end_ns\":\"3606626\",\"start_ns\":\"3591438\",\"text\":\"Analysis: Small step semantics of i <= 0\"}],\"end_ns\":\"3612637\",\"start_ns\":\"3551848\",\"text\":\"Semantics of <=(i, 0)\"},{\"children\":[{\"children\":[],\"end_ns\":\"3745118\",\"start_ns\":\"3658455\",\"text\":\"Analysis: Assume of i <= 0\"}],\"end_ns\":\"3749148\",\"start_ns\":\"3641234\",\"text\":\"Traversal of [ <=(i, 0) ] -T-> [ i = 1 ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"3764950\",\"start_ns\":\"3762041\",\"text\":\"Analysis: Small step semantics of 1\"}],\"end_ns\":\"3765456\",\"start_ns\":\"3761338\",\"text\":\"Semantics of 1\"},{\"children\":[{\"children\":[],\"end_ns\":\"3773742\",\"start_ns\":\"3769188\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"3774113\",\"start_ns\":\"3767481\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"3779954\",\"start_ns\":\"3776717\",\"text\":\"Analysis: Assignment of i to 1\"}],\"end_ns\":\"3783808\",\"start_ns\":\"3759445\",\"text\":\"Semantics of i = 1\"},{\"children\":[{\"children\":[],\"end_ns\":\"3908811\",\"start_ns\":\"3828987\",\"text\":\"Analysis: Assume of ! i <= 0\"}],\"end_ns\":\"3912094\",\"start_ns\":\"3814230\",\"text\":\"Traversal of [ <=(i, 0) ] -F-> [ i = 10 ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"3928565\",\"start_ns\":\"3925573\",\"text\":\"Analysis: Small step semantics of 10\"}],\"end_ns\":\"3928928\",\"start_ns\":\"3924917\",\"text\":\"Semantics of 10\"},{\"children\":[{\"children\":[],\"end_ns\":\"3936331\",\"start_ns\":\"3931903\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"3936727\",\"start_ns\":\"3930260\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"3967496\",\"start_ns\":\"3938879\",\"text\":\"Analysis: Assignment of i to 10\"}],\"end_ns\":\"3969638\",\"start_ns\":\"3920127\",\"text\":\"Semantics of i = 10\"},{\"children\":[],\"end_ns\":\"4058653\",\"start_ns\":\"4045318\",\"text\":\"Traversal of [ i = 1 ] ---> [ return i ]\"},{\"children\":[],\"end_ns\":\"4084886\",\"start_ns\":\"4074143\",\"text\":\"Traversal of [ i = 10 ] ---> [ return i ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"4123297\",\"start_ns\":\"4118167\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"4123587\",\"start_ns\":\"4116333\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"4179146\",\"start_ns\":\"4150253\",\"text\":\"Analysis: Assignment of ret_value@getPositive to i\"}],\"end_ns\":\"4182420\",\"start_ns\":\"4112025\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"4201448\",\"start_ns\":\"3503225\",\"text\":\"Fixpoint of untyped A::getPositive(A*, untyped)\"},{\"children\":[],\"end_ns\":\"4273057\",\"start_ns\":\"4254598\",\"text\":\"Analysis: Assignment of ['imp-testcases\/visualization\/visualization.imp':30:42]:call_ret_value@'imp-testcases\/visualization\/visualization.imp':30:42 to ret_value@getPositive\"},{\"children\":[],\"end_ns\":\"4295171\",\"start_ns\":\"4290194\",\"text\":\"Analysis: Transferring throwers from untyped A::getPositive(A*, untyped) [at 'imp-testcases\/visualization\/visualization.imp':12:4] to getPositive(a, getOne(a))\"},{\"children\":[],\"end_ns\":\"4298663\",\"start_ns\":\"4295868\",\"text\":\"Analysis: Returning from call [1 targets] getPositive(a, getOne(a))\"}],\"end_ns\":\"4312657\",\"start_ns\":\"1178707\",\"text\":\"Semantics of getPositive(a, getOne(a))\"},{\"children\":[{\"children\":[],\"end_ns\":\"4320206\",\"start_ns\":\"4316604\",\"text\":\"Analysis: Small step semantics of one\"}],\"end_ns\":\"4320497\",\"start_ns\":\"4314590\",\"text\":\"Semantics of one\"},{\"children\":[],\"end_ns\":\"4342819\",\"start_ns\":\"4322560\",\"text\":\"Analysis: Assignment of one to call_ret_value@'imp-testcases\/visualization\/visualization.imp':30:42\"}],\"end_ns\":\"4345734\",\"start_ns\":\"1177130\",\"text\":\"Semantics of one = getPositive(a, getOne(a))\"},{\"children\":[],\"end_ns\":\"4398884\",\"start_ns\":\"4374496\",\"text\":\"Traversal of [ one = getPositive(a, getOne(a)) ] ---> [ positive = identity(a, one) ]\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"4414218\",\"start_ns\":\"4410764\",\"text\":\"Analysis: Small step semantics of a\"}],\"end_ns\":\"4414470\",\"start_ns\":\"4409496\",\"text\":\"Semantics of a\"},{\"children\":[{\"children\":[],\"end_ns\":\"4418634\",\"start_ns\":\"4416220\",\"text\":\"Analysis: Small step semantics of one\"}],\"end_ns\":\"4418762\",\"start_ns\":\"4415342\",\"text\":\"Semantics of one\"},{\"children\":[],\"end_ns\":\"4799592\",\"start_ns\":\"4757644\",\"text\":\"Analysis: Assignment of this to ['imp-testcases\/visualization\/visualization.imp':31:37]:a\"},{\"children\":[],\"end_ns\":\"4814550\",\"start_ns\":\"4802518\",\"text\":\"Analysis: Assignment of i to ['imp-testcases\/visualization\/visualization.imp':31:37]:one\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"4858619\",\"start_ns\":\"4855375\",\"text\":\"Analysis: Small step semantics of 1\"}],\"end_ns\":\"4859194\",\"start_ns\":\"4854719\",\"text\":\"Semantics of 1\"},{\"children\":[{\"children\":[],\"end_ns\":\"4866637\",\"start_ns\":\"4862535\",\"text\":\"Analysis: Small step semantics of i3\"}],\"end_ns\":\"4867164\",\"start_ns\":\"4860431\",\"text\":\"Semantics of i3\"},{\"children\":[],\"end_ns\":\"4897766\",\"start_ns\":\"4869503\",\"text\":\"Analysis: Assignment of i3 to 1\"}],\"end_ns\":\"4899633\",\"start_ns\":\"4853106\",\"text\":\"Semantics of i3 = 1\"},{\"children\":[],\"end_ns\":\"4941666\",\"start_ns\":\"4913956\",\"text\":\"Traversal of [ i3 = 1 ] ---> [ return i ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"4953172\",\"start_ns\":\"4949410\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"4953408\",\"start_ns\":\"4948349\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"4974481\",\"start_ns\":\"4958904\",\"text\":\"Analysis: Assignment of ret_value@identity to i\"}],\"end_ns\":\"4977216\",\"start_ns\":\"4946384\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"4991493\",\"start_ns\":\"4818653\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"},{\"children\":[],\"end_ns\":\"5081788\",\"start_ns\":\"5067270\",\"text\":\"Analysis: Assignment of ['imp-testcases\/visualization\/visualization.imp':31:37]:call_ret_value@'imp-testcases\/visualization\/visualization.imp':31:37 to ret_value@identity\"},{\"children\":[],\"end_ns\":\"5103991\",\"start_ns\":\"5096337\",\"text\":\"Analysis: Transferring throwers from untyped A::identity(A*, untyped) [at 'imp-testcases\/visualization\/visualization.imp':19:4] to identity(a, one)\"},{\"children\":[],\"end_ns\":\"5120384\",\"start_ns\":\"5104860\",\"text\":\"Analysis: Returning from call [1 targets] identity(a, one)\"}],\"end_ns\":\"5151183\",\"start_ns\":\"4408584\",\"text\":\"Semantics of identity(a, one)\"},{\"children\":[{\"children\":[],\"end_ns\":\"5158742\",\"start_ns\":\"5154401\",\"text\":\"Analysis: Small step semantics of positive\"}],\"end_ns\":\"5159101\",\"start_ns\":\"5152841\",\"text\":\"Semantics of positive\"},{\"children\":[],\"end_ns\":\"5178693\",\"start_ns\":\"5160929\",\"text\":\"Analysis: Assignment of positive to call_ret_value@'imp-testcases\/visualization\/visualization.imp':31:37\"}],\"end_ns\":\"5180639\",\"start_ns\":\"4407133\",\"text\":\"Semantics of positive = identity(a, one)\"},{\"children\":[],\"end_ns\":\"5220239\",\"start_ns\":\"5194550\",\"text\":\"Traversal of [ positive = identity(a, one) ] ---> [ minusone = -1 ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"5229076\",\"start_ns\":\"5226740\",\"text\":\"Analysis: Small step semantics of -1\"}],\"end_ns\":\"5229290\",\"start_ns\":\"5226202\",\"text\":\"Semantics of -1\"},{\"children\":[{\"children\":[],\"end_ns\":\"5233545\",\"start_ns\":\"5231086\",\"text\":\"Analysis: Small step semantics of minusone\"}],\"end_ns\":\"5233774\",\"start_ns\":\"5229935\",\"text\":\"Semantics of minusone\"},{\"children\":[],\"end_ns\":\"5250547\",\"start_ns\":\"5237305\",\"text\":\"Analysis: Assignment of minusone to -1\"}],\"end_ns\":\"5254386\",\"start_ns\":\"5224992\",\"text\":\"Semantics of minusone = -1\"},{\"children\":[],\"end_ns\":\"5268995\",\"start_ns\":\"5263926\",\"text\":\"Traversal of [ minusone = -1 ] ---> [ negative = identity(a, minusone) ]\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"5279971\",\"start_ns\":\"5273855\",\"text\":\"Analysis: Small step semantics of a\"}],\"end_ns\":\"5280296\",\"start_ns\":\"5273016\",\"text\":\"Semantics of a\"},{\"children\":[{\"children\":[],\"end_ns\":\"5284613\",\"start_ns\":\"5282379\",\"text\":\"Analysis: Small step semantics of minusone\"}],\"end_ns\":\"5284750\",\"start_ns\":\"5280975\",\"text\":\"Semantics of minusone\"},{\"children\":[],\"end_ns\":\"5641042\",\"start_ns\":\"5592133\",\"text\":\"Analysis: Assignment of this to ['imp-testcases\/visualization\/visualization.imp':33:42]:a\"},{\"children\":[],\"end_ns\":\"5665810\",\"start_ns\":\"5645024\",\"text\":\"Analysis: Assignment of i to ['imp-testcases\/visualization\/visualization.imp':33:42]:minusone\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"5715504\",\"start_ns\":\"5707833\",\"text\":\"Analysis: Small step semantics of 1\"}],\"end_ns\":\"5716070\",\"start_ns\":\"5706789\",\"text\":\"Semantics of 1\"},{\"children\":[{\"children\":[],\"end_ns\":\"5725524\",\"start_ns\":\"5720142\",\"text\":\"Analysis: Small step semantics of i3\"}],\"end_ns\":\"5725809\",\"start_ns\":\"5717330\",\"text\":\"Semantics of i3\"},{\"children\":[],\"end_ns\":\"5756231\",\"start_ns\":\"5728556\",\"text\":\"Analysis: Assignment of i3 to 1\"}],\"end_ns\":\"5758401\",\"start_ns\":\"5705050\",\"text\":\"Semantics of i3 = 1\"},{\"children\":[],\"end_ns\":\"5796592\",\"start_ns\":\"5776418\",\"text\":\"Traversal of [ i3 = 1 ] ---> [ return i ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"5810809\",\"start_ns\":\"5806016\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"5811086\",\"start_ns\":\"5804624\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"5842448\",\"start_ns\":\"5817779\",\"text\":\"Analysis: Assignment of ret_value@identity to i\"}],\"end_ns\":\"5846176\",\"start_ns\":\"5802402\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"5866038\",\"start_ns\":\"5670446\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"},{\"children\":[],\"end_ns\":\"5934602\",\"start_ns\":\"5912281\",\"text\":\"Analysis: Assignment of ['imp-testcases\/visualization\/visualization.imp':33:42]:call_ret_value@'imp-testcases\/visualization\/visualization.imp':33:42 to ret_value@identity\"},{\"children\":[],\"end_ns\":\"5961518\",\"start_ns\":\"5955634\",\"text\":\"Analysis: Transferring throwers from untyped A::identity(A*, untyped) [at 'imp-testcases\/visualization\/visualization.imp':19:4] to identity(a, minusone)\"},{\"children\":[],\"end_ns\":\"5966399\",\"start_ns\":\"5962727\",\"text\":\"Analysis: Returning from call [1 targets] identity(a, minusone)\"}],\"end_ns\":\"5981484\",\"start_ns\":\"5272312\",\"text\":\"Semantics of identity(a, minusone)\"},{\"children\":[{\"children\":[],\"end_ns\":\"5989247\",\"start_ns\":\"5984887\",\"text\":\"Analysis: Small step semantics of negative\"}],\"end_ns\":\"5989629\",\"start_ns\":\"5983170\",\"text\":\"Semantics of negative\"},{\"children\":[],\"end_ns\":\"6006709\",\"start_ns\":\"5991642\",\"text\":\"Analysis: Assignment of negative to call_ret_value@'imp-testcases\/visualization\/visualization.imp':33:42\"}],\"end_ns\":\"6009071\",\"start_ns\":\"5271607\",\"text\":\"Semantics of negative = identity(a, minusone)\"},{\"children\":[],\"end_ns\":\"6046581\",\"start_ns\":\"6026385\",\"text\":\"Traversal of [ negative = identity(a, minusone) ] ---> [ top = helper(this, one, a) ]\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"6064594\",\"start_ns\":\"6060240\",\"text\":\"Analysis: Small step semantics of this\"}],\"end_ns\":\"6064846\",\"start_ns\":\"6058888\",\"text\":\"Semantics of this\"},{\"children\":[{\"children\":[],\"end_ns\":\"6068831\",\"start_ns\":\"6066609\",\"text\":\"Analysis: Small step semantics of one\"}],\"end_ns\":\"6068993\",\"start_ns\":\"6065490\",\"text\":\"Semantics of one\"},{\"children\":[{\"children\":[],\"end_ns\":\"6078490\",\"start_ns\":\"6070152\",\"text\":\"Analysis: Small step semantics of a\"}],\"end_ns\":\"6078691\",\"start_ns\":\"6069321\",\"text\":\"Semantics of a\"},{\"children\":[],\"end_ns\":\"6461722\",\"start_ns\":\"6427360\",\"text\":\"Analysis: Assignment of this to ['imp-testcases\/visualization\/visualization.imp':34:36]:this\"},{\"children\":[],\"end_ns\":\"6480650\",\"start_ns\":\"6465846\",\"text\":\"Analysis: Assignment of i to ['imp-testcases\/visualization\/visualization.imp':34:36]:one\"},{\"children\":[],\"end_ns\":\"6512184\",\"start_ns\":\"6482832\",\"text\":\"Analysis: Assignment of dispatcher to ['imp-testcases\/visualization\/visualization.imp':34:36]:a\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"6571147\",\"start_ns\":\"6564430\",\"text\":\"Analysis: Small step semantics of dispatcher\"}],\"end_ns\":\"6571450\",\"start_ns\":\"6555110\",\"text\":\"Semantics of dispatcher\"},{\"children\":[{\"children\":[],\"end_ns\":\"6575202\",\"start_ns\":\"6572984\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"6575359\",\"start_ns\":\"6572189\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"6908895\",\"start_ns\":\"6874819\",\"text\":\"Analysis: Assignment of this to ['imp-testcases\/visualization\/visualization.imp':38:36]:dispatcher\"},{\"children\":[],\"end_ns\":\"6926708\",\"start_ns\":\"6912298\",\"text\":\"Analysis: Assignment of i to ['imp-testcases\/visualization\/visualization.imp':38:36]:i\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"6973199\",\"start_ns\":\"6969145\",\"text\":\"Analysis: Small step semantics of 1\"}],\"end_ns\":\"6973813\",\"start_ns\":\"6968245\",\"text\":\"Semantics of 1\"},{\"children\":[{\"children\":[],\"end_ns\":\"6982273\",\"start_ns\":\"6977715\",\"text\":\"Analysis: Small step semantics of i3\"}],\"end_ns\":\"6982547\",\"start_ns\":\"6975246\",\"text\":\"Semantics of i3\"},{\"children\":[],\"end_ns\":\"7018911\",\"start_ns\":\"6985193\",\"text\":\"Analysis: Assignment of i3 to 1\"}],\"end_ns\":\"7021623\",\"start_ns\":\"6966311\",\"text\":\"Semantics of i3 = 1\"},{\"children\":[],\"end_ns\":\"7056683\",\"start_ns\":\"7041163\",\"text\":\"Traversal of [ i3 = 1 ] ---> [ return i ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"7075378\",\"start_ns\":\"7063919\",\"text\":\"Analysis: Small step semantics of i\"}],\"end_ns\":\"7075668\",\"start_ns\":\"7062451\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"7099367\",\"start_ns\":\"7082743\",\"text\":\"Analysis: Assignment of ret_value@identity to i\"}],\"end_ns\":\"7102647\",\"start_ns\":\"7060501\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"7120598\",\"start_ns\":\"6930809\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"},{\"children\":[],\"end_ns\":\"7188613\",\"start_ns\":\"7174220\",\"text\":\"Analysis: Assignment of ['imp-testcases\/visualization\/visualization.imp':38:36]:call_ret_value@'imp-testcases\/visualization\/visualization.imp':38:36 to ret_value@identity\"},{\"children\":[],\"end_ns\":\"7222412\",\"start_ns\":\"7217778\",\"text\":\"Analysis: Transferring throwers from untyped A::identity(A*, untyped) [at 'imp-testcases\/visualization\/visualization.imp':19:4] to identity(dispatcher, i)\"},{\"children\":[],\"end_ns\":\"7227322\",\"start_ns\":\"7223598\",\"text\":\"Analysis: Returning from call [1 targets] identity(dispatcher, i)\"}],\"end_ns\":\"7240085\",\"start_ns\":\"6554625\",\"text\":\"Semantics of identity(dispatcher, i)\"},{\"children\":[],\"end_ns\":\"7265414\",\"start_ns\":\"7246212\",\"text\":\"Analysis: Assignment of ret_value@helper to call_ret_value@'imp-testcases\/visualization\/visualization.imp':38:36\"}],\"end_ns\":\"7279705\",\"start_ns\":\"6552281\",\"text\":\"Semantics of return identity(dispatcher, i)\"}],\"end_ns\":\"7297813\",\"start_ns\":\"6517072\",\"text\":\"Fixpoint of untyped tests::helper(tests*, untyped, untyped)\"},{\"children\":[],\"end_ns\":\"7353462\",\"start_ns\":\"7340781\",\"text\":\"Analysis: Assignment of ['imp-testcases\/visualization\/visualization.imp':34:36]:call_ret_value@'imp-testcases\/visualization\/visualization.imp':34:36 to ret_value@helper\"},{\"children\":[],\"end_ns\":\"7375751\",\"start_ns\":\"7373078\",\"text\":\"Analysis: Transferring throwers from untyped tests::helper(tests*, untyped, untyped) [at 'imp-testcases\/visualization\/visualization.imp':37:4] to helper(this, one, a)\"},{\"children\":[],\"end_ns\":\"7378966\",\"start_ns\":\"7376806\",\"text\":\"Analysis: Returning from call [1 targets] helper(this, one, a)\"}],\"end_ns\":\"7390742\",\"start_ns\":\"6058197\",\"text\":\"Semantics of helper(this, one, a)\"},{\"children\":[{\"children\":[],\"end_ns\":\"7403269\",\"start_ns\":\"7394743\",\"text\":\"Analysis: Small step semantics of top\"}],\"end_ns\":\"7403638\",\"start_ns\":\"7392645\",\"text\":\"Semantics of top\"},{\"children\":[],\"end_ns\":\"7417510\",\"start_ns\":\"7406296\",\"text\":\"Analysis: Assignment of top to call_ret_value@'imp-testcases\/visualization\/visualization.imp':34:36\"}],\"end_ns\":\"7419763\",\"start_ns\":\"6053073\",\"text\":\"Semantics of top = helper(this, one, a)\"},{\"children\":[],\"end_ns\":\"7462795\",\"start_ns\":\"7443198\",\"text\":\"Traversal of [ top = helper(this, one, a) ] ---> [ ret ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"7471549\",\"start_ns\":\"7468610\",\"text\":\"Analysis: Small step semantics of skip\"}],\"end_ns\":\"7471708\",\"start_ns\":\"7466478\",\"text\":\"Semantics of ret\"}],\"end_ns\":\"7508877\",\"start_ns\":\"344826\",\"text\":\"Fixpoint of untyped tests::main(tests*)\"}],\"end_ns\":\"7740855\",\"start_ns\":\"71042\",\"text\":\"Program-wide fixpoint iteration 1\"}],\"end_ns\":\"7741929\",\"start_ns\":\"0\",\"text\":\"Program-wide fixpoint\"}";
 		/*]]>*/
 
-		// flatten tree
+		// ---------------------------------------------------------------
+		// FLATTENING THE GRAPH FOR POPULATING THE NODES LIST
+		// ---------------------------------------------------------------
 		const nodes = [];
 		function walk(node, depth = 0) {
 			const text = String(node.text);
@@ -66,27 +70,41 @@
 		}
 		walk(JSON.parse(graph));
 
-		// layout
+		// ---------------------------------------------------------------
+		// CONSTANTS AND SETUP
+		// ---------------------------------------------------------------
+		let width = window.innerWidth;
+		const headerHeight = document.getElementById("lisa-header").offsetHeight;
+		const overviewHeight = 100;
+		let height = window.innerHeight - headerHeight - overviewHeight - 5;
 		const rowHeight = 22;
-		const width = window.innerWidth;
-		const height = window.innerHeight;
+		let overviewRowHeight = Math.max(2, rowHeight * overviewHeight / height);
+		const axisHeight = 24;
 		const minTime = d3.min(nodes, d => d.start);
 		const maxTime = d3.max(nodes, d => d.end);
 		const xScale = d3.scaleLinear()
 			.domain([minTime, maxTime])
 			.range([0, width]);
+		const scrollZoomSpeed = 1.1;
 
-		// SVG & zoom
-		const axisHeight = 24;
+		// ---------------------------------------------------------------
+		// MAIN SVG AND LAYERS
+		// ---------------------------------------------------------------
+		const overviewSvg = d3.select("#overview-map")
+			.attr("width", width)
+			.attr("height", overviewHeight);
 		const svg = d3.select("#heatmap-chart")
 			.append("svg")
 			.attr("width", width)
 			.attr("height", height);
+
 		const zoomLayer = svg.append("g")
 			.attr("transform", `translate(0, ${axisHeight})`);
 
-		// Add time axis at the top
-		function formatTime(d) {
+		// ---------------------------------------------------------------
+		// BUILDING THE AXIS AND GRID TO DRAW ON TOP OF THE GRAPH 
+		// ---------------------------------------------------------------
+		function formatAxisTicks(d) {
 			// d is nanoseconds offset from minTime
 			const ms = (d - minTime) / 1e6;
 			if (ms < 1) return ((d - minTime) / 1e3).toFixed(0) + " μs";
@@ -102,65 +120,64 @@
 		}
 		const axis = d3.axisTop(xScale)
 			.ticks(Math.max(5, width / 180))
-			.tickFormat(formatTime);
-		// white background behind labels
-		svg.append("rect")
+			.tickFormat(formatAxisTicks);
+		// white background behind the axis to prevent the graph from overflowing in the axis
+		const axisBG = svg.append("rect")
+			.attr("id", "axis-bg")
 			.attr("x", 0)
 			.attr("y", 0)
 			.attr("width", width)
-			.attr("height", axisHeight)
-			.attr("fill", "#fff")
-			.attr("pointer-events", "none")
-			.on("mousedown.zoomcursor", () => svg.classed("grabbing", true))
-			.on("mouseup.zoomcursor", () => svg.classed("grabbing", false))
-			.on("mouseleave.zoomcursor", () => svg.classed("grabbing", false));
+			.attr("height", axisHeight);
 		const axisGroup = svg.append("g")
 			.attr("transform", `translate(0,${axisHeight})`)
 			.call(axis);
-		// Add vertical grid lines
+		// drawing grid lines based on the visible ticks
 		function drawGridLines(currentScale) {
-			// Remove old grid lines
 			axisGroup.selectAll(".grid-line").remove();
-			// Add new grid lines for each tick
 			axisGroup.selectAll(".tick").each(function (d) {
 				axisGroup.append("line")
 					.attr("class", "grid-line")
 					.attr("x1", currentScale(d))
 					.attr("x2", currentScale(d))
 					.attr("y1", 0)
-					.attr("y2", height)
-					.attr("stroke", "#ccc")
-					.attr("stroke-width", 1)
-					.attr("pointer-events", "none");
+					.attr("y2", height);
 			});
 		}
 		drawGridLines(xScale);
 
+		// ---------------------------------------------------------------
+		// CONFIGURING ZOOM AND PAN BEHAVIOR
+		// ---------------------------------------------------------------
 		const zoom = d3.zoom()
+			// min zoom of 1 (cannot reduce graph size), max zoom of 100 (arbitrary, can be adjusted)
 			.scaleExtent([1, 100])
 			.on("zoom", (event) => {
 				const t = event.transform;
 				const scale = t.k;
 
+				// set up clamping so we cannot pan the graph out of view
 				const maxX = 0;
 				const maxY = 0;
 				const minX = Math.min(width - width * scale, 0);
 				const minY = Math.min(height - height * scale, 0);
 				const clampedX = Math.max(Math.min(t.x, maxX), minX);
 				const clampedY = Math.max(Math.min(t.y, maxY), minY);
+				const clamped = t.x !== clampedX || t.y !== clampedY;
 
-				let clamped = false;
-				if (t.x !== clampedX || t.y !== clampedY) clamped = true;
-
+				// apply zoom and pan: always offset by the axis height
 				zoomLayer.attr("transform", `translate(${clampedX},${clampedY + axisHeight}) scale(${scale})`);
-				updateLabels();
+				// clamp the transform on the zoom layer as well:
+				// otherwise the transforms would be inconsistent 
+				// and the panning would break 
+				if (clamped)
+					svg.call(zoom.transform, d3.zoomIdentity.translate(clampedX, clampedY).scale(scale));
 
+				// zoom and pan the axis as well
 				const newTransform = d3.zoomIdentity.translate(clampedX, 0).scale(scale);
 				const newX = newTransform.rescaleX(xScale);
-				// Clamp the axis domain to [minTime, maxTime]
 				const domain = newX.domain();
 				if (domain[0] < minTime || domain[1] > maxTime) {
-					// If out of bounds, reset axis to [minTime, maxTime]
+					// if out of bounds, reset axis to [minTime, maxTime]
 					axisGroup.call(axis.scale(xScale));
 					drawGridLines(xScale);
 				} else {
@@ -168,27 +185,26 @@
 					drawGridLines(newX);
 				}
 
-				if (clamped) {
-					svg.call(zoom.transform, d3.zoomIdentity.translate(clampedX, clampedY).scale(scale));
-				}
+				// update the labels that are visible inside each bar in the graph
+				updateLabels();
+				// update the viewport rectangle in the overview map
+				updateOverviewViewport();
 			});
 		svg.call(zoom);
 
-		// Disable default wheel zoom
+		// ---------------------------------------------------------------
+		// SCROLL WITH WHEEL, ZOOM WITH CTRL + WHEEL
+		// ---------------------------------------------------------------
 		svg.on("wheel.zoom", null);
-
-		// Custom wheel handler
 		svg.on("wheel.custom", function (event) {
 			event.preventDefault();
 			if (event.ctrlKey) {
-				// Zoom (scale) when Ctrl is held
 				d3.select(this).call(
 					zoom.scaleBy,
-					event.deltaY < 0 ? 1.1 : 1 / 1.1,
+					event.deltaY < 0 ? scrollZoomSpeed : 1 / scrollZoomSpeed,
 					[event.offsetX, event.offsetY]
 				);
 			} else {
-				// Pan when Ctrl is not held
 				d3.select(this).call(
 					zoom.translateBy,
 					-event.deltaX,
@@ -197,7 +213,9 @@
 			}
 		});
 
-		// draw nodes
+		// ---------------------------------------------------------------
+		// LOGIC FOR MOVING THE TOOLTIP AROUND ON NODE HOVER
+		// ---------------------------------------------------------------
 		const tooltip = d3.select("#heatmap-tooltip");
 		function showTooltip(event, d) {
 			tooltip
@@ -222,6 +240,10 @@
 		function hideTooltip() {
 			tooltip.style("opacity", 0);
 		}
+
+		// ---------------------------------------------------------------
+		// MAIN LOGIC FOR DRAWING THE HEATMAP GRAPH
+		// ---------------------------------------------------------------
 		const categoryHue = {
 			Interprocedural: 0, // red
 			Fixpoint: 210,      // blue
@@ -257,7 +279,9 @@
 			.on("mousemove", moveTooltip)
 			.on("mouseleave", hideTooltip);
 
-		// labels (elided)
+		// ---------------------------------------------------------------
+		// LABELS TO DISPLAY INSIDE EACH NODE, HIDDEN IF TOO LONG
+		// ---------------------------------------------------------------
 		const labels = zoomLayer.selectAll("text")
 			.data(nodes)
 			.enter()
@@ -273,7 +297,6 @@
 			d._textWidth = this.getBBox().width;
 		});
 
-		// Hide labels that don't fit
 		function updateLabels() {
 			labels.each(function (d) {
 				const text = d3.select(this);
@@ -283,7 +306,125 @@
 		}
 		updateLabels();
 
-		// search
+		// ---------------------------------------------------------------
+		// DRAWING THE OVERVIEW MAP
+		// ---------------------------------------------------------------
+		const overviewRects = overviewSvg.selectAll("rect")
+			.data(nodes)
+			.enter()
+			.append("rect")
+			.attr("class", "overview-node")
+			.attr("x", d => xScale(d.start))
+			.attr("y", d => d.depth * overviewRowHeight)
+			.attr("width", d => xScale(d.end) - xScale(d.start))
+			.attr("height", overviewRowHeight - 1)
+			.attr("fill", nodeColor);
+
+		const mask = overviewSvg.append("defs")
+			.append("mask")
+			.attr("id", "overview-mask");
+		mask.append("rect")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", width)
+			.attr("height", overviewHeight)
+			.attr("fill", "white");
+		const maskHole = mask.append("rect")
+			.attr("id", "overview-mask-hole")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", 10)
+			.attr("height", overviewHeight)
+			.attr("fill", "black");
+		const overlay = overviewSvg.append("rect")
+			.attr("id", "overview-overlay")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", width)
+			.attr("height", overviewHeight)
+			.attr("mask", "url(#overview-mask)");
+		const overviewViewport = overviewSvg.append("rect")
+			.attr("id", "overview-viewport")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", 10)
+			.attr("height", overviewHeight);
+
+		function updateOverviewViewport() {
+			const t = d3.zoomTransform(svg.node());
+			const scale = t.k;
+			const tx = t.x;
+			const ty = t.y;
+
+			const visibleMin = xScale.invert(-tx / scale);
+			const visibleMax = xScale.invert((width - tx) / scale);
+			const x1 = xScale(Math.max(minTime, visibleMin));
+			const x2 = xScale(Math.min(maxTime, visibleMax));
+
+			const mainGraphHeight = height;
+			const visibleYMin = -ty / scale;
+			const visibleYMax = (mainGraphHeight - ty) / scale;
+			const y1 = Math.max(0, visibleYMin / mainGraphHeight * overviewHeight);
+			const y2 = Math.min(overviewHeight, visibleYMax / mainGraphHeight * overviewHeight);
+
+			overviewViewport
+				.attr("x", x1)
+				.attr("width", Math.max(10, x2 - x1))
+				.attr("y", y1)
+				.attr("height", Math.max(5, y2 - y1));
+			overviewSvg.select("#overview-mask-hole")
+				.attr("x", x1)
+				.attr("y", y1)
+				.attr("width", Math.max(10, x2 - x1))
+				.attr("height", Math.max(5, y2 - y1));
+			overlay
+				.attr("width", width)
+				.attr("height", overviewHeight);
+		}
+		updateOverviewViewport();
+
+		// ---------------------------------------------------------------
+		// LISTENING FOR RESIZE EVENTS
+		// ---------------------------------------------------------------
+		window.addEventListener("resize", () => {
+			width = window.innerWidth;
+			height = window.innerHeight - headerHeight - overviewHeight - 5;
+			overviewRowHeight = Math.max(2, rowHeight * overviewHeight / height);
+
+			xScale.range([0, width]);
+			svg.attr("width", width).attr("height", height);
+			overviewSvg.attr("width", width);
+
+			// Update axis and grid
+			axis.ticks(Math.max(5, width / 180));
+			axisGroup.call(axis.scale(xScale));
+			drawGridLines(xScale);
+
+			// Update main graph rectangles and labels
+			rects
+				.attr("x", d => xScale(d.start))
+				.attr("width", d => xScale(d.end) - xScale(d.start))
+				.attr("y", d => d.depth * rowHeight)
+				.attr("height", rowHeight - 2);
+			labels
+				.attr("x", d => xScale(d.start) + 4)
+				.attr("y", d => d.depth * rowHeight + rowHeight * 0.7);
+			overviewRects
+				.attr("x", d => xScale(d.start))
+				.attr("width", d => xScale(d.end) - xScale(d.start))
+				.attr("y", d => d.depth * overviewRowHeight)
+				.attr("height", overviewRowHeight - 1);
+
+			axisBG.attr("width", width);
+
+			updateLabels();
+			updateOverviewViewport();
+			svg.call(zoom.transform, d3.zoomTransform(svg.node()));
+		});
+
+		// ---------------------------------------------------------------
+		// SEARCH TO FIND NODES BY TEXT
+		// ---------------------------------------------------------------
 		d3.select("#search").node().value = "";
 		var hits = [];
 		var hit = -1;
@@ -337,15 +478,9 @@
 			}
 		});
 
-		// recenter button
-		d3.select("#centerButton").on("click", function () {
-			svg.transition().duration(400).call(
-				zoom.transform,
-				d3.zoomIdentity
-			);
-		});
-
-		/* Legend modal */
+		// ---------------------------------------------------------------
+		// LEGEND MODAL LOGIC
+		// ---------------------------------------------------------------
 		var modal = d3.select("#legend").on("click", function () {
 			d3.select(this).style("display", "none");
 		});

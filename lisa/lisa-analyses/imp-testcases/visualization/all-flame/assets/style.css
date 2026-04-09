@@ -231,12 +231,6 @@ g.edge>text {
 
 #heatmap-chart {
 	background: white;
-	overflow: hidden;
-
-	svg:active,
-	.grabbing {
-		cursor: grabbing !important;
-	}
 }
 
 .heatmap-node {
@@ -266,4 +260,39 @@ g.edge>text {
 	border-radius: 4px;
 	font-size: 12px;
 	opacity: 0;
+}
+
+#overview-map-container {
+	margin-bottom: 2px;
+}
+
+#overview-map {
+	display: block;
+	background: #e8e8e8;
+}
+
+#overview-viewport {
+	stroke: #222;
+	stroke-width: 2;
+	pointer-events: none;
+	fill: none;
+}
+
+#overview-overlay {
+	fill: rgba(200, 200, 200, 0.4);
+}
+
+.overview-node {
+	opacity: 0.4;
+}
+
+#axis-bg {
+	fill: white;
+	pointer-events: none;
+}
+
+.grid-line {
+	stroke: #ccc;
+	stroke-width: 0.5;
+	pointer-events: none;
 }

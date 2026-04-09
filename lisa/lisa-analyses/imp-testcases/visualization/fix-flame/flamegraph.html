@@ -15,13 +15,12 @@
 
 <body>
 	<div class="box">
-		<header class="row header">
+		<header class="row header" id="lisa-header">
 			<img src="https://raw.githubusercontent.com/lisa-analyzer/lisa/master/logo.png" alt="LiSA logo" />
 			<h1>Analysis Flame Graph</h1>
 			<input id="search" type="text" class="searchbar" placeholder="Search node..." />
 			<input id="next" type="button" value="Next" class="button" disabled />
 			<input id="prev" type="button" value="Previous" class="button" disabled />
-			<button id="centerButton" class="button">Reset zoom &amp; recenter</button>
 			<button id="legendButton" class="button">Legend</button>
 		</header>
 		<div id="legend" class="modal">
@@ -34,15 +33,20 @@
 				<b>The lighter the color, the shorter the execution time</b>
 			</div>
 		</div>
+		<div id="overview-map-container">
+			<svg id="overview-map"></svg>
+		</div>
 		<div id="heatmap-chart"></div>
 		<div class="heatmap-tooltip" id="heatmap-tooltip"></div>
 	</div>
 	<script>
 		/*<![CDATA[*/
-		const graph = "{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"12115518\",\"start_ns\":\"6069528\",\"text\":\"Semantics of #TOP#\"},{\"children\":[],\"end_ns\":\"12765747\",\"start_ns\":\"12150799\",\"text\":\"Semantics of this\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"34242647\",\"start_ns\":\"34103224\",\"text\":\"Semantics of 0\"},{\"children\":[],\"end_ns\":\"34313563\",\"start_ns\":\"34246623\",\"text\":\"Semantics of i1\"}],\"end_ns\":\"34535024\",\"start_ns\":\"34098540\",\"text\":\"Semantics of i1 = 0\"},{\"children\":[],\"end_ns\":\"36388258\",\"start_ns\":\"34667452\",\"text\":\"Traversal of [ i1 = 0 ] ---> [ ret ]\"},{\"children\":[],\"end_ns\":\"36594610\",\"start_ns\":\"36511612\",\"text\":\"Semantics of ret\"}],\"end_ns\":\"36751444\",\"start_ns\":\"33974557\",\"text\":\"Fixpoint of untyped A::A(A*)\"}],\"end_ns\":\"38785583\",\"start_ns\":\"16568975\",\"text\":\"Semantics of new A()\"},{\"children\":[],\"end_ns\":\"38838464\",\"start_ns\":\"38795635\",\"text\":\"Semantics of a\"}],\"end_ns\":\"38956475\",\"start_ns\":\"16562223\",\"text\":\"Semantics of a = new A()\"},{\"children\":[],\"end_ns\":\"39137722\",\"start_ns\":\"39028683\",\"text\":\"Traversal of [ a = new A() ] ---> [ one = getPositive(a, getOne(a)) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"39233275\",\"start_ns\":\"39175733\",\"text\":\"Semantics of a\"},{\"children\":[{\"children\":[],\"end_ns\":\"39271569\",\"start_ns\":\"39241684\",\"text\":\"Semantics of a\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"40984010\",\"start_ns\":\"40003174\",\"text\":\"Semantics of new tests()\"},{\"children\":[],\"end_ns\":\"41045949\",\"start_ns\":\"40995955\",\"text\":\"Semantics of rec\"}],\"end_ns\":\"41179756\",\"start_ns\":\"39992888\",\"text\":\"Semantics of rec = new tests()\"},{\"children\":[],\"end_ns\":\"41294774\",\"start_ns\":\"41234509\",\"text\":\"Traversal of [ rec = new tests() ] ---> [ x = open(rec) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"41348098\",\"start_ns\":\"41326069\",\"text\":\"Semantics of rec\"}],\"end_ns\":\"41671640\",\"start_ns\":\"41324695\",\"text\":\"Semantics of open(rec)\"},{\"children\":[],\"end_ns\":\"41703817\",\"start_ns\":\"41678567\",\"text\":\"Semantics of x\"}],\"end_ns\":\"41908646\",\"start_ns\":\"41322114\",\"text\":\"Semantics of x = open(rec)\"},{\"children\":[],\"end_ns\":\"42279336\",\"start_ns\":\"42194784\",\"text\":\"Traversal of [ x = open(rec) ] ---> [ <(x, 10) ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"42396934\",\"start_ns\":\"42326443\",\"text\":\"Semantics of x\"},{\"children\":[],\"end_ns\":\"42427214\",\"start_ns\":\"42407170\",\"text\":\"Semantics of 10\"}],\"end_ns\":\"44459039\",\"start_ns\":\"42322223\",\"text\":\"Semantics of <(x, 10)\"},{\"children\":[],\"end_ns\":\"48298521\",\"start_ns\":\"44595982\",\"text\":\"Traversal of [ <(x, 10) ] -T-> [ x = +(x, 1) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"48418442\",\"start_ns\":\"48356955\",\"text\":\"Semantics of x\"},{\"children\":[],\"end_ns\":\"48436359\",\"start_ns\":\"48422399\",\"text\":\"Semantics of 1\"}],\"end_ns\":\"50477899\",\"start_ns\":\"48355195\",\"text\":\"Semantics of +(x, 1)\"},{\"children\":[],\"end_ns\":\"50532052\",\"start_ns\":\"50492427\",\"text\":\"Semantics of x\"}],\"end_ns\":\"52140914\",\"start_ns\":\"48351717\",\"text\":\"Semantics of x = +(x, 1)\"},{\"children\":[],\"end_ns\":\"52453326\",\"start_ns\":\"52361448\",\"text\":\"Traversal of [ x = open(rec) ] ---> [ <(x, 10) ]\"},{\"children\":[],\"end_ns\":\"52525637\",\"start_ns\":\"52485333\",\"text\":\"Traversal of [ x = +(x, 1) ] ---> [ <(x, 10) ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"53926244\",\"start_ns\":\"53875972\",\"text\":\"Semantics of x\"},{\"children\":[],\"end_ns\":\"53951559\",\"start_ns\":\"53929673\",\"text\":\"Semantics of 10\"}],\"end_ns\":\"54169695\",\"start_ns\":\"53872658\",\"text\":\"Semantics of <(x, 10)\"},{\"children\":[],\"end_ns\":\"55740351\",\"start_ns\":\"54756146\",\"text\":\"Traversal of [ <(x, 10) ] -F-> [ return 1 ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"55815891\",\"start_ns\":\"55791814\",\"text\":\"Semantics of 1\"}],\"end_ns\":\"56137846\",\"start_ns\":\"55774474\",\"text\":\"Semantics of return 1\"}],\"end_ns\":\"56223458\",\"start_ns\":\"39881158\",\"text\":\"Fixpoint of untyped A::getOne(A*)\"}],\"end_ns\":\"56823471\",\"start_ns\":\"39239805\",\"text\":\"Semantics of getOne(a)\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"58590944\",\"start_ns\":\"58544722\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"58607451\",\"start_ns\":\"58593610\",\"text\":\"Semantics of 0\"}],\"end_ns\":\"59273979\",\"start_ns\":\"58541713\",\"text\":\"Semantics of <=(i, 0)\"},{\"children\":[],\"end_ns\":\"59694354\",\"start_ns\":\"59370948\",\"text\":\"Traversal of [ <=(i, 0) ] -T-> [ i = 1 ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"59727720\",\"start_ns\":\"59712168\",\"text\":\"Semantics of 1\"},{\"children\":[],\"end_ns\":\"59766940\",\"start_ns\":\"59731346\",\"text\":\"Semantics of i\"}],\"end_ns\":\"59828211\",\"start_ns\":\"59709292\",\"text\":\"Semantics of i = 1\"},{\"children\":[],\"end_ns\":\"60152315\",\"start_ns\":\"59933488\",\"text\":\"Traversal of [ <=(i, 0) ] -F-> [ i = 10 ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"60202142\",\"start_ns\":\"60182096\",\"text\":\"Semantics of 10\"},{\"children\":[],\"end_ns\":\"60231507\",\"start_ns\":\"60205647\",\"text\":\"Semantics of i\"}],\"end_ns\":\"60342096\",\"start_ns\":\"60179112\",\"text\":\"Semantics of i = 10\"},{\"children\":[],\"end_ns\":\"60464564\",\"start_ns\":\"60427338\",\"text\":\"Traversal of [ i = 1 ] ---> [ return i ]\"},{\"children\":[],\"end_ns\":\"60533489\",\"start_ns\":\"60482622\",\"text\":\"Traversal of [ i = 10 ] ---> [ return i ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"60634780\",\"start_ns\":\"60605584\",\"text\":\"Semantics of i\"}],\"end_ns\":\"60743323\",\"start_ns\":\"60602654\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"60826712\",\"start_ns\":\"58424370\",\"text\":\"Fixpoint of untyped A::getPositive(A*, untyped)\"}],\"end_ns\":\"61221748\",\"start_ns\":\"39167649\",\"text\":\"Semantics of getPositive(a, getOne(a))\"},{\"children\":[],\"end_ns\":\"61281693\",\"start_ns\":\"61227426\",\"text\":\"Semantics of one\"}],\"end_ns\":\"61372512\",\"start_ns\":\"39164696\",\"text\":\"Semantics of one = getPositive(a, getOne(a))\"},{\"children\":[],\"end_ns\":\"61560675\",\"start_ns\":\"61466415\",\"text\":\"Traversal of [ one = getPositive(a, getOne(a)) ] ---> [ positive = identity(a, one) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"61613807\",\"start_ns\":\"61586153\",\"text\":\"Semantics of a\"},{\"children\":[],\"end_ns\":\"61644409\",\"start_ns\":\"61616410\",\"text\":\"Semantics of one\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"62900030\",\"start_ns\":\"62880889\",\"text\":\"Semantics of 1\"},{\"children\":[],\"end_ns\":\"62934057\",\"start_ns\":\"62902605\",\"text\":\"Semantics of i3\"}],\"end_ns\":\"63059461\",\"start_ns\":\"62878358\",\"text\":\"Semantics of i3 = 1\"},{\"children\":[],\"end_ns\":\"63150850\",\"start_ns\":\"63099504\",\"text\":\"Traversal of [ i3 = 1 ] ---> [ return i ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"63240417\",\"start_ns\":\"63172727\",\"text\":\"Semantics of i\"}],\"end_ns\":\"63439369\",\"start_ns\":\"63170184\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"63473026\",\"start_ns\":\"62792937\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"}],\"end_ns\":\"63963869\",\"start_ns\":\"61584416\",\"text\":\"Semantics of identity(a, one)\"},{\"children\":[],\"end_ns\":\"64023996\",\"start_ns\":\"63975957\",\"text\":\"Semantics of positive\"}],\"end_ns\":\"64214818\",\"start_ns\":\"61581777\",\"text\":\"Semantics of positive = identity(a, one)\"},{\"children\":[],\"end_ns\":\"64381142\",\"start_ns\":\"64296102\",\"text\":\"Traversal of [ positive = identity(a, one) ] ---> [ minusone = -1 ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"64420777\",\"start_ns\":\"64405041\",\"text\":\"Semantics of -1\"},{\"children\":[],\"end_ns\":\"64456007\",\"start_ns\":\"64424175\",\"text\":\"Semantics of minusone\"}],\"end_ns\":\"64588916\",\"start_ns\":\"64402261\",\"text\":\"Semantics of minusone = -1\"},{\"children\":[],\"end_ns\":\"64750731\",\"start_ns\":\"64706727\",\"text\":\"Traversal of [ minusone = -1 ] ---> [ negative = identity(a, minusone) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"64832952\",\"start_ns\":\"64774473\",\"text\":\"Semantics of a\"},{\"children\":[],\"end_ns\":\"64862541\",\"start_ns\":\"64835538\",\"text\":\"Semantics of minusone\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"66794100\",\"start_ns\":\"66598991\",\"text\":\"Semantics of 1\"},{\"children\":[],\"end_ns\":\"67059882\",\"start_ns\":\"66816962\",\"text\":\"Semantics of i3\"}],\"end_ns\":\"67221265\",\"start_ns\":\"66566683\",\"text\":\"Semantics of i3 = 1\"},{\"children\":[],\"end_ns\":\"67306615\",\"start_ns\":\"67260939\",\"text\":\"Traversal of [ i3 = 1 ] ---> [ return i ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"67359292\",\"start_ns\":\"67333025\",\"text\":\"Semantics of i\"}],\"end_ns\":\"67449483\",\"start_ns\":\"67330517\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"67478149\",\"start_ns\":\"66357981\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"}],\"end_ns\":\"67832724\",\"start_ns\":\"64772869\",\"text\":\"Semantics of identity(a, minusone)\"},{\"children\":[],\"end_ns\":\"67873420\",\"start_ns\":\"67837163\",\"text\":\"Semantics of negative\"}],\"end_ns\":\"67955261\",\"start_ns\":\"64770847\",\"text\":\"Semantics of negative = identity(a, minusone)\"},{\"children\":[],\"end_ns\":\"68092075\",\"start_ns\":\"68026208\",\"text\":\"Traversal of [ negative = identity(a, minusone) ] ---> [ top = helper(this, one, a) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"68153876\",\"start_ns\":\"68121334\",\"text\":\"Semantics of this\"},{\"children\":[],\"end_ns\":\"68178736\",\"start_ns\":\"68156356\",\"text\":\"Semantics of one\"},{\"children\":[],\"end_ns\":\"68210691\",\"start_ns\":\"68180495\",\"text\":\"Semantics of a\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"70476647\",\"start_ns\":\"70435114\",\"text\":\"Semantics of dispatcher\"},{\"children\":[],\"end_ns\":\"70506439\",\"start_ns\":\"70481392\",\"text\":\"Semantics of i\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"71950844\",\"start_ns\":\"71928209\",\"text\":\"Semantics of 1\"},{\"children\":[],\"end_ns\":\"72053177\",\"start_ns\":\"71953321\",\"text\":\"Semantics of i3\"}],\"end_ns\":\"72217882\",\"start_ns\":\"71919417\",\"text\":\"Semantics of i3 = 1\"},{\"children\":[],\"end_ns\":\"72355166\",\"start_ns\":\"72291533\",\"text\":\"Traversal of [ i3 = 1 ] ---> [ return i ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"72448350\",\"start_ns\":\"72388213\",\"text\":\"Semantics of i\"}],\"end_ns\":\"72560789\",\"start_ns\":\"72385434\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"72595151\",\"start_ns\":\"71808094\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"}],\"end_ns\":\"73021395\",\"start_ns\":\"70433894\",\"text\":\"Semantics of identity(dispatcher, i)\"}],\"end_ns\":\"73211013\",\"start_ns\":\"70431059\",\"text\":\"Semantics of return identity(dispatcher, i)\"}],\"end_ns\":\"73252291\",\"start_ns\":\"70349593\",\"text\":\"Fixpoint of untyped tests::helper(tests*, untyped, untyped)\"}],\"end_ns\":\"73705104\",\"start_ns\":\"68119849\",\"text\":\"Semantics of helper(this, one, a)\"},{\"children\":[],\"end_ns\":\"73746225\",\"start_ns\":\"73710529\",\"text\":\"Semantics of top\"}],\"end_ns\":\"73842859\",\"start_ns\":\"68117214\",\"text\":\"Semantics of top = helper(this, one, a)\"},{\"children\":[],\"end_ns\":\"73983576\",\"start_ns\":\"73906730\",\"text\":\"Traversal of [ top = helper(this, one, a) ] ---> [ ret ]\"},{\"children\":[],\"end_ns\":\"74020654\",\"start_ns\":\"74005967\",\"text\":\"Semantics of ret\"}],\"end_ns\":\"74113717\",\"start_ns\":\"14121528\",\"text\":\"Fixpoint of untyped tests::main(tests*)\"}],\"end_ns\":\"75420252\",\"start_ns\":\"827007\",\"text\":\"Program-wide fixpoint iteration 1\"}],\"end_ns\":\"75453744\",\"start_ns\":\"0\",\"text\":\"Program-wide fixpoint\"}";
+		const graph = "{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"7266818\",\"start_ns\":\"5839694\",\"text\":\"Semantics of #TOP#\"},{\"children\":[],\"end_ns\":\"12228274\",\"start_ns\":\"7306882\",\"text\":\"Semantics of this\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"34930741\",\"start_ns\":\"34764954\",\"text\":\"Semantics of 0\"},{\"children\":[],\"end_ns\":\"35007700\",\"start_ns\":\"34936747\",\"text\":\"Semantics of i1\"}],\"end_ns\":\"35260921\",\"start_ns\":\"34756246\",\"text\":\"Semantics of i1 = 0\"},{\"children\":[],\"end_ns\":\"36674273\",\"start_ns\":\"35414106\",\"text\":\"Traversal of [ i1 = 0 ] ---> [ ret ]\"},{\"children\":[],\"end_ns\":\"36776808\",\"start_ns\":\"36740282\",\"text\":\"Semantics of ret\"}],\"end_ns\":\"36892820\",\"start_ns\":\"34616140\",\"text\":\"Fixpoint of untyped A::A(A*)\"}],\"end_ns\":\"38425006\",\"start_ns\":\"16002976\",\"text\":\"Semantics of new A()\"},{\"children\":[],\"end_ns\":\"38503034\",\"start_ns\":\"38438081\",\"text\":\"Semantics of a\"}],\"end_ns\":\"38675546\",\"start_ns\":\"15996154\",\"text\":\"Semantics of a = new A()\"},{\"children\":[],\"end_ns\":\"38908253\",\"start_ns\":\"38790606\",\"text\":\"Traversal of [ a = new A() ] ---> [ one = getPositive(a, getOne(a)) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"39003090\",\"start_ns\":\"38947919\",\"text\":\"Semantics of a\"},{\"children\":[{\"children\":[],\"end_ns\":\"39040778\",\"start_ns\":\"39011078\",\"text\":\"Semantics of a\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"41032921\",\"start_ns\":\"39829731\",\"text\":\"Semantics of new tests()\"},{\"children\":[],\"end_ns\":\"41143049\",\"start_ns\":\"41046716\",\"text\":\"Semantics of rec\"}],\"end_ns\":\"41431186\",\"start_ns\":\"39820493\",\"text\":\"Semantics of rec = new tests()\"},{\"children\":[],\"end_ns\":\"41598703\",\"start_ns\":\"41497057\",\"text\":\"Traversal of [ rec = new tests() ] ---> [ x = open(rec) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"41692130\",\"start_ns\":\"41654891\",\"text\":\"Semantics of rec\"}],\"end_ns\":\"42040964\",\"start_ns\":\"41651412\",\"text\":\"Semantics of open(rec)\"},{\"children\":[],\"end_ns\":\"42094023\",\"start_ns\":\"42051049\",\"text\":\"Semantics of x\"}],\"end_ns\":\"42403412\",\"start_ns\":\"41639612\",\"text\":\"Semantics of x = open(rec)\"},{\"children\":[],\"end_ns\":\"42914447\",\"start_ns\":\"42801665\",\"text\":\"Traversal of [ x = open(rec) ] ---> [ <(x, 10) ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"43015525\",\"start_ns\":\"42965895\",\"text\":\"Semantics of x\"},{\"children\":[],\"end_ns\":\"43080339\",\"start_ns\":\"43019019\",\"text\":\"Semantics of 10\"}],\"end_ns\":\"45450813\",\"start_ns\":\"42961520\",\"text\":\"Semantics of <(x, 10)\"},{\"children\":[],\"end_ns\":\"49597309\",\"start_ns\":\"45591377\",\"text\":\"Traversal of [ <(x, 10) ] -T-> [ x = +(x, 1) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"49695678\",\"start_ns\":\"49646547\",\"text\":\"Semantics of x\"},{\"children\":[],\"end_ns\":\"49723978\",\"start_ns\":\"49699327\",\"text\":\"Semantics of 1\"}],\"end_ns\":\"51849040\",\"start_ns\":\"49644701\",\"text\":\"Semantics of +(x, 1)\"},{\"children\":[],\"end_ns\":\"51912009\",\"start_ns\":\"51860060\",\"text\":\"Semantics of x\"}],\"end_ns\":\"53253309\",\"start_ns\":\"49641872\",\"text\":\"Semantics of x = +(x, 1)\"},{\"children\":[],\"end_ns\":\"53458639\",\"start_ns\":\"53382457\",\"text\":\"Traversal of [ x = open(rec) ] ---> [ <(x, 10) ]\"},{\"children\":[],\"end_ns\":\"53536531\",\"start_ns\":\"53483788\",\"text\":\"Traversal of [ x = +(x, 1) ] ---> [ <(x, 10) ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"54976575\",\"start_ns\":\"54910909\",\"text\":\"Semantics of x\"},{\"children\":[],\"end_ns\":\"54992931\",\"start_ns\":\"54980193\",\"text\":\"Semantics of 10\"}],\"end_ns\":\"55238047\",\"start_ns\":\"54906924\",\"text\":\"Semantics of <(x, 10)\"},{\"children\":[],\"end_ns\":\"56754658\",\"start_ns\":\"55786123\",\"text\":\"Traversal of [ <(x, 10) ] -F-> [ return 1 ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"56810923\",\"start_ns\":\"56793919\",\"text\":\"Semantics of 1\"}],\"end_ns\":\"57150154\",\"start_ns\":\"56786097\",\"text\":\"Semantics of return 1\"}],\"end_ns\":\"57255559\",\"start_ns\":\"39715829\",\"text\":\"Fixpoint of untyped A::getOne(A*)\"}],\"end_ns\":\"57831169\",\"start_ns\":\"39009169\",\"text\":\"Semantics of getOne(a)\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"59317069\",\"start_ns\":\"59284990\",\"text\":\"Semantics of i\"},{\"children\":[],\"end_ns\":\"59337463\",\"start_ns\":\"59319326\",\"text\":\"Semantics of 0\"}],\"end_ns\":\"59999895\",\"start_ns\":\"59282069\",\"text\":\"Semantics of <=(i, 0)\"},{\"children\":[],\"end_ns\":\"60483057\",\"start_ns\":\"60151773\",\"text\":\"Traversal of [ <=(i, 0) ] -T-> [ i = 1 ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"60520002\",\"start_ns\":\"60505141\",\"text\":\"Semantics of 1\"},{\"children\":[],\"end_ns\":\"60575865\",\"start_ns\":\"60522770\",\"text\":\"Semantics of i\"}],\"end_ns\":\"60637705\",\"start_ns\":\"60502429\",\"text\":\"Semantics of i = 1\"},{\"children\":[],\"end_ns\":\"60971237\",\"start_ns\":\"60731876\",\"text\":\"Traversal of [ <=(i, 0) ] -F-> [ i = 10 ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"61013835\",\"start_ns\":\"60998470\",\"text\":\"Semantics of 10\"},{\"children\":[],\"end_ns\":\"61056862\",\"start_ns\":\"61016931\",\"text\":\"Semantics of i\"}],\"end_ns\":\"61184422\",\"start_ns\":\"60996194\",\"text\":\"Semantics of i = 10\"},{\"children\":[],\"end_ns\":\"61288499\",\"start_ns\":\"61254358\",\"text\":\"Traversal of [ i = 1 ] ---> [ return i ]\"},{\"children\":[],\"end_ns\":\"61341895\",\"start_ns\":\"61311203\",\"text\":\"Traversal of [ i = 10 ] ---> [ return i ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"61429332\",\"start_ns\":\"61400008\",\"text\":\"Semantics of i\"}],\"end_ns\":\"61530529\",\"start_ns\":\"61397331\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"61594122\",\"start_ns\":\"59171203\",\"text\":\"Fixpoint of untyped A::getPositive(A*, untyped)\"}],\"end_ns\":\"62456336\",\"start_ns\":\"38940454\",\"text\":\"Semantics of getPositive(a, getOne(a))\"},{\"children\":[],\"end_ns\":\"62778118\",\"start_ns\":\"62504579\",\"text\":\"Semantics of one\"}],\"end_ns\":\"63211297\",\"start_ns\":\"38936960\",\"text\":\"Semantics of one = getPositive(a, getOne(a))\"},{\"children\":[],\"end_ns\":\"63383081\",\"start_ns\":\"63284618\",\"text\":\"Traversal of [ one = getPositive(a, getOne(a)) ] ---> [ positive = identity(a, one) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"63465412\",\"start_ns\":\"63422826\",\"text\":\"Semantics of a\"},{\"children\":[],\"end_ns\":\"63489483\",\"start_ns\":\"63467959\",\"text\":\"Semantics of one\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"64786218\",\"start_ns\":\"64768421\",\"text\":\"Semantics of 1\"},{\"children\":[],\"end_ns\":\"64835214\",\"start_ns\":\"64789234\",\"text\":\"Semantics of i3\"}],\"end_ns\":\"64953374\",\"start_ns\":\"64765883\",\"text\":\"Semantics of i3 = 1\"},{\"children\":[],\"end_ns\":\"65057545\",\"start_ns\":\"64995969\",\"text\":\"Traversal of [ i3 = 1 ] ---> [ return i ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"65133433\",\"start_ns\":\"65082178\",\"text\":\"Semantics of i\"}],\"end_ns\":\"65231838\",\"start_ns\":\"65079717\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"65264178\",\"start_ns\":\"64653695\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"}],\"end_ns\":\"65665990\",\"start_ns\":\"63421113\",\"text\":\"Semantics of identity(a, one)\"},{\"children\":[],\"end_ns\":\"65703690\",\"start_ns\":\"65669926\",\"text\":\"Semantics of positive\"}],\"end_ns\":\"65783109\",\"start_ns\":\"63417267\",\"text\":\"Semantics of positive = identity(a, one)\"},{\"children\":[],\"end_ns\":\"65915764\",\"start_ns\":\"65853281\",\"text\":\"Traversal of [ positive = identity(a, one) ] ---> [ minusone = -1 ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"65955296\",\"start_ns\":\"65936511\",\"text\":\"Semantics of -1\"},{\"children\":[],\"end_ns\":\"65981572\",\"start_ns\":\"65957892\",\"text\":\"Semantics of minusone\"}],\"end_ns\":\"66091465\",\"start_ns\":\"65934422\",\"text\":\"Semantics of minusone = -1\"},{\"children\":[],\"end_ns\":\"66202149\",\"start_ns\":\"66166440\",\"text\":\"Traversal of [ minusone = -1 ] ---> [ negative = identity(a, minusone) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"66254025\",\"start_ns\":\"66228894\",\"text\":\"Semantics of a\"},{\"children\":[],\"end_ns\":\"66281937\",\"start_ns\":\"66256278\",\"text\":\"Semantics of minusone\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"67520000\",\"start_ns\":\"67501670\",\"text\":\"Semantics of 1\"},{\"children\":[],\"end_ns\":\"67566680\",\"start_ns\":\"67522858\",\"text\":\"Semantics of i3\"}],\"end_ns\":\"67703416\",\"start_ns\":\"67498906\",\"text\":\"Semantics of i3 = 1\"},{\"children\":[],\"end_ns\":\"67798891\",\"start_ns\":\"67751596\",\"text\":\"Traversal of [ i3 = 1 ] ---> [ return i ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"67863150\",\"start_ns\":\"67822972\",\"text\":\"Semantics of i\"}],\"end_ns\":\"67976961\",\"start_ns\":\"67820618\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"68010383\",\"start_ns\":\"67390290\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"}],\"end_ns\":\"68337930\",\"start_ns\":\"66227439\",\"text\":\"Semantics of identity(a, minusone)\"},{\"children\":[],\"end_ns\":\"69258538\",\"start_ns\":\"68345186\",\"text\":\"Semantics of negative\"}],\"end_ns\":\"69421608\",\"start_ns\":\"66225696\",\"text\":\"Semantics of negative = identity(a, minusone)\"},{\"children\":[],\"end_ns\":\"69589803\",\"start_ns\":\"69498813\",\"text\":\"Traversal of [ negative = identity(a, minusone) ] ---> [ top = helper(this, one, a) ]\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"69655308\",\"start_ns\":\"69623944\",\"text\":\"Semantics of this\"},{\"children\":[],\"end_ns\":\"69683312\",\"start_ns\":\"69657780\",\"text\":\"Semantics of one\"},{\"children\":[],\"end_ns\":\"69708786\",\"start_ns\":\"69684674\",\"text\":\"Semantics of a\"},{\"children\":[{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"71617889\",\"start_ns\":\"71592161\",\"text\":\"Semantics of dispatcher\"},{\"children\":[],\"end_ns\":\"71659143\",\"start_ns\":\"71619568\",\"text\":\"Semantics of i\"},{\"children\":[{\"children\":[{\"children\":[],\"end_ns\":\"72530342\",\"start_ns\":\"72511854\",\"text\":\"Semantics of 1\"},{\"children\":[],\"end_ns\":\"72568676\",\"start_ns\":\"72533601\",\"text\":\"Semantics of i3\"}],\"end_ns\":\"72660277\",\"start_ns\":\"72508525\",\"text\":\"Semantics of i3 = 1\"},{\"children\":[],\"end_ns\":\"72757193\",\"start_ns\":\"72711554\",\"text\":\"Traversal of [ i3 = 1 ] ---> [ return i ]\"},{\"children\":[{\"children\":[],\"end_ns\":\"72810603\",\"start_ns\":\"72780755\",\"text\":\"Semantics of i\"}],\"end_ns\":\"72897143\",\"start_ns\":\"72778736\",\"text\":\"Semantics of return i\"}],\"end_ns\":\"72928253\",\"start_ns\":\"72436394\",\"text\":\"Fixpoint of untyped A::identity(A*, untyped)\"}],\"end_ns\":\"73274310\",\"start_ns\":\"71591000\",\"text\":\"Semantics of identity(dispatcher, i)\"}],\"end_ns\":\"73375125\",\"start_ns\":\"71587420\",\"text\":\"Semantics of return identity(dispatcher, i)\"}],\"end_ns\":\"73413419\",\"start_ns\":\"71497900\",\"text\":\"Fixpoint of untyped tests::helper(tests*, untyped, untyped)\"}],\"end_ns\":\"73759283\",\"start_ns\":\"69622162\",\"text\":\"Semantics of helper(this, one, a)\"},{\"children\":[],\"end_ns\":\"73836663\",\"start_ns\":\"73776102\",\"text\":\"Semantics of top\"}],\"end_ns\":\"73950069\",\"start_ns\":\"69619286\",\"text\":\"Semantics of top = helper(this, one, a)\"},{\"children\":[],\"end_ns\":\"74094604\",\"start_ns\":\"74019887\",\"text\":\"Traversal of [ top = helper(this, one, a) ] ---> [ ret ]\"},{\"children\":[],\"end_ns\":\"74146240\",\"start_ns\":\"74121146\",\"text\":\"Semantics of ret\"}],\"end_ns\":\"74234708\",\"start_ns\":\"13928800\",\"text\":\"Fixpoint of untyped tests::main(tests*)\"}],\"end_ns\":\"75425739\",\"start_ns\":\"824686\",\"text\":\"Program-wide fixpoint iteration 1\"}],\"end_ns\":\"75448312\",\"start_ns\":\"0\",\"text\":\"Program-wide fixpoint\"}";
 		/*]]>*/
 
-		// flatten tree
+		// ---------------------------------------------------------------
+		// FLATTENING THE GRAPH FOR POPULATING THE NODES LIST
+		// ---------------------------------------------------------------
 		const nodes = [];
 		function walk(node, depth = 0) {
 			const text = String(node.text);
@@ -66,27 +70,41 @@
 		}
 		walk(JSON.parse(graph));
 
-		// layout
+		// ---------------------------------------------------------------
+		// CONSTANTS AND SETUP
+		// ---------------------------------------------------------------
+		let width = window.innerWidth;
+		const headerHeight = document.getElementById("lisa-header").offsetHeight;
+		const overviewHeight = 100;
+		let height = window.innerHeight - headerHeight - overviewHeight - 5;
 		const rowHeight = 22;
-		const width = window.innerWidth;
-		const height = window.innerHeight;
+		let overviewRowHeight = Math.max(2, rowHeight * overviewHeight / height);
+		const axisHeight = 24;
 		const minTime = d3.min(nodes, d => d.start);
 		const maxTime = d3.max(nodes, d => d.end);
 		const xScale = d3.scaleLinear()
 			.domain([minTime, maxTime])
 			.range([0, width]);
+		const scrollZoomSpeed = 1.1;
 
-		// SVG & zoom
-		const axisHeight = 24;
+		// ---------------------------------------------------------------
+		// MAIN SVG AND LAYERS
+		// ---------------------------------------------------------------
+		const overviewSvg = d3.select("#overview-map")
+			.attr("width", width)
+			.attr("height", overviewHeight);
 		const svg = d3.select("#heatmap-chart")
 			.append("svg")
 			.attr("width", width)
 			.attr("height", height);
+
 		const zoomLayer = svg.append("g")
 			.attr("transform", `translate(0, ${axisHeight})`);
 
-		// Add time axis at the top
-		function formatTime(d) {
+		// ---------------------------------------------------------------
+		// BUILDING THE AXIS AND GRID TO DRAW ON TOP OF THE GRAPH 
+		// ---------------------------------------------------------------
+		function formatAxisTicks(d) {
 			// d is nanoseconds offset from minTime
 			const ms = (d - minTime) / 1e6;
 			if (ms < 1) return ((d - minTime) / 1e3).toFixed(0) + " μs";
@@ -102,65 +120,64 @@
 		}
 		const axis = d3.axisTop(xScale)
 			.ticks(Math.max(5, width / 180))
-			.tickFormat(formatTime);
-		// white background behind labels
-		svg.append("rect")
+			.tickFormat(formatAxisTicks);
+		// white background behind the axis to prevent the graph from overflowing in the axis
+		const axisBG = svg.append("rect")
+			.attr("id", "axis-bg")
 			.attr("x", 0)
 			.attr("y", 0)
 			.attr("width", width)
-			.attr("height", axisHeight)
-			.attr("fill", "#fff")
-			.attr("pointer-events", "none")
-			.on("mousedown.zoomcursor", () => svg.classed("grabbing", true))
-			.on("mouseup.zoomcursor", () => svg.classed("grabbing", false))
-			.on("mouseleave.zoomcursor", () => svg.classed("grabbing", false));
+			.attr("height", axisHeight);
 		const axisGroup = svg.append("g")
 			.attr("transform", `translate(0,${axisHeight})`)
 			.call(axis);
-		// Add vertical grid lines
+		// drawing grid lines based on the visible ticks
 		function drawGridLines(currentScale) {
-			// Remove old grid lines
 			axisGroup.selectAll(".grid-line").remove();
-			// Add new grid lines for each tick
 			axisGroup.selectAll(".tick").each(function (d) {
 				axisGroup.append("line")
 					.attr("class", "grid-line")
 					.attr("x1", currentScale(d))
 					.attr("x2", currentScale(d))
 					.attr("y1", 0)
-					.attr("y2", height)
-					.attr("stroke", "#ccc")
-					.attr("stroke-width", 1)
-					.attr("pointer-events", "none");
+					.attr("y2", height);
 			});
 		}
 		drawGridLines(xScale);
 
+		// ---------------------------------------------------------------
+		// CONFIGURING ZOOM AND PAN BEHAVIOR
+		// ---------------------------------------------------------------
 		const zoom = d3.zoom()
+			// min zoom of 1 (cannot reduce graph size), max zoom of 100 (arbitrary, can be adjusted)
 			.scaleExtent([1, 100])
 			.on("zoom", (event) => {
 				const t = event.transform;
 				const scale = t.k;
 
+				// set up clamping so we cannot pan the graph out of view
 				const maxX = 0;
 				const maxY = 0;
 				const minX = Math.min(width - width * scale, 0);
 				const minY = Math.min(height - height * scale, 0);
 				const clampedX = Math.max(Math.min(t.x, maxX), minX);
 				const clampedY = Math.max(Math.min(t.y, maxY), minY);
+				const clamped = t.x !== clampedX || t.y !== clampedY;
 
-				let clamped = false;
-				if (t.x !== clampedX || t.y !== clampedY) clamped = true;
-
+				// apply zoom and pan: always offset by the axis height
 				zoomLayer.attr("transform", `translate(${clampedX},${clampedY + axisHeight}) scale(${scale})`);
-				updateLabels();
+				// clamp the transform on the zoom layer as well:
+				// otherwise the transforms would be inconsistent 
+				// and the panning would break 
+				if (clamped)
+					svg.call(zoom.transform, d3.zoomIdentity.translate(clampedX, clampedY).scale(scale));
 
+				// zoom and pan the axis as well
 				const newTransform = d3.zoomIdentity.translate(clampedX, 0).scale(scale);
 				const newX = newTransform.rescaleX(xScale);
-				// Clamp the axis domain to [minTime, maxTime]
 				const domain = newX.domain();
 				if (domain[0] < minTime || domain[1] > maxTime) {
-					// If out of bounds, reset axis to [minTime, maxTime]
+					// if out of bounds, reset axis to [minTime, maxTime]
 					axisGroup.call(axis.scale(xScale));
 					drawGridLines(xScale);
 				} else {
@@ -168,27 +185,26 @@
 					drawGridLines(newX);
 				}
 
-				if (clamped) {
-					svg.call(zoom.transform, d3.zoomIdentity.translate(clampedX, clampedY).scale(scale));
-				}
+				// update the labels that are visible inside each bar in the graph
+				updateLabels();
+				// update the viewport rectangle in the overview map
+				updateOverviewViewport();
 			});
 		svg.call(zoom);
 
-		// Disable default wheel zoom
+		// ---------------------------------------------------------------
+		// SCROLL WITH WHEEL, ZOOM WITH CTRL + WHEEL
+		// ---------------------------------------------------------------
 		svg.on("wheel.zoom", null);
-
-		// Custom wheel handler
 		svg.on("wheel.custom", function (event) {
 			event.preventDefault();
 			if (event.ctrlKey) {
-				// Zoom (scale) when Ctrl is held
 				d3.select(this).call(
 					zoom.scaleBy,
-					event.deltaY < 0 ? 1.1 : 1 / 1.1,
+					event.deltaY < 0 ? scrollZoomSpeed : 1 / scrollZoomSpeed,
 					[event.offsetX, event.offsetY]
 				);
 			} else {
-				// Pan when Ctrl is not held
 				d3.select(this).call(
 					zoom.translateBy,
 					-event.deltaX,
@@ -197,7 +213,9 @@
 			}
 		});
 
-		// draw nodes
+		// ---------------------------------------------------------------
+		// LOGIC FOR MOVING THE TOOLTIP AROUND ON NODE HOVER
+		// ---------------------------------------------------------------
 		const tooltip = d3.select("#heatmap-tooltip");
 		function showTooltip(event, d) {
 			tooltip
@@ -222,6 +240,10 @@
 		function hideTooltip() {
 			tooltip.style("opacity", 0);
 		}
+
+		// ---------------------------------------------------------------
+		// MAIN LOGIC FOR DRAWING THE HEATMAP GRAPH
+		// ---------------------------------------------------------------
 		const categoryHue = {
 			Interprocedural: 0, // red
 			Fixpoint: 210,      // blue
@@ -257,7 +279,9 @@
 			.on("mousemove", moveTooltip)
 			.on("mouseleave", hideTooltip);
 
-		// labels (elided)
+		// ---------------------------------------------------------------
+		// LABELS TO DISPLAY INSIDE EACH NODE, HIDDEN IF TOO LONG
+		// ---------------------------------------------------------------
 		const labels = zoomLayer.selectAll("text")
 			.data(nodes)
 			.enter()
@@ -273,7 +297,6 @@
 			d._textWidth = this.getBBox().width;
 		});
 
-		// Hide labels that don't fit
 		function updateLabels() {
 			labels.each(function (d) {
 				const text = d3.select(this);
@@ -283,7 +306,125 @@
 		}
 		updateLabels();
 
-		// search
+		// ---------------------------------------------------------------
+		// DRAWING THE OVERVIEW MAP
+		// ---------------------------------------------------------------
+		const overviewRects = overviewSvg.selectAll("rect")
+			.data(nodes)
+			.enter()
+			.append("rect")
+			.attr("class", "overview-node")
+			.attr("x", d => xScale(d.start))
+			.attr("y", d => d.depth * overviewRowHeight)
+			.attr("width", d => xScale(d.end) - xScale(d.start))
+			.attr("height", overviewRowHeight - 1)
+			.attr("fill", nodeColor);
+
+		const mask = overviewSvg.append("defs")
+			.append("mask")
+			.attr("id", "overview-mask");
+		mask.append("rect")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", width)
+			.attr("height", overviewHeight)
+			.attr("fill", "white");
+		const maskHole = mask.append("rect")
+			.attr("id", "overview-mask-hole")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", 10)
+			.attr("height", overviewHeight)
+			.attr("fill", "black");
+		const overlay = overviewSvg.append("rect")
+			.attr("id", "overview-overlay")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", width)
+			.attr("height", overviewHeight)
+			.attr("mask", "url(#overview-mask)");
+		const overviewViewport = overviewSvg.append("rect")
+			.attr("id", "overview-viewport")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", 10)
+			.attr("height", overviewHeight);
+
+		function updateOverviewViewport() {
+			const t = d3.zoomTransform(svg.node());
+			const scale = t.k;
+			const tx = t.x;
+			const ty = t.y;
+
+			const visibleMin = xScale.invert(-tx / scale);
+			const visibleMax = xScale.invert((width - tx) / scale);
+			const x1 = xScale(Math.max(minTime, visibleMin));
+			const x2 = xScale(Math.min(maxTime, visibleMax));
+
+			const mainGraphHeight = height;
+			const visibleYMin = -ty / scale;
+			const visibleYMax = (mainGraphHeight - ty) / scale;
+			const y1 = Math.max(0, visibleYMin / mainGraphHeight * overviewHeight);
+			const y2 = Math.min(overviewHeight, visibleYMax / mainGraphHeight * overviewHeight);
+
+			overviewViewport
+				.attr("x", x1)
+				.attr("width", Math.max(10, x2 - x1))
+				.attr("y", y1)
+				.attr("height", Math.max(5, y2 - y1));
+			overviewSvg.select("#overview-mask-hole")
+				.attr("x", x1)
+				.attr("y", y1)
+				.attr("width", Math.max(10, x2 - x1))
+				.attr("height", Math.max(5, y2 - y1));
+			overlay
+				.attr("width", width)
+				.attr("height", overviewHeight);
+		}
+		updateOverviewViewport();
+
+		// ---------------------------------------------------------------
+		// LISTENING FOR RESIZE EVENTS
+		// ---------------------------------------------------------------
+		window.addEventListener("resize", () => {
+			width = window.innerWidth;
+			height = window.innerHeight - headerHeight - overviewHeight - 5;
+			overviewRowHeight = Math.max(2, rowHeight * overviewHeight / height);
+
+			xScale.range([0, width]);
+			svg.attr("width", width).attr("height", height);
+			overviewSvg.attr("width", width);
+
+			// Update axis and grid
+			axis.ticks(Math.max(5, width / 180));
+			axisGroup.call(axis.scale(xScale));
+			drawGridLines(xScale);
+
+			// Update main graph rectangles and labels
+			rects
+				.attr("x", d => xScale(d.start))
+				.attr("width", d => xScale(d.end) - xScale(d.start))
+				.attr("y", d => d.depth * rowHeight)
+				.attr("height", rowHeight - 2);
+			labels
+				.attr("x", d => xScale(d.start) + 4)
+				.attr("y", d => d.depth * rowHeight + rowHeight * 0.7);
+			overviewRects
+				.attr("x", d => xScale(d.start))
+				.attr("width", d => xScale(d.end) - xScale(d.start))
+				.attr("y", d => d.depth * overviewRowHeight)
+				.attr("height", overviewRowHeight - 1);
+
+			axisBG.attr("width", width);
+
+			updateLabels();
+			updateOverviewViewport();
+			svg.call(zoom.transform, d3.zoomTransform(svg.node()));
+		});
+
+		// ---------------------------------------------------------------
+		// SEARCH TO FIND NODES BY TEXT
+		// ---------------------------------------------------------------
 		d3.select("#search").node().value = "";
 		var hits = [];
 		var hit = -1;
@@ -337,15 +478,9 @@
 			}
 		});
 
-		// recenter button
-		d3.select("#centerButton").on("click", function () {
-			svg.transition().duration(400).call(
-				zoom.transform,
-				d3.zoomIdentity
-			);
-		});
-
-		/* Legend modal */
+		// ---------------------------------------------------------------
+		// LEGEND MODAL LOGIC
+		// ---------------------------------------------------------------
 		var modal = d3.select("#legend").on("click", function () {
 			d3.select(this).style("display", "none");
 		});
