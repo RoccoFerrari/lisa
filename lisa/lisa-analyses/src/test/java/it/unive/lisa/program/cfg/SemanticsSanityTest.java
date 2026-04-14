@@ -196,10 +196,11 @@ public class SemanticsSanityTest {
 					res = ((Pair) res).getLeft();
 				boolean isBottom = ((Lattice) res).isBottom();
 				if (res instanceof AnalysisState) {
+					// note: getExecutionInformation() is decoupled from the
+					// lattice structure and does not contribute to the bottom
+					// check.
 					AnalysisState state = (AnalysisState) res;
 					isBottom = state.getExecutionState().isBottom()
-							&& state.getExecutionInformation() != null
-							&& state.getExecutionInformation().isBottom()
 							// analysis state keeps the assigned id on the stack
 							&& state.getExecutionExpressions().size() == 1
 							&& state.getExecutionExpressions().iterator().next().equals(v);
