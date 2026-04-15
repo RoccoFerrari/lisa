@@ -118,6 +118,8 @@ public class Sign
 		else if (operator instanceof MultiplicationOperator)
 			if (left.isZero() || right.isZero())
 				return SignLattice.ZERO;
+			else if (left.isTop() || right.isTop())
+				return top();
 			else if (left.equals(right))
 				return SignLattice.POS;
 			else
