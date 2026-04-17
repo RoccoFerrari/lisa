@@ -15,7 +15,15 @@ import it.unive.lisa.symbolic.value.ValueExpression;
  * cooperate with domains tracking different value kinds. The cooperation
  * happens through <i>constraints</i> (i.e., {@link BinaryExpression}s having a
  * constant on the left-hand side and an expression on the right-hand side).
- * 
+ * <br/>
+ * <br/>
+ * The main difference between the LiSA implementation of this analysis and the
+ * one defined in the <a href=
+ * "https://www.frontiersin.org/journals/computer-science/articles/10.3389/fcomp.2025.1655377/full">paper</a>
+ * is that the generator function {@code G} is absent from the implementation:
+ * instead, the constraints are interpreted directly in the abstract
+ * transformers that ask for them.
+ *
  * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
  * 
  * @param <L> the type of {@link ValueLattice} that this domain works with
@@ -58,44 +66,11 @@ public interface WholeValueParticipant<L extends ValueLattice<L>>
 			throws SemanticException;
 
 	/**
-	 * Generates a new lattice instance that overapproximates the given set of
-	 * constraints. The constraints are definite, as in with each constraint the
-	 * set of concrete values shrinks. An empty set of constraints thus
-	 * represents any possible concrete value. A {@code null} set of constraints
-	 * represents a bottom value.<br/>
-	 * <br/>
-	 * Each constraint is given as a {@link BinaryExpression}, where the left
-	 * operand is a constant and the right operand is the expression whose value
-	 * is being constrained. Instead of {@code e}, the right operand can also
-	 * represent properties of {@code e} (e.g., its length, if {@code e} is an
-	 * array or a string), as long as the right operand is an expression that
-	 * can be evaluated by this domain and that is related to {@code e}.
-	 * 
-	 * @param state       the abstract state from which the constraints are
-	 *                        generated
-	 * @param constraints the constraints modeling the concrete values
-	 * @param pp          the program point at which the constraints are being
-	 *                        generated
-	 * @param oracle      the oracle for inter-domain communication
-	 * 
-	 * @return a new lattice instance that overapproximates the given
-	 *             constraints
-	 * 
-	 * @throws SemanticException if an error occurs during the computation
-	 */
-	L generate(
-			L state,
-			Set<BinaryExpression> constraints,
-			ProgramPoint pp,
-			SemanticOracle oracle)
-			throws SemanticException;
-
-	/**
-	 * Yields {@code true} if this domain can abstract the value of {@code e},
+	 * Yields {@code true} if this domain can summarize the value of {@code e},
 	 * such that the {@link WholeValueAnalysis} can use this domain to generate
-	 * constraints regarding {@code e}. Since "to abstract" in this context is
+	 * constraints regarding {@code e}. Since "to summarize" in this context is
 	 * limited to the generation of constraints, domains can return {@code true}
-	 * even if they can just produce fact about the value (e.g., its relation to
+	 * even if they can just produce facts about the value (e.g., its relation to
 	 * other program variables), and not the value itself.
 	 *
 	 * @param e      the expression whose value is being abstracted
@@ -106,7 +81,7 @@ public interface WholeValueParticipant<L extends ValueLattice<L>>
 	 * @return {@code true} if this domain can abstract the value of {@code e},
 	 *             {@code false} otherwise
 	 */
-	boolean canAbstract(
+	boolean canSummarize(
 			ValueExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle);

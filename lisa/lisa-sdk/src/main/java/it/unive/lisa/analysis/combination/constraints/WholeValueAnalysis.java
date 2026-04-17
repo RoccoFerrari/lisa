@@ -18,10 +18,15 @@ import it.unive.lisa.symbolic.value.ValueExpression;
  * must be value abstractions that know how to generate constraints and
  * interpret them. This analysis forwards each expression to be evaluated to all
  * the domains that can handle it, according to
- * {@link WholeValueParticipant#canAbstract(ValueExpression, ProgramPoint, SemanticOracle)}.
+ * {@link WholeValueParticipant#canSummarize(ValueExpression, ProgramPoint, SemanticOracle)}.
  * Also, the class will insert itself into the {@link SemanticOracle} so that
  * client analyses can ask it to generate constraints for any expression and to
- * evaluate them.
+ * evaluate them.<br/>
+ * <br/>
+ * The main difference between the LiSA implementation of this analysis and the
+ * one defined in the paper is that the generator function {@code G} is absent
+ * from the implementation: instead, the constraints are interpreted directly in
+ * the abstract transformers that ask for them.
  * 
  * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
  */
@@ -118,7 +123,7 @@ public class WholeValueAnalysis
 			throws SemanticException {
 		ValueLattice<?>[] lattices = new ValueLattice<?>[participants.length];
 		for (int i = 0; i < participants.length; i++)
-			if (participants[i].canAbstract(expression, pp, oracle))
+			if (participants[i].canSummarize(expression, pp, oracle))
 				lattices[i] = (ValueLattice<?>) ((WholeValueParticipant) participants[i]).assign(state.get(i),
 						id, expression, pp, oracle);
 			else
@@ -136,7 +141,7 @@ public class WholeValueAnalysis
 			throws SemanticException {
 		ValueLattice<?>[] lattices = new ValueLattice<?>[participants.length];
 		for (int i = 0; i < participants.length; i++)
-			if (participants[i].canAbstract(expression, pp, oracle))
+			if (participants[i].canSummarize(expression, pp, oracle))
 				lattices[i] = (ValueLattice<?>) ((WholeValueParticipant) participants[i])
 						.smallStepSemantics(state.get(i), expression, pp, oracle);
 			else
@@ -154,7 +159,7 @@ public class WholeValueAnalysis
 			throws SemanticException {
 		Satisfiability result = null;
 		for (int i = 0; i < participants.length; i++)
-			if (participants[i].canAbstract(expression, pp, oracle)) {
+			if (participants[i].canSummarize(expression, pp, oracle)) {
 				Satisfiability res = ((WholeValueParticipant) participants[i]).satisfies(state.get(i), expression, pp,
 						oracle);
 				if (res == Satisfiability.BOTTOM)
@@ -176,7 +181,7 @@ public class WholeValueAnalysis
 			throws SemanticException {
 		ValueLattice<?>[] lattices = new ValueLattice<?>[participants.length];
 		for (int i = 0; i < participants.length; i++)
-			if (participants[i].canAbstract(expression, src, oracle))
+			if (participants[i].canSummarize(expression, src, oracle))
 				lattices[i] = (ValueLattice<?>) ((WholeValueParticipant) participants[i]).assume(state.get(i),
 						expression, src, dest, oracle);
 			else
