@@ -66,11 +66,7 @@ public interface SemanticOracle {
 	 * <br/>
 	 * Each constraint is given as a {@link BinaryExpression}, where the left
 	 * operand is a constant and the right operand is the expression whose value
-	 * is being constrained, corresponding to the parameter {@code e}. Instead
-	 * of {@code e}, the right operand can also represent properties of
-	 * {@code e} (e.g., its length, if {@code e} is an array or a string), as
-	 * long as the right operand is an expression that can be evaluated by this
-	 * domain and that is related to {@code e}.
+	 * is being constrained, corresponding to the parameter {@code e}.
 	 * 
 	 * @param e  the expression whose value is being constrained
 	 * @param pp the program point at which the constraints are being generated

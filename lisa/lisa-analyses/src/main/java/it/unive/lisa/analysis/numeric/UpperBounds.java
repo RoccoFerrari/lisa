@@ -1,5 +1,12 @@
 package it.unive.lisa.analysis.numeric;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
@@ -11,6 +18,8 @@ import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.Identifier;
+import it.unive.lisa.symbolic.value.PushInv;
+import it.unive.lisa.symbolic.value.UnaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.symbolic.value.operator.AdditionOperator;
 import it.unive.lisa.symbolic.value.operator.ArithmeticOperator;
@@ -21,11 +30,11 @@ import it.unive.lisa.symbolic.value.operator.binary.ComparisonGe;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonGt;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonLe;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonLt;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import it.unive.lisa.symbolic.value.operator.binary.ComparisonNe;
+import it.unive.lisa.symbolic.value.operator.binary.LogicalAnd;
+import it.unive.lisa.symbolic.value.operator.binary.LogicalOr;
+import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
+import it.unive.lisa.type.Type;
 
 /**
  * Relational implementation of the upper bounds analysis of
@@ -53,10 +62,11 @@ public class UpperBounds
 				continue;
 			if (!entry.getValue().contains(id))
 				cleanup.put(entry.getKey(), entry.getValue());
-
-			Set<Identifier> copy = new HashSet<>(entry.getValue().elements);
-			copy.remove(id);
-			cleanup.put(entry.getKey(), new DefiniteIdSet(copy));
+			else {
+				Set<Identifier> copy = new HashSet<>(entry.getValue().elements);
+				copy.remove(id);
+				cleanup.put(entry.getKey(), new DefiniteIdSet(copy));
+			}
 		}
 
 		if (expression instanceof BinaryExpression) {
@@ -219,4 +229,130 @@ public class UpperBounds
 		return new ValueEnvironment<>(new DefiniteIdSet(Collections.emptySet(), true));
 	}
 
+	@Override
+	public boolean canProcess(
+			ValueExpression expression,
+			ProgramPoint pp,
+			SemanticOracle oracle) {
+		if (expression instanceof PushInv)
+			// the type approximation of a pushinv is bottom, so the below check
+			// will always fail regardless of the kind of value we are tracking
+			return expression.getStaticType().isValueType();
+
+		Set<Type> rts = null;
+		try {
+			rts = oracle.getRuntimeTypesOf(expression, pp);
+		} catch (SemanticException e) {
+			return false;
+		}
+
+		if (rts == null || rts.isEmpty())
+			// if we have no runtime types, either the type domain has no type
+			// information for the given expression (thus it can be anything,
+			// also something that we can track) or the computation returned
+			// bottom (and the whole state is likely going to go to bottom
+			// anyway).
+			return true;
+
+		return rts.stream().anyMatch(Type::isValueType);
+	}
+
+	@Override
+	public boolean canSummarize(
+			ValueExpression e,
+			ProgramPoint pp,
+			SemanticOracle oracle) {
+		if (e instanceof PushInv)
+			// the type approximation of a pushinv is bottom, so the below check
+			// will always fail regardless of the kind of value we are tracking
+			return e.getStaticType().isNumericType();
+
+		Set<Type> rts = null;
+		try {
+			rts = oracle.getRuntimeTypesOf(e, pp);
+		} catch (SemanticException ex) {
+			return false;
+		}
+
+		if (rts == null || rts.isEmpty())
+			// if we have no runtime types, either the type domain has no type
+			// information for the given expression (thus it can be anything,
+			// also something that we can track) or the computation returned
+			// bottom (and the whole state is likely going to go to bottom
+			// anyway).
+			return true;
+
+		return rts.stream().anyMatch(Type::isNumericType);
+	}
+
+	@Override
+	public Set<BinaryExpression> constraints(
+			ValueEnvironment<DefiniteIdSet> state,
+			ValueExpression e,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		if (state.isTop())
+			return Collections.emptySet();
+		if (state.isBottom())
+			return null;
+
+		if ((e instanceof UnaryExpression && ((UnaryExpression) e).getOperator() == LogicalNegation.INSTANCE)
+				|| (e instanceof BinaryExpression && ((BinaryExpression) e).getOperator() == LogicalAnd.INSTANCE)
+				|| (e instanceof BinaryExpression && ((BinaryExpression) e).getOperator() == LogicalOr.INSTANCE)) {
+			Satisfiability sat = satisfies(state, e, pp, oracle);
+			if (sat == Satisfiability.SATISFIED)
+				return ValueDomain.makeEqConstraint(pp.getProgram().getTypes().getBooleanType(), true, e, pp);
+			else if (sat == Satisfiability.NOT_SATISFIED)
+				return ValueDomain.makeEqConstraint(pp.getProgram().getTypes().getBooleanType(), false, e, pp);
+			else if (sat == Satisfiability.UNKNOWN)
+				return Collections.emptySet();
+			else
+				return null;
+		}
+
+		if (e instanceof BinaryExpression) {
+			BinaryOperator operator = ((BinaryExpression) e).getOperator();
+			if (operator == ComparisonEq.INSTANCE
+					|| operator == ComparisonNe.INSTANCE
+					|| operator == ComparisonLe.INSTANCE
+					|| operator == ComparisonLt.INSTANCE
+					|| operator == ComparisonGe.INSTANCE
+					|| operator == ComparisonGt.INSTANCE) {
+				Satisfiability sat = satisfies(state, e, pp, oracle);
+				if (sat == Satisfiability.SATISFIED)
+					return ValueDomain.makeEqConstraint(pp.getProgram().getTypes().getBooleanType(), true, e, pp);
+				else if (sat == Satisfiability.NOT_SATISFIED)
+					return ValueDomain.makeEqConstraint(pp.getProgram().getTypes().getBooleanType(), false, e, pp);
+				else if (sat == Satisfiability.UNKNOWN)
+					return Collections.emptySet();
+				else
+					return null;
+			}
+		}
+
+		if (e instanceof Identifier) {
+			Identifier id = (Identifier) e;
+			Set<BinaryExpression> constraints = new HashSet<>();
+			DefiniteIdSet set = state.getState(id);
+			if (!set.isTop() && !set.isBottom())
+				for (Identifier ub : state.getState(id).elements)
+					constraints.add(new BinaryExpression(
+							e.getStaticType(),
+							ub,
+							id,
+							ComparisonGt.INSTANCE,
+							e.getCodeLocation()));
+			for (Entry<Identifier, DefiniteIdSet> entry : state)
+				if (entry.getValue().contains(id))
+					constraints.add(new BinaryExpression(
+							e.getStaticType(),
+							entry.getKey(),
+							id,
+							ComparisonLt.INSTANCE,
+							e.getCodeLocation()));
+		}
+
+		return Collections.emptySet();
+	}
 }

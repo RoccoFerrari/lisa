@@ -1,5 +1,9 @@
 package it.unive.lisa.analysis.numeric;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
@@ -16,11 +20,15 @@ import it.unive.lisa.symbolic.value.operator.SubtractionOperator;
 import it.unive.lisa.symbolic.value.operator.binary.BinaryOperator;
 import it.unive.lisa.util.numeric.IntInterval;
 import it.unive.lisa.util.numeric.MathNumber;
-import java.util.Collections;
 
 /**
  * Implementation of the pentagons analysis of
- * <a href="https://doi.org/10.1016/j.scico.2009.04.004">this paper</a>.
+ * <a href="https://doi.org/10.1016/j.scico.2009.04.004">this paper</a>.<br/>
+ * <br/>
+ * The pentagons domain is a reduced product of the {@link Interval} domain and
+ * the {@link UpperBounds} domain, where the reduction operator is applied on
+ * assignments only. Reductions on lattice operators are applied only on the
+ * least upper bound.
  * 
  * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
  */
@@ -125,4 +133,39 @@ public class Pentagon
 				.glb(upperbounds.satisfies(state.second, expression, pp, oracle));
 	}
 
+	@Override
+	public Set<BinaryExpression> constraints(
+			PentagonLattice state,
+			ValueExpression e,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		Set<BinaryExpression> intv = intervals.constraints(state.first, e, pp, oracle);
+		Set<BinaryExpression> ub = upperbounds.constraints(state.second, e, pp, oracle);
+		if (intv == null && ub == null)
+			return null;
+		if (intv == null)
+			return ub;
+		if (ub == null)
+			return intv;
+		Set<BinaryExpression> constr = new HashSet<>(intv);
+		constr.addAll(ub);
+		return constr;
+	}
+
+	@Override
+	public boolean canSummarize(
+			ValueExpression e,
+			ProgramPoint pp,
+			SemanticOracle oracle) {
+		return intervals.canSummarize(e, pp, oracle) || upperbounds.canSummarize(e, pp, oracle);
+	}
+
+	@Override
+	public boolean canProcess(
+			ValueExpression expression,
+			ProgramPoint pp,
+			SemanticOracle oracle) {
+		return intervals.canProcess(expression, pp, oracle) || upperbounds.canProcess(expression, pp, oracle);
+	}
 }

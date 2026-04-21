@@ -1,7 +1,13 @@
 package it.unive.lisa.analysis.dataflow;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import it.unive.lisa.analysis.ScopeToken;
 import it.unive.lisa.analysis.SemanticException;
+import it.unive.lisa.analysis.combination.constraints.WholeValueAnalysis;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.Identifier;
@@ -9,13 +15,13 @@ import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.util.representation.ListRepresentation;
 import it.unive.lisa.util.representation.StringRepresentation;
 import it.unive.lisa.util.representation.StructuredRepresentation;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
- * An implementation of the reaching definition dataflow analysis.
+ * An implementation of the reaching definition dataflow analysis. <br/>
+ * <br/>
+ * As a dataflow analysis, this domain does not take part in
+ * {@link WholeValueAnalysis}, meaning that it will never generate constraints
+ * when asked to.
  * 
  * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
  */

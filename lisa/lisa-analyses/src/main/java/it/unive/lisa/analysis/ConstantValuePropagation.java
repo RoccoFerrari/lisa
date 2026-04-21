@@ -1,11 +1,13 @@
 package it.unive.lisa.analysis;
 
+import java.util.Collections;
+import java.util.Set;
+
 import it.unive.lisa.analysis.nonrelational.value.BaseNonRelationalValueDomain;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
 import it.unive.lisa.lattices.ConstantValue;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.program.cfg.ProgramPoint;
-import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.Identifier;
@@ -95,7 +97,6 @@ import it.unive.lisa.symbolic.value.operator.unary.StringToUpperCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringTrim;
 import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
 import it.unive.lisa.type.Type;
-import java.util.Set;
 
 /**
  * A non-relational value domain tracking {@link ConstantValue}s of variables
@@ -109,7 +110,7 @@ public class ConstantValuePropagation
 
 	@Override
 	public boolean canProcess(
-			SymbolicExpression expression,
+			ValueExpression expression,
 			ProgramPoint pp,
 			SemanticOracle oracle) {
 		if (expression instanceof PushInv)
@@ -133,6 +134,14 @@ public class ConstantValuePropagation
 			return true;
 
 		return rts.stream().anyMatch(Type::isValueType) || rts.stream().anyMatch(t -> t.isStringType());
+	}
+
+	@Override
+	public boolean canSummarize(
+			ValueExpression e,
+			ProgramPoint pp,
+			SemanticOracle oracle) {
+		return canProcess(e, pp, oracle);
 	}
 
 	@Override
@@ -1083,5 +1092,31 @@ public class ConstantValuePropagation
 	@Override
 	public ConstantValue bottom() {
 		return ConstantValue.BOTTOM;
+	}
+
+	@Override
+	public Set<BinaryExpression> constraints(
+			ValueEnvironment<ConstantValue> state,
+			ValueExpression e,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		if (state.isTop())
+			return Collections.emptySet();
+		if (state.isBottom())
+			return null;
+
+		ConstantValue value = eval(state, e, pp, oracle);
+		if (value.isTop())
+			return Collections.emptySet();
+		if (value.isBottom())
+			return null;
+		return Collections.singleton(
+				new BinaryExpression(
+						pp.getProgram().getTypes().getBooleanType(),
+						new Constant(pp.getProgram().getTypes().getIntegerType(), value, e.getCodeLocation()),
+						e,
+						ComparisonEq.INSTANCE,
+						pp.getLocation()));
 	}
 }

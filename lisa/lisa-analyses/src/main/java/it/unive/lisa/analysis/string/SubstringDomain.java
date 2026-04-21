@@ -1,5 +1,11 @@
 package it.unive.lisa.analysis.string;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.value.ValueDomain;
@@ -11,6 +17,7 @@ import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.Identifier;
+import it.unive.lisa.symbolic.value.PushInv;
 import it.unive.lisa.symbolic.value.TernaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.symbolic.value.Variable;
@@ -25,16 +32,16 @@ import it.unive.lisa.symbolic.value.operator.binary.StringStartsWith;
 import it.unive.lisa.symbolic.value.operator.ternary.StringReplace;
 import it.unive.lisa.symbolic.value.operator.ternary.StringSubstring;
 import it.unive.lisa.type.Type;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * The substring relational abstract domain, tracking relation between string
  * expressions. This domain follows the one defined
  * <a href="https://link.springer.com/chapter/10.1007/978-3-030-94583-1_2">in
- * this paper</a>.
+ * this paper</a>.<br/>
+ * <br/>
+ * This domain does not take part in the
+ * {@link it.unive.lisa.analysis.combination.constraints.WholeValueAnalysis},
+ * meaning that it will not produce constraints for any expression.
  * 
  * @author <a href="mailto:michele.martelli1@studenti.unipr.it">Michele
  *             Martelli</a>
@@ -57,7 +64,6 @@ public class SubstringDomain
 			ProgramPoint pp,
 			SemanticOracle oracle)
 			throws SemanticException {
-
 		/*
 		 * If the assigned expression is not dynamically typed as a string (or
 		 * untyped) return this.
@@ -325,8 +331,7 @@ public class SubstringDomain
 			// Iterate over the length of the expression
 			for (int l = 1; l <= list.size(); l++) {
 				// Iterate from the start to the end according to the size of
-				// the
-				// expression to create
+				// the expression to create
 				for (int i = 0; i <= (list.size() - l); i++) {
 					List<ValueExpression> subList = list.subList(i, i + l);
 					result.add(composeExpression(subList));
@@ -652,5 +657,4 @@ public class SubstringDomain
 				StringConcat.INSTANCE,
 				SyntheticLocation.INSTANCE);
 	}
-
 }

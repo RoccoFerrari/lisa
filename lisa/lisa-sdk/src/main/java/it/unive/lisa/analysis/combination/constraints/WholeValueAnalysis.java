@@ -125,7 +125,7 @@ public class WholeValueAnalysis
 			throws SemanticException {
 		ValueLattice<?>[] lattices = new ValueLattice<?>[participants.length];
 		for (int i = 0; i < participants.length; i++)
-			if (participants[i].canSummarize(expression, pp, oracle))
+			if (participants[i].canProcess(expression, pp, oracle))
 				lattices[i] = (ValueLattice<?>) ((ValueDomain) participants[i]).assign(state.get(i),
 						id, expression, pp, oracle);
 			else
@@ -143,7 +143,7 @@ public class WholeValueAnalysis
 			throws SemanticException {
 		ValueLattice<?>[] lattices = new ValueLattice<?>[participants.length];
 		for (int i = 0; i < participants.length; i++)
-			if (participants[i].canSummarize(expression, pp, oracle))
+			if (participants[i].canProcess(expression, pp, oracle))
 				lattices[i] = (ValueLattice<?>) ((ValueDomain) participants[i])
 						.smallStepSemantics(state.get(i), expression, pp, oracle);
 			else
@@ -161,7 +161,7 @@ public class WholeValueAnalysis
 			throws SemanticException {
 		Satisfiability result = null;
 		for (int i = 0; i < participants.length; i++)
-			if (participants[i].canSummarize(expression, pp, oracle)) {
+			if (participants[i].canProcess(expression, pp, oracle)) {
 				Satisfiability res = ((ValueDomain) participants[i]).satisfies(state.get(i), expression, pp,
 						oracle);
 				if (res == Satisfiability.BOTTOM)
@@ -183,7 +183,7 @@ public class WholeValueAnalysis
 			throws SemanticException {
 		ValueLattice<?>[] lattices = new ValueLattice<?>[participants.length];
 		for (int i = 0; i < participants.length; i++)
-			if (participants[i].canSummarize(expression, src, oracle))
+			if (participants[i].canProcess(expression, src, oracle))
 				lattices[i] = (ValueLattice<?>) ((ValueDomain) participants[i]).assume(state.get(i),
 						expression, src, dest, oracle);
 			else
@@ -214,11 +214,25 @@ public class WholeValueAnalysis
 	}
 
 	@Override
+	public boolean canProcess(
+			ValueExpression expression,
+			ProgramPoint pp,
+			SemanticOracle oracle) {
+		for (ValueDomain<?> p : participants)
+			if (p.canProcess(expression, pp, oracle))
+				return true;
+		return false;
+	}
+
+	@Override
 	public boolean canSummarize(
 			ValueExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle) {
-		return true;
+		for (ValueDomain<?> p : participants)
+			if (p.canSummarize(e, pp, oracle))
+				return true;
+		return false;
 	}
 
 	@Override

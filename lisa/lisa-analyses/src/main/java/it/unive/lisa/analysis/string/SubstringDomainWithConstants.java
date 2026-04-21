@@ -23,7 +23,12 @@ import java.util.Map.Entry;
  * product between {@link Substrings} and {@link StringConstant}. This domain
  * follows the one defined
  * <a href="https://link.springer.com/chapter/10.1007/978-3-030-94583-1_2">in
- * this paper</a>.
+ * this paper</a>.<br/>
+ * <br/>
+ * This domain does not take part in the
+ * {@link it.unive.lisa.analysis.combination.constraints.WholeValueAnalysis},
+ * meaning that it will not produce constraints for any expression.
+
  * 
  * @author <a href="mailto:michele.martelli1@studenti.unipr.it">Michele
  *             Martelli</a>

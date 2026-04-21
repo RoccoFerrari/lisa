@@ -1,18 +1,17 @@
 package it.unive.lisa.analysis.dataflow;
 
-import it.unive.lisa.analysis.SemanticEvaluator;
+import java.util.Set;
+import java.util.function.BooleanSupplier;
+
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.program.cfg.ProgramPoint;
-import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.PushInv;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.type.Type;
 import it.unive.lisa.util.functional.Supplier;
-import java.util.Set;
-import java.util.function.BooleanSupplier;
 
 /**
  * A dataflow domain that collects instances of {@link DataflowElement} either
@@ -28,8 +27,7 @@ import java.util.function.BooleanSupplier;
 public abstract class DataflowDomain<L extends DataflowDomainLattice<L, E>,
 		E extends DataflowElement<E>>
 		implements
-		ValueDomain<L>,
-		SemanticEvaluator {
+		ValueDomain<L> {
 
 	@Override
 	public L assign(
@@ -88,7 +86,7 @@ public abstract class DataflowDomain<L extends DataflowDomainLattice<L, E>,
 
 	@Override
 	public boolean canProcess(
-			SymbolicExpression expression,
+			ValueExpression expression,
 			ProgramPoint pp,
 			SemanticOracle oracle) {
 		if (expression instanceof PushInv)

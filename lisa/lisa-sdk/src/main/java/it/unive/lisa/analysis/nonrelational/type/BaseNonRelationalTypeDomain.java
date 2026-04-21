@@ -1,5 +1,8 @@
 package it.unive.lisa.analysis.nonrelational.type;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.BaseNonRelationalDomain;
@@ -10,8 +13,6 @@ import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.type.Type;
 import it.unive.lisa.type.Untyped;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Base implementation for {@link NonRelationalTypeDomain}s, offering all
@@ -31,15 +32,6 @@ public interface BaseNonRelationalTypeDomain<
 	@Override
 	default TypeEnvironment<L> makeLattice() {
 		return new TypeEnvironment<>(top());
-	}
-
-	@Override
-	default boolean canProcess(
-			SymbolicExpression expression,
-			ProgramPoint pp,
-			SemanticOracle oracle) {
-		// a type domain can process everything
-		return true;
 	}
 
 	@Override

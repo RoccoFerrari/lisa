@@ -1,5 +1,9 @@
 package it.unive.lisa.analysis.nonRedundantPowerset;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.value.ValueDomain;
@@ -7,10 +11,9 @@ import it.unive.lisa.analysis.value.ValueLattice;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.value.Identifier;
+import it.unive.lisa.symbolic.value.PushInv;
 import it.unive.lisa.symbolic.value.ValueExpression;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import it.unive.lisa.type.Type;
 
 /**
  * A {@link ValueDomain} that computes {@link NonRedundantSetDomainLattice}
@@ -127,4 +130,19 @@ public class NonRedundantPowerset<S extends NonRedundantSetDomainLattice<S, L> &
 		return singleton.mk(Collections.singleton(valueDomain.makeLattice()));
 	}
 
+	@Override
+	public boolean canProcess(
+			ValueExpression expression,
+			ProgramPoint pp,
+			SemanticOracle oracle) {
+		return valueDomain.canProcess(expression, pp, oracle);
+	}
+
+	@Override
+	public boolean canSummarize(
+			ValueExpression e,
+			ProgramPoint pp,
+			SemanticOracle oracle) {
+		return valueDomain.canSummarize(e, pp, oracle);
+	}
 }

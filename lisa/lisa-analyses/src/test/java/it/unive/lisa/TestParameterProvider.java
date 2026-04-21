@@ -2,6 +2,17 @@ package it.unive.lisa;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.lang.reflect.Executable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.lang3.tuple.Pair;
+
 import it.unive.lisa.analysis.AbstractDomain;
 import it.unive.lisa.analysis.AbstractLattice;
 import it.unive.lisa.analysis.Analysis;
@@ -15,8 +26,6 @@ import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.SimpleAbstractDomain;
 import it.unive.lisa.analysis.StatementStore;
-import it.unive.lisa.analysis.combination.constraints.WholeValueElement;
-import it.unive.lisa.analysis.combination.constraints.WholeValueStringDomain;
 import it.unive.lisa.analysis.combination.smash.SmashedSumIntDomain;
 import it.unive.lisa.analysis.combination.smash.SmashedSumStringDomain;
 import it.unive.lisa.analysis.heap.HeapLattice;
@@ -111,15 +120,6 @@ import it.unive.lisa.type.Type;
 import it.unive.lisa.type.Untyped;
 import it.unive.lisa.util.datastructures.graph.GraphVisitor;
 import it.unive.lisa.util.numeric.IntInterval;
-import java.lang.reflect.Executable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-import org.apache.commons.collections4.SetUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 public class TestParameterProvider {
 
@@ -254,14 +254,6 @@ public class TestParameterProvider {
 		public SingleHeapLattice unknownValue(
 				Identifier id) {
 			return SingleHeapLattice.SINGLETON;
-		}
-
-		@Override
-		public boolean canProcess(
-				SymbolicExpression expression,
-				ProgramPoint pp,
-				SemanticOracle oracle) {
-			return true;
 		}
 
 	}
@@ -713,7 +705,7 @@ public class TestParameterProvider {
 			return (R) IntInterval.TOP;
 		if (root == DefiniteIdSet.class && param == Set.class)
 			return (R) Collections.emptySet();
-		if (param == Satisfiability.class || param == WholeValueElement.class)
+		if (param == Satisfiability.class)
 			return (R) Satisfiability.UNKNOWN;
 		if (param == NonRedundantSetLattice.class)
 			return (R) new NonRedundantIntervalSet();
@@ -723,7 +715,7 @@ public class TestParameterProvider {
 				|| param == ValueDomain.class
 				|| param == SmashedSumIntDomain.class)
 			return (R) new Interval();
-		if (param == SmashedSumStringDomain.class || param == WholeValueStringDomain.class)
+		if (param == SmashedSumStringDomain.class)
 			return (R) new Prefix();
 		if (param == ReachLattice.class)
 			return (R) new ReachLattice();

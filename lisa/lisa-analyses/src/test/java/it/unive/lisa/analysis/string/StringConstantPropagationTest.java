@@ -2,6 +2,7 @@ package it.unive.lisa.analysis.string;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.lattices.string.StringConstant;
 import it.unive.lisa.program.SyntheticLocation;
 import it.unive.lisa.program.type.StringType;
@@ -15,7 +16,7 @@ import org.junit.jupiter.api.Test;
 public class StringConstantPropagationTest {
 
 	@Test
-	public void testEvalBinary() {
+	public void testEvalBinary() throws SemanticException {
 		StringConstantPropagation domain = new StringConstantPropagation();
 		StringConstant s1 = new StringConstant("abc");
 		StringConstant s2 = new StringConstant("def");
@@ -36,7 +37,7 @@ public class StringConstantPropagationTest {
 	}
 
 	@Test
-	public void testEvalTernary() {
+	public void testEvalTernary() throws SemanticException {
 		StringConstantPropagation domain = new StringConstantPropagation();
 		StringConstant s1 = new StringConstant("aaa");
 		StringConstant s2 = new StringConstant("aa");

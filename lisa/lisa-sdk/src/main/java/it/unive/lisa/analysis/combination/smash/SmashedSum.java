@@ -1,5 +1,9 @@
 package it.unive.lisa.analysis.combination.smash;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.Map.Entry;
+
 import it.unive.lisa.analysis.Lattice;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
@@ -11,6 +15,7 @@ import it.unive.lisa.program.SyntheticLocation;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Constant;
+import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.TernaryExpression;
 import it.unive.lisa.symbolic.value.UnaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
@@ -292,4 +297,58 @@ public class SmashedSum<I extends Lattice<I>,
 		return new ValueEnvironment<>(top());
 	}
 
+	@Override
+	public boolean canSummarize(
+			ValueExpression e,
+			ProgramPoint pp,
+			SemanticOracle oracle) {
+		return canProcess(e, pp, oracle);
+	}
+
+	@Override
+	public Set<BinaryExpression> constraints(
+			ValueEnvironment<SmashedValue<I, S>> state,
+			ValueExpression e,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		if (state.isBottom())
+			return null;
+		if (state.isTop())
+			return Collections.emptySet();
+		if (intDom.canSummarize(e, pp, oracle))
+			return intDom.constraints(makeIntState(state), e, pp, oracle);
+		if (strDom.canSummarize(e, pp, oracle))
+			return strDom.constraints(makeStrState(state), e, pp, oracle);
+		if (boolDom.canSummarize(e, pp, oracle))
+			return boolDom.constraints(makeBoolState(state), e, pp, oracle);
+		return Collections.emptySet();
+	}
+
+	private ValueEnvironment<Satisfiability> makeBoolState(
+			ValueEnvironment<SmashedValue<I, S>> state) {
+		ValueEnvironment<Satisfiability> boolState = new ValueEnvironment<>(Satisfiability.UNKNOWN);
+		for (Entry<Identifier, SmashedValue<I, S>> entry : state)
+			if (entry.getValue().isBool())
+				boolState = boolState.putState(entry.getKey(), entry.getValue().getBoolValue());
+		return boolState;
+	}
+
+	private ValueEnvironment<S> makeStrState(
+			ValueEnvironment<SmashedValue<I, S>> state) {
+		ValueEnvironment<S> strState = new ValueEnvironment<>(strDom.top());
+		for (Entry<Identifier, SmashedValue<I, S>> entry : state)
+			if (entry.getValue().isString())
+				strState = strState.putState(entry.getKey(), entry.getValue().getStringValue());
+		return strState;
+	}
+
+	private ValueEnvironment<I> makeIntState(
+			ValueEnvironment<SmashedValue<I, S>> state) {
+		ValueEnvironment<I> intState = new ValueEnvironment<>(intDom.top());
+		for (Entry<Identifier, SmashedValue<I, S>> entry : state)
+			if (entry.getValue().isNumber())
+				intState = intState.putState(entry.getKey(), entry.getValue().getIntValue());
+		return intState;
+	}
 }

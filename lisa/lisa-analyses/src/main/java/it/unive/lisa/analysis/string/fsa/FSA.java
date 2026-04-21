@@ -31,7 +31,10 @@ import java.util.TreeSet;
  * <br>
  * <b>Caution:</b> the FSA domain is buggy and requires lots of resources, to
  * the point where it might be hard to debug also on relatively small samples.
- * Use with caution.
+ * Use with caution. For the same reason, this domain does not take part in the
+ * {@link it.unive.lisa.analysis.combination.constraints.WholeValueAnalysis},
+ * meaning that it will not produce constraints for any expression.
+
  *
  * @author <a href="mailto:simone.leoni2@studenti.unipr.it">Simone Leoni</a>
  * @author <a href="mailto:vincenzo.arceri@unipr.it">Vincenzo Arceri</a>

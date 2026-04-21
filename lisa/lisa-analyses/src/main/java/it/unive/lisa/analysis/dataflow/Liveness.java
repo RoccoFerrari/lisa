@@ -16,7 +16,11 @@ import java.util.stream.Collectors;
 
 /**
  * An implementation of the liveness dataflow analysis, that determines which
- * values might be used later on in the program.
+ * values might be used later on in the program. <br/>
+ * <br/>
+ * As a dataflow analysis, this domain does not take part in
+ * {@link WholeValueAnalysis}, meaning that it will never generate constraints
+ * when asked to.
  * 
  * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
  */

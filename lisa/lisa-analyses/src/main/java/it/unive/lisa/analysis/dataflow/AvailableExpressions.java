@@ -29,7 +29,11 @@ import java.util.Set;
 
 /**
  * An implementation of the available expressions dataflow analysis, that
- * focuses only on the expressions that are stored into some variable.
+ * focuses only on the expressions that are stored into some variable. <br/>
+ * <br/>
+ * As a dataflow analysis, this domain does not take part in
+ * {@link WholeValueAnalysis}, meaning that it will never generate constraints
+ * when asked to.
  * 
  * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
  */

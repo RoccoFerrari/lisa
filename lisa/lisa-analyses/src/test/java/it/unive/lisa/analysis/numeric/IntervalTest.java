@@ -79,7 +79,7 @@ public class IntervalTest {
 	}
 
 	@Test
-	public void testEvalNegationOnSingleton() {
+	public void testEvalNegationOnSingleton() throws SemanticException {
 		for (int i = 0; i < TEST_LIMIT; i++) {
 			int val = rand.nextInt();
 			IntInterval aval = singleton
@@ -91,7 +91,7 @@ public class IntervalTest {
 	}
 
 	@Test
-	public void testEvalAddOnSingleton() {
+	public void testEvalAddOnSingleton() throws SemanticException {
 		for (int i = 0; i < TEST_LIMIT; i++) {
 			int val1 = rand.nextInt();
 			int val2 = rand.nextInt();
@@ -108,7 +108,7 @@ public class IntervalTest {
 	}
 
 	@Test
-	public void testEvalSubOnSingleton() {
+	public void testEvalSubOnSingleton() throws SemanticException {
 		for (int i = 0; i < TEST_LIMIT; i++) {
 			int val1 = rand.nextInt();
 			int val2 = rand.nextInt();
@@ -130,7 +130,7 @@ public class IntervalTest {
 	}
 
 	@Test
-	public void testEvalMulOnSingleton() {
+	public void testEvalMulOnSingleton() throws SemanticException {
 		for (int i = 0; i < TEST_LIMIT; i++) {
 			int val1 = rand.nextInt();
 			int val2 = rand.nextInt();
@@ -152,7 +152,7 @@ public class IntervalTest {
 	}
 
 	@Test
-	public void testEvalDivOnSingleton() {
+	public void testEvalDivOnSingleton() throws SemanticException {
 		for (int i = 0; i < TEST_LIMIT; i++) {
 			int val1 = rand.nextInt();
 			int val2 = rand.nextInt();

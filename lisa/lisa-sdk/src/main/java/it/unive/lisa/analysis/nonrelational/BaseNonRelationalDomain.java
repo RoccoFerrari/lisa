@@ -591,34 +591,6 @@ public interface BaseNonRelationalDomain<L extends Lattice<L>,
 	}
 
 	@Override
-	default boolean canProcess(
-			SymbolicExpression expression,
-			ProgramPoint pp,
-			SemanticOracle oracle) {
-		if (expression instanceof PushInv)
-			// the type approximation of a pushinv is bottom, so the below check
-			// will always fail regardless of the kind of value we are tracking
-			return expression.getStaticType().isValueType();
-
-		Set<Type> rts = null;
-		try {
-			rts = oracle.getRuntimeTypesOf(expression, pp);
-		} catch (SemanticException e) {
-			return false;
-		}
-
-		if (rts == null || rts.isEmpty())
-			// if we have no runtime types, either the type domain has no type
-			// information for the given expression (thus it can be anything,
-			// also something that we can track) or the computation returned
-			// bottom (and the whole state is likely going to go to bottom
-			// anyway).
-			return true;
-
-		return rts.stream().anyMatch(Type::isValueType);
-	}
-
-	@Override
 	default Satisfiability satisfies(
 			M state,
 			ValueExpression expression,

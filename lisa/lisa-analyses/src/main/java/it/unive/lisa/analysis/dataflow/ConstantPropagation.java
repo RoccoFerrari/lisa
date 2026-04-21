@@ -36,7 +36,11 @@ import java.util.Set;
 
 /**
  * An implementation of the overflow-insensitive constant propagation dataflow
- * analysis, that focuses only on integers.
+ * analysis, that focuses only on integers. <br/>
+ * <br/>
+ * As a dataflow analysis, this domain does not take part in
+ * {@link WholeValueAnalysis}, meaning that it will never generate constraints
+ * when asked to.
  * 
  * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
  */
