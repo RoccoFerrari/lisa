@@ -1,11 +1,15 @@
 package it.unive.lisa.analysis.combination.constraints;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.analysis.value.ValueLattice;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.program.cfg.ProgramPoint;
+import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.ValueExpression;
 
@@ -13,12 +17,10 @@ import it.unive.lisa.symbolic.value.ValueExpression;
  * The constraint-based whole-value analysis among an arbitrary number of client
  * abstractions as defined in <a href=
  * "https://www.frontiersin.org/journals/computer-science/articles/10.3389/fcomp.2025.1655377/full">"Whole-value
- * analysis by abstract interpretation" by Luca Negrini</a>. All client
- * abstractions must be subtypes of {@link WholeValueParticipant}, that is, they
- * must be value abstractions that know how to generate constraints and
- * interpret them. This analysis forwards each expression to be evaluated to all
- * the domains that can handle it, according to
- * {@link WholeValueParticipant#canSummarize(ValueExpression, ProgramPoint, SemanticOracle)}.
+ * analysis by abstract interpretation" by Luca Negrini</a>. This analysis
+ * forwards each expression to be evaluated to all the domains that can handle
+ * it, according to
+ * {@link ValueDomain#canSummarize(ValueExpression, ProgramPoint, SemanticOracle)}.
  * Also, the class will insert itself into the {@link SemanticOracle} so that
  * client analyses can ask it to generate constraints for any expression and to
  * evaluate them.<br/>
@@ -34,7 +36,7 @@ public class WholeValueAnalysis
 		implements
 		ValueDomain<WholeValue> {
 
-	private final WholeValueParticipant<?>[] participants;
+	private final ValueDomain<?>[] participants;
 
 	/**
 	 * Builds a value with the given participants.
@@ -42,7 +44,7 @@ public class WholeValueAnalysis
 	 * @param participants the participants of this value
 	 */
 	public WholeValueAnalysis(
-			WholeValueParticipant<?>... participants) {
+			ValueDomain<?>... participants) {
 		this.participants = participants;
 	}
 
@@ -51,7 +53,7 @@ public class WholeValueAnalysis
 	 * 
 	 * @return the participant of this value
 	 */
-	public WholeValueParticipant<?>[] getParticipants() {
+	public ValueDomain<?>[] getParticipants() {
 		return participants;
 	}
 
@@ -62,7 +64,7 @@ public class WholeValueAnalysis
 	 * 
 	 * @return the participant at the given index
 	 */
-	public WholeValueParticipant<?> get(
+	public ValueDomain<?> get(
 			int i) {
 		return participants[i];
 	}
@@ -81,7 +83,7 @@ public class WholeValueAnalysis
 	 *                               the given type
 	 */
 	@SuppressWarnings("unchecked")
-	public <L extends ValueLattice<L>, T extends WholeValueParticipant<L>> T get(
+	public <L extends ValueLattice<L>, T extends ValueDomain<L>> T get(
 			int i,
 			Class<T> clazz)
 			throws SemanticException {
@@ -103,10 +105,10 @@ public class WholeValueAnalysis
 	 * 
 	 * @throws SemanticException if no participant of the given type is present
 	 */
-	public <L extends ValueLattice<L>, T extends WholeValueParticipant<L>> T get(
+	public <L extends ValueLattice<L>, T extends ValueDomain<L>> T get(
 			Class<T> clazz)
 			throws SemanticException {
-		for (WholeValueParticipant<?> p : participants)
+		for (ValueDomain<?> p : participants)
 			if (clazz.isInstance(p))
 				return clazz.cast(p);
 		throw new SemanticException("No participant of type " + clazz.getName() + " found");
@@ -124,7 +126,7 @@ public class WholeValueAnalysis
 		ValueLattice<?>[] lattices = new ValueLattice<?>[participants.length];
 		for (int i = 0; i < participants.length; i++)
 			if (participants[i].canSummarize(expression, pp, oracle))
-				lattices[i] = (ValueLattice<?>) ((WholeValueParticipant) participants[i]).assign(state.get(i),
+				lattices[i] = (ValueLattice<?>) ((ValueDomain) participants[i]).assign(state.get(i),
 						id, expression, pp, oracle);
 			else
 				lattices[i] = state.get(i);
@@ -142,7 +144,7 @@ public class WholeValueAnalysis
 		ValueLattice<?>[] lattices = new ValueLattice<?>[participants.length];
 		for (int i = 0; i < participants.length; i++)
 			if (participants[i].canSummarize(expression, pp, oracle))
-				lattices[i] = (ValueLattice<?>) ((WholeValueParticipant) participants[i])
+				lattices[i] = (ValueLattice<?>) ((ValueDomain) participants[i])
 						.smallStepSemantics(state.get(i), expression, pp, oracle);
 			else
 				lattices[i] = state.get(i);
@@ -160,7 +162,7 @@ public class WholeValueAnalysis
 		Satisfiability result = null;
 		for (int i = 0; i < participants.length; i++)
 			if (participants[i].canSummarize(expression, pp, oracle)) {
-				Satisfiability res = ((WholeValueParticipant) participants[i]).satisfies(state.get(i), expression, pp,
+				Satisfiability res = ((ValueDomain) participants[i]).satisfies(state.get(i), expression, pp,
 						oracle);
 				if (res == Satisfiability.BOTTOM)
 					return Satisfiability.BOTTOM;
@@ -182,7 +184,7 @@ public class WholeValueAnalysis
 		ValueLattice<?>[] lattices = new ValueLattice<?>[participants.length];
 		for (int i = 0; i < participants.length; i++)
 			if (participants[i].canSummarize(expression, src, oracle))
-				lattices[i] = (ValueLattice<?>) ((WholeValueParticipant) participants[i]).assume(state.get(i),
+				lattices[i] = (ValueLattice<?>) ((ValueDomain) participants[i]).assume(state.get(i),
 						expression, src, dest, oracle);
 			else
 				lattices[i] = state.get(i);
@@ -198,7 +200,7 @@ public class WholeValueAnalysis
 			throws SemanticException {
 		ValueLattice<?>[] lattices = new ValueLattice<?>[participants.length];
 		for (int i = 0; i < participants.length; i++)
-			lattices[i] = (ValueLattice<?>) ((WholeValueParticipant) participants[i]).onCallReturn(entryState.get(i),
+			lattices[i] = (ValueLattice<?>) ((ValueDomain) participants[i]).onCallReturn(entryState.get(i),
 					callres.get(i), call);
 		return new WholeValue(lattices);
 	}
@@ -211,4 +213,26 @@ public class WholeValueAnalysis
 		return new WholeValue(lattices);
 	}
 
+	@Override
+	public boolean canSummarize(
+			ValueExpression e,
+			ProgramPoint pp,
+			SemanticOracle oracle) {
+		return true;
+	}
+
+	@Override
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public Set<BinaryExpression> constraints(
+			WholeValue state,
+			ValueExpression e,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		Set<BinaryExpression> result = new HashSet<>();
+		for (int i = 0; i < participants.length; i++)
+			if (participants[i].canSummarize(e, pp, oracle))
+				result.addAll(((ValueDomain) participants[i]).constraints(state.get(i), e, pp, oracle));
+		return result;
+	}
 }
