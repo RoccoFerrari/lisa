@@ -1,5 +1,6 @@
 package it.unive.lisa.program;
 
+import it.unive.lisa.program.annotations.Annotations;
 import it.unive.lisa.program.cfg.CodeLocation;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -19,7 +20,7 @@ public class ClassUnit
 
 	/**
 	 * The collection of compilation units this unit directly inherits from.
-	 * This collection may contain both concrete and abstract compilation unit.
+	 * This collection may contain both concrete and abstract compilation units.
 	 */
 	private final List<ClassUnit> superclasses;
 
@@ -31,12 +32,12 @@ public class ClassUnit
 	/**
 	 * Builds a compilation unit, defined at the given program point.
 	 * 
-	 * @param location the location where the unit is define within the source
+	 * @param location the location where the unit is defined within the source
 	 *                     file
 	 * @param program  the program where this unit is defined
 	 * @param name     the name of the unit
 	 * @param sealed   whether or not this unit is sealed, meaning that it
-	 *                     cannot be used as super unit of other compilation
+	 *                     cannot be used as a super unit of other compilation
 	 *                     units
 	 */
 	public ClassUnit(
@@ -45,6 +46,30 @@ public class ClassUnit
 			String name,
 			boolean sealed) {
 		super(location, program, name, sealed);
+		Objects.requireNonNull(location, "The location of a unit cannot be null.");
+		superclasses = new LinkedList<>();
+		interfaces = new LinkedList<>();
+	}
+
+	/**
+	 * Builds a compilation unit, defined at the given program point.
+	 *
+	 * @param location    the location where the unit is defined within the
+	 *                        source file
+	 * @param program     the program where this unit is defined
+	 * @param name        the name of the unit
+	 * @param annotations the annotations associated with the unit
+	 * @param sealed      whether or not this unit is sealed, meaning that it
+	 *                        cannot be used as a super unit of other
+	 *                        compilation units
+	 */
+	public ClassUnit(
+			CodeLocation location,
+			Program program,
+			String name,
+			Annotations annotations,
+			boolean sealed) {
+		super(location, program, name, annotations, sealed);
 		Objects.requireNonNull(location, "The location of a unit cannot be null.");
 		superclasses = new LinkedList<>();
 		interfaces = new LinkedList<>();
