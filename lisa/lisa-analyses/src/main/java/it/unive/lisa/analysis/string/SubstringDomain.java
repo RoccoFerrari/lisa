@@ -1,14 +1,8 @@
 package it.unive.lisa.analysis.string;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
-import it.unive.lisa.analysis.value.ValueDomain;
+import it.unive.lisa.analysis.value.StringAbstraction;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.lattices.string.Substrings;
 import it.unive.lisa.program.SyntheticLocation;
@@ -17,7 +11,6 @@ import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.Identifier;
-import it.unive.lisa.symbolic.value.PushInv;
 import it.unive.lisa.symbolic.value.TernaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.symbolic.value.Variable;
@@ -32,6 +25,10 @@ import it.unive.lisa.symbolic.value.operator.binary.StringStartsWith;
 import it.unive.lisa.symbolic.value.operator.ternary.StringReplace;
 import it.unive.lisa.symbolic.value.operator.ternary.StringSubstring;
 import it.unive.lisa.type.Type;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * The substring relational abstract domain, tracking relation between string
@@ -49,7 +46,7 @@ import it.unive.lisa.type.Type;
  */
 public class SubstringDomain
 		implements
-		ValueDomain<Substrings> {
+		StringAbstraction<Substrings> {
 
 	@Override
 	public Substrings makeLattice() {
@@ -657,4 +654,5 @@ public class SubstringDomain
 				StringConcat.INSTANCE,
 				SyntheticLocation.INSTANCE);
 	}
+
 }

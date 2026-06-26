@@ -1,17 +1,11 @@
 package it.unive.lisa.analysis.string;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
-
-import org.apache.commons.lang3.StringUtils;
-
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.combination.smash.SmashedSumStringDomain;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
 import it.unive.lisa.analysis.numeric.Interval;
+import it.unive.lisa.analysis.value.StringAbstraction;
 import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.lattices.SetLattice;
@@ -21,7 +15,6 @@ import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.PushAny;
 import it.unive.lisa.symbolic.value.PushFromConstraints;
-import it.unive.lisa.symbolic.value.PushInv;
 import it.unive.lisa.symbolic.value.TernaryExpression;
 import it.unive.lisa.symbolic.value.UnaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
@@ -64,9 +57,13 @@ import it.unive.lisa.symbolic.value.operator.unary.StringToLowerCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringToUpperCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringTrim;
 import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
-import it.unive.lisa.type.Type;
 import it.unive.lisa.util.numeric.IntInterval;
 import it.unive.lisa.util.numeric.MathNumber;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * A domain computing bounded set of strings, where the maximum number of
@@ -79,6 +76,7 @@ import it.unive.lisa.util.numeric.MathNumber;
  */
 public class BoundedStringSet
 		implements
+		StringAbstraction<ValueEnvironment<BoundedStringSet.BSS>>,
 		SmashedSumStringDomain<BoundedStringSet.BSS> {
 
 	/**
@@ -247,8 +245,29 @@ public class BoundedStringSet
 		return new BSS(result);
 	}
 
+	/**
+	 * A function that takes three arguments and produces a result. This is the
+	 * three-arity specialization of {@link java.util.function.Function}.
+	 *
+	 * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
+	 * 
+	 * @param <T> the type of the first argument to the function
+	 * @param <U> the type of the second argument to the function
+	 * @param <V> the type of the third argument to the function
+	 * @param <R> the type of the result of the function
+	 */
 	@FunctionalInterface
 	interface TernaryFunction<T, U, V, R> {
+
+		/**
+		 * Applies this function to the given arguments.
+		 *
+		 * @param left   the first function argument
+		 * @param middle the second function argument
+		 * @param right  the third function argument
+		 * 
+		 * @return the function result
+		 */
 		R apply(
 				T left,
 				U middle,
@@ -937,34 +956,6 @@ public class BoundedStringSet
 				value.elements.iterator().next(),
 				e,
 				pp);
-	}
-
-	@Override
-	public boolean canSummarize(
-			ValueExpression e,
-			ProgramPoint pp,
-			SemanticOracle oracle) {
-		if (e instanceof PushInv)
-			// the type approximation of a pushinv is bottom, so the below check
-			// will always fail regardless of the kind of value we are tracking
-			return e.getStaticType().isStringType();
-
-		Set<Type> rts = null;
-		try {
-			rts = oracle.getRuntimeTypesOf(e, pp);
-		} catch (SemanticException ex) {
-			return false;
-		}
-
-		if (rts == null || rts.isEmpty())
-			// if we have no runtime types, either the type domain has no type
-			// information for the given expression (thus it can be anything,
-			// also something that we can track) or the computation returned
-			// bottom (and the whole state is likely going to go to bottom
-			// anyway).
-			return true;
-
-		return rts.stream().anyMatch(t -> t.isStringType());
 	}
 
 }

@@ -1,7 +1,5 @@
 package it.unive.lisa.analysis;
 
-import java.util.Set;
-
 import it.unive.lisa.events.EventQueue;
 import it.unive.lisa.lattices.ExpressionSet;
 import it.unive.lisa.lattices.Satisfiability;
@@ -12,6 +10,7 @@ import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.type.Type;
+import java.util.Set;
 
 /**
  * An oracle that can be queried for semantic information on the program under

@@ -1,8 +1,5 @@
 package it.unive.lisa.analysis.numeric;
 
-import java.util.Collections;
-import java.util.Set;
-
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.combination.smash.SmashedSumIntDomain;
@@ -79,6 +76,8 @@ import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
 import it.unive.lisa.type.Type;
 import it.unive.lisa.util.numeric.IntInterval;
 import it.unive.lisa.util.numeric.MathNumberConversionException;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * The overflow-insensitive basic integer constant propagation analysis,
@@ -446,6 +445,23 @@ public class IntegerConstantPropagation
 				pp);
 	}
 
+	/**
+	 * Generates an integer constant from a set of constraints. If a constraint
+	 * of the form {@code c == expr} is found, the constant {@code c} is
+	 * returned. Otherwise, the constant is generated if two constraints
+	 * {@code c >= expr} and {@code c <= expr} are found the same constant
+	 * {@code c}, that is returned.
+	 * 
+	 * @param constraints the set of constraints
+	 * @param pp          the program point
+	 * @param oracle      the semantic oracle
+	 * 
+	 * @return the generated constant, or {@link IntegerConstant#TOP} if no
+	 *             constraints are provided, or {@link IntegerConstant#BOTTOM}
+	 *             if the constraint set is {@code null}
+	 * 
+	 * @throws SemanticException if an error occurs during the computation
+	 */
 	public IntegerConstant generate(
 			Set<BinaryExpression> constraints,
 			ProgramPoint pp,
@@ -473,14 +489,17 @@ public class IntegerConstantPropagation
 	}
 
 	@Override
-	public boolean canSummarize(
+	public boolean canProcess(
 			ValueExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle) {
+		boolean whole = oracle.hasWholeValueAnlysis();
 		if (e instanceof PushInv)
 			// the type approximation of a pushinv is bottom, so the below check
 			// will always fail regardless of the kind of value we are tracking
-			return e.getStaticType().isNumericType() && e.getStaticType().asNumericType().isIntegral();
+			return whole
+					? e.getStaticType().isNumericType() && e.getStaticType().asNumericType().isIntegral()
+					: e.getStaticType().isValueType();
 
 		Set<Type> rts = null;
 		try {
@@ -497,7 +516,10 @@ public class IntegerConstantPropagation
 			// anyway).
 			return true;
 
-		return rts.stream().anyMatch(t -> t.isNumericType() && t.asNumericType().isIntegral());
+		if (whole)
+			return rts.stream().anyMatch(t -> t.isNumericType() && t.asNumericType().isIntegral());
+		else
+			return rts.stream().anyMatch(Type::isValueType);
 	}
 
 }

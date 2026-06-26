@@ -2,6 +2,7 @@ package it.unive.lisa.analysis.string;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import it.unive.lisa.TestParameterProvider;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.lattices.string.StringConstant;
 import it.unive.lisa.program.SyntheticLocation;
@@ -31,7 +32,7 @@ public class StringConstantPropagationTest {
 				s1,
 				s2,
 				null,
-				null);
+				new TestParameterProvider.FakeOracle());
 
 		assertEquals(res, new StringConstant("abcdef"));
 	}
@@ -55,7 +56,7 @@ public class StringConstantPropagationTest {
 				s2,
 				s3,
 				null,
-				null);
+				new TestParameterProvider.FakeOracle());
 
 		assertEquals(res, new StringConstant("ba"));
 	}

@@ -1,8 +1,5 @@
 package it.unive.lisa.analysis;
 
-import java.util.Collections;
-import java.util.Set;
-
 import it.unive.lisa.analysis.nonrelational.value.BaseNonRelationalValueDomain;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
 import it.unive.lisa.lattices.ConstantValue;
@@ -97,6 +94,8 @@ import it.unive.lisa.symbolic.value.operator.unary.StringToUpperCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringTrim;
 import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
 import it.unive.lisa.type.Type;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * A non-relational value domain tracking {@link ConstantValue}s of variables
@@ -134,14 +133,6 @@ public class ConstantValuePropagation
 			return true;
 
 		return rts.stream().anyMatch(Type::isValueType) || rts.stream().anyMatch(t -> t.isStringType());
-	}
-
-	@Override
-	public boolean canSummarize(
-			ValueExpression e,
-			ProgramPoint pp,
-			SemanticOracle oracle) {
-		return canProcess(e, pp, oracle);
 	}
 
 	@Override

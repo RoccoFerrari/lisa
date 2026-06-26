@@ -1,8 +1,5 @@
 package it.unive.lisa.analysis.value;
 
-import java.util.Collections;
-import java.util.Set;
-
 import it.unive.lisa.analysis.SemanticComponent;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
@@ -18,6 +15,8 @@ import it.unive.lisa.symbolic.value.operator.binary.ComparisonEq;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonGe;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonLe;
 import it.unive.lisa.type.Type;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * A semantic domain that can evaluate the semantic of expressions that operate
@@ -30,7 +29,7 @@ import it.unive.lisa.type.Type;
  * happens through <i>constraints</i> (i.e., {@link BinaryExpression}s having a
  * constant on the left-hand side and an expression on the right-hand side). To
  * enable this cooperation the methods
- * {@link #canSummarize(ValueExpression, ProgramPoint, SemanticOracle)} and
+ * {@link #canProcess(ValueExpression, ProgramPoint, SemanticOracle)} and
  * {@link #constraints(ValueLattice, ValueExpression, ProgramPoint, SemanticOracle)}
  * must be overridden with the actual logic for the generation of constraints.
  * 
@@ -40,46 +39,8 @@ import it.unive.lisa.type.Type;
  */
 public interface ValueDomain<L extends ValueLattice<L>>
 		extends
+		ValueAbstraction,
 		SemanticComponent<L, L, ValueExpression, Identifier> {
-
-	/**
-	 * Yields {@code true} if the domain can process {@code expression},
-	 * {@code false} otherwise. Being able to process an expression means being
-	 * able to abstract its value, meaning that the type of values produced by
-	 * the expression is the type of value that this domain abstracts.
-	 * 
-	 * @param expression the expression
-	 * @param pp         the program point where this method is queried
-	 * @param oracle     the oracle for inter-domain communication
-	 * 
-	 * @return {@code true} if the domain can process {@code expression},
-	 *             {@code false} otherwise.
-	 */
-	boolean canProcess(
-			ValueExpression expression,
-			ProgramPoint pp,
-			SemanticOracle oracle);
-
-	/**
-	 * Yields {@code true} if this domain can summarize the value of {@code e},
-	 * such that the {@link WholeValueAnalysis} can use this domain to generate
-	 * constraints regarding {@code e}. Since "to summarize" in this context is
-	 * limited to the generation of constraints, domains can return {@code true}
-	 * even if they can just produce facts about the value (e.g., its relation
-	 * to other program variables), and not the value itself.
-	 *
-	 * @param e      the expression whose value is being abstracted
-	 * @param pp     the program point at which the abstraction is being
-	 *                   generated
-	 * @param oracle the oracle for inter-domain communication
-	 * 
-	 * @return {@code true} if this domain can abstract the value of {@code e},
-	 *             {@code false} otherwise
-	 */
-	boolean canSummarize(
-			ValueExpression e,
-			ProgramPoint pp,
-			SemanticOracle oracle);
 
 	/**
 	 * Generates a set of constraints that model the concrete values of
@@ -89,8 +50,13 @@ public interface ValueDomain<L extends ValueLattice<L>>
 	 * {@code null} set of constraints represents a bottom value.<br/>
 	 * <br/>
 	 * Each constraint is given as a {@link BinaryExpression}, where the left
-	 * operand is a constant and the right operand is the expression whose value
-	 * is being constrained, corresponding to the parameter {@code e}.
+	 * operand is a constant/expression and the right operand is the expression
+	 * whose value is being constrained, corresponding to the parameter
+	 * {@code e}.<br/>
+	 * <br/>
+	 * The default implementation of this method returns an empty set of
+	 * constraints unless the state is bottom, in which case it returns
+	 * {@code null}.
 	 * 
 	 * @param state  the abstract state from which the constraints are generated
 	 * @param e      the expression whose value is being constrained
@@ -103,13 +69,32 @@ public interface ValueDomain<L extends ValueLattice<L>>
 	 * 
 	 * @throws SemanticException if an error occurs during the computation
 	 */
-	Set<BinaryExpression> constraints(
+	default Set<BinaryExpression> constraints(
 			L state,
 			ValueExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException;
+			throws SemanticException {
+		if (state.isBottom())
+			return null;
+		return Collections.emptySet();
+	}
 
+	/**
+	 * Builds a set of constraints that model the fact that {@code expr} is
+	 * related to {@code constant} through {@code operator}.
+	 *
+	 * @param constantType the type of the constant
+	 * @param constant     the constant value that {@code expr} is related to
+	 * @param operator     the operator that relates {@code expr} and
+	 *                         {@code constant}
+	 * @param expr         the expression whose value is being constrained
+	 * @param pp           the program point at which the constraints are being
+	 *                         generated
+	 *
+	 * @return a set of constraints modeling the fact that {@code expr} is
+	 *             related to {@code constant} through {@code operator}
+	 */
 	public static Set<BinaryExpression> makeConstraint(
 			Type constantType,
 			Object constant,
@@ -127,6 +112,19 @@ public interface ValueDomain<L extends ValueLattice<L>>
 						pp.getLocation()));
 	}
 
+	/**
+	 * Builds a set of constraints that model the fact that {@code expr} is
+	 * equal to {@code constant}.
+	 *
+	 * @param constantType the type of the constant
+	 * @param constant     the constant value that {@code expr} is equal to
+	 * @param expr         the expression whose value is being constrained
+	 * @param pp           the program point at which the constraints are being
+	 *                         generated
+	 *
+	 * @return a set of constraints modeling the fact that {@code expr} is equal
+	 *             to {@code constant}
+	 */
 	public static Set<BinaryExpression> makeEqConstraint(
 			Type constantType,
 			Object constant,
@@ -135,28 +133,36 @@ public interface ValueDomain<L extends ValueLattice<L>>
 		return makeConstraint(constantType, constant, ComparisonEq.INSTANCE, expr, pp);
 	}
 
+	/**
+	 * Builds a set of constraints that model the fact that {@code expr} is in
+	 * the range {@code [low, high]}. If {@code low} is {@code null}, then only
+	 * the upper bound is generated. If {@code high} is {@code null}, then only
+	 * the lower bound is generated. If both are {@code null}, then an empty set
+	 * of constraints is returned.
+	 *
+	 * @param constantType the type of the constants
+	 * @param low          the lower bound of the range, or {@code null} if no
+	 *                         lower bound is to be generated
+	 * @param high         the upper bound of the range, or {@code null} if no
+	 *                         upper bound is to be generated
+	 * @param expr         the expression whose value is being constrained
+	 * @param pp           the program point at which the constraints are being
+	 *                         generated
+	 * 
+	 * @return a set of constraints modeling the possible values of {@code expr}
+	 *             in the range {@code [low, high]}
+	 */
 	public static Set<BinaryExpression> makeRangeConstraints(
 			Type constantType,
 			Object low,
 			Object high,
 			SymbolicExpression expr,
 			ProgramPoint pp) {
-		BinaryExpression lb = new BinaryExpression(
-				pp.getProgram().getTypes().getBooleanType(),
-				new Constant(constantType,
-						low,
-						expr.getCodeLocation()),
-				expr,
-				ComparisonGe.INSTANCE,
-				pp.getLocation());
-		BinaryExpression ub = new BinaryExpression(
-				pp.getProgram().getTypes().getBooleanType(),
-				new Constant(constantType,
-						high,
-						expr.getCodeLocation()),
-				expr,
-				ComparisonLe.INSTANCE,
-				pp.getLocation());
+		if (low == null && high == null)
+			return Collections.emptySet();
+
+		BinaryExpression lb = makeConstraint(constantType, low, ComparisonGe.INSTANCE, expr, pp).iterator().next();
+		BinaryExpression ub = makeConstraint(constantType, high, ComparisonLe.INSTANCE, expr, pp).iterator().next();
 
 		if (low == null)
 			return Collections.singleton(ub);

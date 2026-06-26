@@ -1,9 +1,5 @@
 package it.unive.lisa.analysis.numeric;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.combination.smash.SmashedSumIntDomain;
@@ -75,6 +71,9 @@ import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
 import it.unive.lisa.type.Type;
 import it.unive.lisa.util.numeric.IntInterval;
 import it.unive.lisa.util.numeric.MathNumberConversionException;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * The overflow-insensitive Parity abstract domain, tracking if a numeric value
@@ -405,14 +404,17 @@ public class Parity
 	}
 
 	@Override
-	public boolean canSummarize(
+	public boolean canProcess(
 			ValueExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle) {
+		boolean whole = oracle.hasWholeValueAnlysis();
 		if (e instanceof PushInv)
 			// the type approximation of a pushinv is bottom, so the below check
 			// will always fail regardless of the kind of value we are tracking
-			return e.getStaticType().isNumericType() && e.getStaticType().asNumericType().isIntegral();
+			return whole
+					? e.getStaticType().isNumericType() && e.getStaticType().asNumericType().isIntegral()
+					: e.getStaticType().isValueType();
 
 		Set<Type> rts = null;
 		try {
@@ -429,6 +431,9 @@ public class Parity
 			// anyway).
 			return true;
 
-		return rts.stream().anyMatch(t -> t.isNumericType() && t.asNumericType().isIntegral());
+		if (whole)
+			return rts.stream().anyMatch(t -> t.isNumericType() && t.asNumericType().isIntegral());
+		else
+			return rts.stream().anyMatch(Type::isValueType);
 	}
 }

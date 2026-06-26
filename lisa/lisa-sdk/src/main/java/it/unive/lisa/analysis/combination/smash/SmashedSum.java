@@ -1,9 +1,5 @@
 package it.unive.lisa.analysis.combination.smash;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.Map.Entry;
-
 import it.unive.lisa.analysis.Lattice;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
@@ -37,6 +33,9 @@ import it.unive.lisa.symbolic.value.operator.unary.StringLength;
 import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
 import it.unive.lisa.type.Untyped;
 import it.unive.lisa.util.numeric.IntInterval;
+import java.util.Collections;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * The smashed-sum abstract domain between {@link BooleanPowerset}, a
@@ -298,11 +297,13 @@ public class SmashedSum<I extends Lattice<I>,
 	}
 
 	@Override
-	public boolean canSummarize(
+	public boolean canProcess(
 			ValueExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle) {
-		return canProcess(e, pp, oracle);
+		return intDom.canProcess(e, pp, oracle)
+				|| strDom.canProcess(e, pp, oracle)
+				|| boolDom.canProcess(e, pp, oracle);
 	}
 
 	@Override
@@ -316,11 +317,11 @@ public class SmashedSum<I extends Lattice<I>,
 			return null;
 		if (state.isTop())
 			return Collections.emptySet();
-		if (intDom.canSummarize(e, pp, oracle))
+		if (intDom.canProcess(e, pp, oracle))
 			return intDom.constraints(makeIntState(state), e, pp, oracle);
-		if (strDom.canSummarize(e, pp, oracle))
+		if (strDom.canProcess(e, pp, oracle))
 			return strDom.constraints(makeStrState(state), e, pp, oracle);
-		if (boolDom.canSummarize(e, pp, oracle))
+		if (boolDom.canProcess(e, pp, oracle))
 			return boolDom.constraints(makeBoolState(state), e, pp, oracle);
 		return Collections.emptySet();
 	}

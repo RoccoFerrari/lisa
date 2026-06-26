@@ -1,8 +1,5 @@
 package it.unive.lisa.analysis.combination.constraints;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.value.ValueDomain;
@@ -12,6 +9,8 @@ import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.ValueExpression;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The constraint-based whole-value analysis among an arbitrary number of client
@@ -20,7 +19,7 @@ import it.unive.lisa.symbolic.value.ValueExpression;
  * analysis by abstract interpretation" by Luca Negrini</a>. This analysis
  * forwards each expression to be evaluated to all the domains that can handle
  * it, according to
- * {@link ValueDomain#canSummarize(ValueExpression, ProgramPoint, SemanticOracle)}.
+ * {@link ValueDomain#canProcess(ValueExpression, ProgramPoint, SemanticOracle)}.
  * Also, the class will insert itself into the {@link SemanticOracle} so that
  * client analyses can ask it to generate constraints for any expression and to
  * evaluate them.<br/>
@@ -74,6 +73,8 @@ public class WholeValueAnalysis
 	 * the participant at the given index is not of the given type, an exception
 	 * is thrown.
 	 *
+	 * @param <T>   the type of the component to return
+	 * @param <L>   the type of the lattice that the component works with
 	 * @param i     the index of the participant to return
 	 * @param clazz the class of the participant to return
 	 * 
@@ -99,6 +100,8 @@ public class WholeValueAnalysis
 	 * of the same type are present, only the first one is returned. If no
 	 * participant of the given type is present, an exception is thrown.
 	 *
+	 * @param <T>   the type of the component to return
+	 * @param <L>   the type of the lattice that the component works with
 	 * @param clazz the class of the participant to return
 	 * 
 	 * @return the first participant of the given type
@@ -215,22 +218,11 @@ public class WholeValueAnalysis
 
 	@Override
 	public boolean canProcess(
-			ValueExpression expression,
-			ProgramPoint pp,
-			SemanticOracle oracle) {
-		for (ValueDomain<?> p : participants)
-			if (p.canProcess(expression, pp, oracle))
-				return true;
-		return false;
-	}
-
-	@Override
-	public boolean canSummarize(
 			ValueExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle) {
 		for (ValueDomain<?> p : participants)
-			if (p.canSummarize(e, pp, oracle))
+			if (p.canProcess(e, pp, oracle))
 				return true;
 		return false;
 	}
@@ -245,7 +237,7 @@ public class WholeValueAnalysis
 			throws SemanticException {
 		Set<BinaryExpression> result = new HashSet<>();
 		for (int i = 0; i < participants.length; i++)
-			if (participants[i].canSummarize(e, pp, oracle))
+			if (participants[i].canProcess(e, pp, oracle))
 				result.addAll(((ValueDomain) participants[i]).constraints(state.get(i), e, pp, oracle));
 		return result;
 	}

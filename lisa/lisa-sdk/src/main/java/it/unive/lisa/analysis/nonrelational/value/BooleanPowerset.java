@@ -1,13 +1,8 @@
 package it.unive.lisa.analysis.nonrelational.value;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-
-import org.apache.commons.collections4.CollectionUtils;
-
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
+import it.unive.lisa.analysis.value.BooleanAbstraction;
 import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.program.cfg.ProgramPoint;
@@ -16,7 +11,6 @@ import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.PushAny;
 import it.unive.lisa.symbolic.value.PushFromConstraints;
-import it.unive.lisa.symbolic.value.PushInv;
 import it.unive.lisa.symbolic.value.TernaryExpression;
 import it.unive.lisa.symbolic.value.UnaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
@@ -41,6 +35,10 @@ import it.unive.lisa.symbolic.value.operator.binary.TypeCheck;
 import it.unive.lisa.symbolic.value.operator.ternary.StringStartsWithFromIndex;
 import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
 import it.unive.lisa.type.Type;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * A {@link NonRelationalValueDomain} that tracks sets of boolean values in the
@@ -51,6 +49,7 @@ import it.unive.lisa.type.Type;
  */
 public class BooleanPowerset
 		implements
+		BooleanAbstraction<ValueEnvironment<Satisfiability>>,
 		BaseNonRelationalValueDomain<Satisfiability> {
 
 	@Override
@@ -303,34 +302,6 @@ public class BooleanPowerset
 	@Override
 	public Satisfiability bottom() {
 		return Satisfiability.BOTTOM;
-	}
-
-	@Override
-	public boolean canSummarize(
-			ValueExpression e,
-			ProgramPoint pp,
-			SemanticOracle oracle) {
-		if (e instanceof PushInv)
-			// the type approximation of a pushinv is bottom, so the below check
-			// will always fail regardless of the kind of value we are tracking
-			return e.getStaticType().isBooleanType();
-
-		Set<Type> rts = null;
-		try {
-			rts = oracle.getRuntimeTypesOf(e, pp);
-		} catch (SemanticException ex) {
-			return false;
-		}
-
-		if (rts == null || rts.isEmpty())
-			// if we have no runtime types, either the type domain has no type
-			// information for the given expression (thus it can be anything,
-			// also something that we can track) or the computation returned
-			// bottom (and the whole state is likely going to go to bottom
-			// anyway).
-			return true;
-
-		return rts.stream().anyMatch(t -> t.isBooleanType());
 	}
 
 	@Override

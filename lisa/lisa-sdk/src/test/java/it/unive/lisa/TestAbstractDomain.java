@@ -8,7 +8,9 @@ import it.unive.lisa.lattices.ExpressionSet;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.SymbolicExpression;
+import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Identifier;
+import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.type.Type;
 import it.unive.lisa.type.Untyped;
 import java.util.Collections;
@@ -132,6 +134,19 @@ public class TestAbstractDomain
 				ProgramPoint pp)
 				throws SemanticException {
 			return Satisfiability.UNKNOWN;
+		}
+
+		@Override
+		public boolean hasWholeValueAnlysis() {
+			return false;
+		}
+
+		@Override
+		public Set<BinaryExpression> constraints(
+				ValueExpression e,
+				ProgramPoint pp)
+				throws SemanticException {
+			return Collections.emptySet();
 		}
 
 	}

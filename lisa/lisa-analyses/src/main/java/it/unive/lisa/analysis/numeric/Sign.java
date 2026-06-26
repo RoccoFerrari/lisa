@@ -1,13 +1,11 @@
 package it.unive.lisa.analysis.numeric;
 
-import java.util.Collections;
-import java.util.Set;
-
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.combination.smash.SmashedSumIntDomain;
 import it.unive.lisa.analysis.nonrelational.value.BaseNonRelationalValueDomain;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
+import it.unive.lisa.analysis.value.NumericAbstraction;
 import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.lattices.numeric.SignLattice;
@@ -17,7 +15,6 @@ import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.PushAny;
 import it.unive.lisa.symbolic.value.PushFromConstraints;
-import it.unive.lisa.symbolic.value.PushInv;
 import it.unive.lisa.symbolic.value.UnaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.symbolic.value.operator.AdditionOperator;
@@ -39,9 +36,10 @@ import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
 import it.unive.lisa.symbolic.value.operator.unary.NumericNegation;
 import it.unive.lisa.symbolic.value.operator.unary.NumericToString;
 import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
-import it.unive.lisa.type.Type;
 import it.unive.lisa.util.numeric.IntInterval;
 import it.unive.lisa.util.numeric.MathNumber;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * The basic overflow-insensitive Sign abstract domain, tracking zero, strictly
@@ -52,6 +50,7 @@ import it.unive.lisa.util.numeric.MathNumber;
  */
 public class Sign
 		implements
+		NumericAbstraction<ValueEnvironment<SignLattice>>,
 		SmashedSumIntDomain<SignLattice> {
 
 	@Override
@@ -460,34 +459,6 @@ public class Sign
 				return SignLattice.POS;
 
 		return SignLattice.TOP;
-	}
-
-	@Override
-	public boolean canSummarize(
-			ValueExpression e,
-			ProgramPoint pp,
-			SemanticOracle oracle) {
-		if (e instanceof PushInv)
-			// the type approximation of a pushinv is bottom, so the below check
-			// will always fail regardless of the kind of value we are tracking
-			return e.getStaticType().isNumericType();
-
-		Set<Type> rts = null;
-		try {
-			rts = oracle.getRuntimeTypesOf(e, pp);
-		} catch (SemanticException ex) {
-			return false;
-		}
-
-		if (rts == null || rts.isEmpty())
-			// if we have no runtime types, either the type domain has no type
-			// information for the given expression (thus it can be anything,
-			// also something that we can track) or the computation returned
-			// bottom (and the whole state is likely going to go to bottom
-			// anyway).
-			return true;
-
-		return rts.stream().anyMatch(Type::isNumericType);
 	}
 
 }

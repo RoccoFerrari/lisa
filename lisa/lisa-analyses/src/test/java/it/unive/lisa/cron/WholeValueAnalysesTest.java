@@ -9,16 +9,11 @@ import it.unive.lisa.analysis.AnalyzedCFG;
 import it.unive.lisa.analysis.Lattice;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SimpleAbstractDomain;
-import it.unive.lisa.analysis.combination.constraints.WholeValue;
 import it.unive.lisa.analysis.combination.constraints.WholeValueAnalysis;
-import it.unive.lisa.analysis.combination.constraints.WholeValueElement;
-import it.unive.lisa.analysis.combination.constraints.WholeValueStringDomain;
 import it.unive.lisa.analysis.combination.smash.SmashedSum;
 import it.unive.lisa.analysis.combination.smash.SmashedSumIntDomain;
 import it.unive.lisa.analysis.combination.smash.SmashedSumStringDomain;
-import it.unive.lisa.analysis.combination.smash.SmashedValue;
 import it.unive.lisa.analysis.heap.MonolithicHeap;
-import it.unive.lisa.analysis.nonrelational.value.BaseNonRelationalValueDomain;
 import it.unive.lisa.analysis.nonrelational.value.BooleanPowerset;
 import it.unive.lisa.analysis.nonrelational.value.NonRelationalValueDomain;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
@@ -31,10 +26,8 @@ import it.unive.lisa.analysis.string.Suffix;
 import it.unive.lisa.analysis.string.tarsis.Tarsis;
 import it.unive.lisa.analysis.traces.TracePartitioning;
 import it.unive.lisa.analysis.types.InferredTypes;
-import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.checks.semantic.SemanticCheck;
 import it.unive.lisa.checks.semantic.SemanticTool;
-import it.unive.lisa.imp.constructs.StringContains.IMPStringContains;
 import it.unive.lisa.imp.expressions.IMPAssert;
 import it.unive.lisa.interprocedural.ReturnTopPolicy;
 import it.unive.lisa.interprocedural.callgraph.RTACallGraph;
@@ -49,7 +42,6 @@ import it.unive.lisa.program.cfg.fixpoints.optforward.OptimizedForwardAscendingF
 import it.unive.lisa.program.cfg.statement.BinaryExpression;
 import it.unive.lisa.program.cfg.statement.Expression;
 import it.unive.lisa.program.cfg.statement.Statement;
-import it.unive.lisa.program.cfg.statement.literal.StringLiteral;
 import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.util.testing.TestConfiguration;
@@ -85,7 +77,6 @@ public class WholeValueAnalysesTest
 			if (node instanceof IMPAssert) {
 				Expression assertion = ((IMPAssert) node).getSubExpression();
 				Expression target = ((BinaryExpression) assertion).getLeft();
-				Expression conditional = ((BinaryExpression) assertion).getRight();
 
 				for (AnalyzedCFG<A> res : tool.getResultOf(graph)) {
 					AnalysisState<A> post = res.getAnalysisStateAfter(assertion);
@@ -114,52 +105,13 @@ public class WholeValueAnalysesTest
 							valuesAtFirstAssertion = vals;
 						}
 
-						if (assertion instanceof IMPStringContains) {
-							StringLiteral ch = (StringLiteral) conditional;
-							if (ch.getValue().length() == 1)
-								containsCharAssertion(tool, node, res, target, ch);
-							else
-								assertion(tool, node, post, domain, state);
-						} else
-							assertion(tool, node, post, domain, state);
+						assertion(tool, node, post, domain, state);
 					} catch (SemanticException e) {
 						throw new AnalysisExecutionException("Error while checking assertions", e);
 					}
 				}
 			}
 			return true;
-		}
-
-		@SuppressWarnings({ "unchecked", "rawtypes" })
-		private void containsCharAssertion(
-				SemanticTool<A, D> tool,
-				Statement node,
-				AnalyzedCFG<A> res,
-				Expression variable,
-				StringLiteral ch)
-				throws SemanticException {
-			AnalysisState<A> target = res.getAnalysisStateAfter(variable);
-			for (SymbolicExpression expr : target.getExecutionExpressions()) {
-				ValueEnvironment<?> values = target.getExecutionState().getLatticeInstance(ValueEnvironment.class);
-				Lattice<?> state = values.getState((Identifier) expr);
-				Satisfiability sat = Satisfiability.UNKNOWN;
-				ValueDomain<?> vdom = ((SimpleAbstractDomain<?, ?, ?>) tool.getAnalysis().domain).valueDomain;
-				if (state instanceof SmashedValue<?, ?>) {
-					SmashedSumStringDomain dom = ((SmashedSum<?, ?>) vdom).strDom;
-					Lattice<?> abstractString = ((SmashedValue<?, ?>) state).getStringValue();
-					sat = dom.containsChar(abstractString, ch.getValue().charAt(0));
-				} else {
-					WholeValueStringDomain dom = ((WholeValueAnalysis<?, ?, ?>) vdom).strDom;
-					WholeValueElement<?> abstractString = ((WholeValue<?, ?, ?>) state).getStringValue();
-					sat = dom.containsChar(abstractString, ch.getValue().charAt(0));
-				}
-				if (sat == Satisfiability.UNKNOWN)
-					warnOn(tool, node, "This assertion might fail");
-				else if (sat == Satisfiability.NOT_SATISFIED)
-					warnOn(tool, node, "This assertion always fails");
-				else
-					warnOn(tool, node, null);
-			}
 		}
 
 		private void assertion(
@@ -286,8 +238,8 @@ public class WholeValueAnalysesTest
 					conf.analysis = new SimpleAbstractDomain<>(
 							new MonolithicHeap(),
 							new WholeValueAnalysis(
-									(BaseNonRelationalValueDomain<?>) intDomain.getValue(),
-									(WholeValueStringDomain<?>) strDomain.getValue(),
+									intDomain.getValue(),
+									strDomain.getValue(),
 									new BooleanPowerset()),
 							new InferredTypes());
 					if (test.getValue())

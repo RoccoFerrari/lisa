@@ -1,11 +1,5 @@
 package it.unive.lisa.analysis.combination.constraints;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Predicate;
-
 import it.unive.lisa.analysis.BaseLattice;
 import it.unive.lisa.analysis.Lattice;
 import it.unive.lisa.analysis.ScopeToken;
@@ -15,6 +9,11 @@ import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.util.representation.ListRepresentation;
 import it.unive.lisa.util.representation.StructuredRepresentation;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * A lattice element for a {@link WholeValueAnalysis} that is composed of a
@@ -70,6 +69,7 @@ public class WholeValue
 	 * component at the given index is not of the given type, an exception is
 	 * thrown.
 	 *
+	 * @param <T>   the type of the component to return
 	 * @param i     the index of the component to return
 	 * @param clazz the class of the component to return
 	 * 
@@ -95,6 +95,7 @@ public class WholeValue
 	 * the same type are present, only the first one is returned. If no
 	 * component of the given type is present, an exception is thrown.
 	 *
+	 * @param <T>   the type of the component to return
 	 * @param clazz the class of the component to return
 	 * 
 	 * @return the first component of the given type

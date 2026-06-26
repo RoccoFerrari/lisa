@@ -1,15 +1,13 @@
 package it.unive.lisa.util.numeric;
 
-import java.util.Iterator;
-import java.util.Objects;
-
-import org.apache.commons.collections4.iterators.EmptyIterator;
-
 import it.unive.lisa.analysis.BaseLattice;
 import it.unive.lisa.analysis.Lattice;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.util.representation.StringRepresentation;
 import it.unive.lisa.util.representation.StructuredRepresentation;
+import java.util.Iterator;
+import java.util.Objects;
+import org.apache.commons.collections4.iterators.EmptyIterator;
 
 /**
  * An interval with integer bounds.
@@ -233,6 +231,14 @@ public class IntInterval
 		return !isBottom() && isSingleton() && low.is(n);
 	}
 
+	/**
+	 * Yields the size of this interval, that is, the number of integers it
+	 * contains. If this interval is infinite, then
+	 * {@link MathNumber#PLUS_INFINITY} is returned. If this interval is bottom,
+	 * then {@link MathNumber#NaN} is returned.
+	 * 
+	 * @return the size of this interval
+	 */
 	public MathNumber size() {
 		if (isBottom())
 			return MathNumber.NaN;

@@ -1,9 +1,5 @@
 package it.unive.lisa.analysis.numeric;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
@@ -20,6 +16,9 @@ import it.unive.lisa.symbolic.value.operator.SubtractionOperator;
 import it.unive.lisa.symbolic.value.operator.binary.BinaryOperator;
 import it.unive.lisa.util.numeric.IntInterval;
 import it.unive.lisa.util.numeric.MathNumber;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Implementation of the pentagons analysis of
@@ -154,18 +153,11 @@ public class Pentagon
 	}
 
 	@Override
-	public boolean canSummarize(
+	public boolean canProcess(
 			ValueExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle) {
-		return intervals.canSummarize(e, pp, oracle) || upperbounds.canSummarize(e, pp, oracle);
+		return intervals.canProcess(e, pp, oracle) || upperbounds.canProcess(e, pp, oracle);
 	}
 
-	@Override
-	public boolean canProcess(
-			ValueExpression expression,
-			ProgramPoint pp,
-			SemanticOracle oracle) {
-		return intervals.canProcess(expression, pp, oracle) || upperbounds.canProcess(expression, pp, oracle);
-	}
 }

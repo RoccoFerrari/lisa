@@ -1,19 +1,17 @@
 package it.unive.lisa.analysis.nonRedundantPowerset;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.analysis.value.ValueLattice;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.program.cfg.ProgramPoint;
+import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Identifier;
-import it.unive.lisa.symbolic.value.PushInv;
 import it.unive.lisa.symbolic.value.ValueExpression;
-import it.unive.lisa.type.Type;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A {@link ValueDomain} that computes {@link NonRedundantSetDomainLattice}
@@ -132,17 +130,31 @@ public class NonRedundantPowerset<S extends NonRedundantSetDomainLattice<S, L> &
 
 	@Override
 	public boolean canProcess(
-			ValueExpression expression,
-			ProgramPoint pp,
-			SemanticOracle oracle) {
-		return valueDomain.canProcess(expression, pp, oracle);
-	}
-
-	@Override
-	public boolean canSummarize(
 			ValueExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle) {
-		return valueDomain.canSummarize(e, pp, oracle);
+		return valueDomain.canProcess(e, pp, oracle);
+	}
+
+	@Override
+	public Set<BinaryExpression> constraints(
+			S state,
+			ValueExpression e,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		if (state.isTop())
+			return Collections.emptySet();
+		if (state.isBottom())
+			return null;
+		if (state.elements.isEmpty())
+			return Collections.emptySet();
+		// since constraint sets can only represent convex information, we just
+		// delegate to the underlying domain with the union of all the elements
+		// in the non-redundant set
+		L lub = null;
+		for (L elem : state.elements)
+			lub = lub == null ? elem : lub.lub(elem);
+		return valueDomain.constraints(lub, e, pp, oracle);
 	}
 }

@@ -2,17 +2,6 @@ package it.unive.lisa;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.lang.reflect.Executable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.apache.commons.collections4.SetUtils;
-import org.apache.commons.lang3.tuple.Pair;
-
 import it.unive.lisa.analysis.AbstractDomain;
 import it.unive.lisa.analysis.AbstractLattice;
 import it.unive.lisa.analysis.Analysis;
@@ -20,6 +9,7 @@ import it.unive.lisa.analysis.AnalysisState;
 import it.unive.lisa.analysis.AnalyzedCFG;
 import it.unive.lisa.analysis.HistoryDomain;
 import it.unive.lisa.analysis.Lattice;
+import it.unive.lisa.analysis.NoOpValues;
 import it.unive.lisa.analysis.ProgramState;
 import it.unive.lisa.analysis.Reachability;
 import it.unive.lisa.analysis.SemanticException;
@@ -120,6 +110,15 @@ import it.unive.lisa.type.Type;
 import it.unive.lisa.type.Untyped;
 import it.unive.lisa.util.datastructures.graph.GraphVisitor;
 import it.unive.lisa.util.numeric.IntInterval;
+import java.lang.reflect.Executable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class TestParameterProvider {
 
@@ -138,6 +137,14 @@ public class TestParameterProvider {
 		@Override
 		public SingleValueLattice bottom() {
 			return SingleValueLattice.BOTTOM;
+		}
+
+		@Override
+		public boolean canProcess(
+				ValueExpression e,
+				ProgramPoint pp,
+				SemanticOracle oracle) {
+			return true;
 		}
 
 	}
@@ -353,6 +360,19 @@ public class TestParameterProvider {
 				ProgramPoint pp)
 				throws SemanticException {
 			return Satisfiability.UNKNOWN;
+		}
+
+		@Override
+		public boolean hasWholeValueAnlysis() {
+			return false;
+		}
+
+		@Override
+		public Set<BinaryExpression> constraints(
+				ValueExpression e,
+				ProgramPoint pp)
+				throws SemanticException {
+			return Collections.emptySet();
 		}
 
 	};
@@ -719,6 +739,8 @@ public class TestParameterProvider {
 			return (R) new Prefix();
 		if (param == ReachLattice.class)
 			return (R) new ReachLattice();
+		if (param == ValueLattice[].class)
+			return (R) new ValueLattice[] { SingleValueLattice.SINGLETON };
 
 		// domains
 		if (param == Bricks.class)
@@ -728,6 +750,8 @@ public class TestParameterProvider {
 		if (root == TracePartitioning.class || root == Analysis.class || root == Reachability.class
 				|| root == HistoryDomain.class)
 			return (R) DefaultConfiguration.defaultAbstractDomain();
+		if (param == ValueDomain[].class)
+			return (R) new ValueDomain[] { new NoOpValues() };
 
 		throw new UnsupportedOperationException(
 				"No default domain for domain " + root + " and parameter of type " + param);

@@ -13,7 +13,6 @@ import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.TernaryExpression;
 import it.unive.lisa.symbolic.value.UnaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -188,11 +187,11 @@ public class NonRelationalNonRedundantPowerset<S extends NonRedundantSetLattice<
 	}
 
 	@Override
-	public boolean canSummarize(
+	public boolean canProcess(
 			ValueExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle) {
-		return valueDomain.canSummarize(e, pp, oracle);
+		return valueDomain.canProcess(e, pp, oracle);
 	}
 
 	@Override

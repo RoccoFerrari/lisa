@@ -1,14 +1,5 @@
 package it.unive.lisa.analysis.string;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
-
-import org.apache.commons.lang3.StringUtils;
-
 import it.unive.lisa.analysis.BaseLattice;
 import it.unive.lisa.analysis.Lattice;
 import it.unive.lisa.analysis.SemanticException;
@@ -16,6 +7,7 @@ import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.combination.smash.SmashedSumStringDomain;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
 import it.unive.lisa.analysis.numeric.IntegerConstantPropagation;
+import it.unive.lisa.analysis.value.StringAbstraction;
 import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.lattices.numeric.IntegerConstant;
@@ -25,7 +17,6 @@ import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.PushAny;
 import it.unive.lisa.symbolic.value.PushFromConstraints;
-import it.unive.lisa.symbolic.value.PushInv;
 import it.unive.lisa.symbolic.value.TernaryExpression;
 import it.unive.lisa.symbolic.value.UnaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
@@ -65,12 +56,18 @@ import it.unive.lisa.symbolic.value.operator.unary.StringToLowerCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringToUpperCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringTrim;
 import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
-import it.unive.lisa.type.Type;
 import it.unive.lisa.util.numeric.IntInterval;
 import it.unive.lisa.util.numeric.MathNumber;
 import it.unive.lisa.util.numeric.MathNumberConversionException;
 import it.unive.lisa.util.representation.StringRepresentation;
 import it.unive.lisa.util.representation.StructuredRepresentation;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * The bricks string abstract domain.
@@ -85,6 +82,7 @@ import it.unive.lisa.util.representation.StructuredRepresentation;
  */
 public class Bricks
 		implements
+		StringAbstraction<ValueEnvironment<Bricks.BrickList>>,
 		SmashedSumStringDomain<Bricks.BrickList> {
 
 	/**
@@ -390,6 +388,11 @@ public class Bricks
 			return new Brick(interval, newStrings);
 		}
 
+		/**
+		 * Yields the length of the strings represented by this brick.
+		 *
+		 * @return the interval defining the length
+		 */
 		public IntInterval len() {
 			if (isTop())
 				return new IntInterval(MathNumber.ZERO, MathNumber.PLUS_INFINITY);
@@ -397,8 +400,12 @@ public class Bricks
 				return IntInterval.BOTTOM;
 			if (strings == null || strings.isEmpty())
 				return IntInterval.ZERO;
-			String min = Collections.min(strings, (s1, s2) -> Integer.compare(s1.length(), s2.length()));
-			String max = Collections.max(strings, (s1, s2) -> Integer.compare(s1.length(), s2.length()));
+			String min = Collections.min(strings, (
+					s1,
+					s2) -> Integer.compare(s1.length(), s2.length()));
+			String max = Collections.max(strings, (
+					s1,
+					s2) -> Integer.compare(s1.length(), s2.length()));
 			return new IntInterval(min.length(), max.length()).mul(interval);
 		}
 	}
@@ -756,6 +763,17 @@ public class Bricks
 			return Satisfiability.UNKNOWN;
 		}
 
+		/**
+		 * Applies the given operator to all the strings in the set of each
+		 * brick in this list, yielding a new brick list with the same bricks
+		 * and the new set of strings.
+		 *
+		 * @param operator the operator to apply to all the strings in the set
+		 *                     of each brick in this list
+		 *
+		 * @return a new brick list with the same bricks and the new set of
+		 *             strings
+		 */
 		public BrickList onAllStrings(
 				java.util.function.UnaryOperator<String> operator) {
 			List<Brick> newBricks = new ArrayList<>();
@@ -804,6 +822,11 @@ public class Bricks
 			return reps;
 		}
 
+		/**
+		 * Yields the length of the strings represented by this brick list.
+		 *
+		 * @return the interval defining the length
+		 */
 		public IntInterval len() {
 			if (isTop())
 				return new IntInterval(MathNumber.ZERO, MathNumber.PLUS_INFINITY);
@@ -1388,31 +1411,4 @@ public class Bricks
 				pp);
 	}
 
-	@Override
-	public boolean canSummarize(
-			ValueExpression e,
-			ProgramPoint pp,
-			SemanticOracle oracle) {
-		if (e instanceof PushInv)
-			// the type approximation of a pushinv is bottom, so the below check
-			// will always fail regardless of the kind of value we are tracking
-			return e.getStaticType().isStringType();
-
-		Set<Type> rts = null;
-		try {
-			rts = oracle.getRuntimeTypesOf(e, pp);
-		} catch (SemanticException ex) {
-			return false;
-		}
-
-		if (rts == null || rts.isEmpty())
-			// if we have no runtime types, either the type domain has no type
-			// information for the given expression (thus it can be anything,
-			// also something that we can track) or the computation returned
-			// bottom (and the whole state is likely going to go to bottom
-			// anyway).
-			return true;
-
-		return rts.stream().anyMatch(t -> t.isStringType());
-	}
 }

@@ -1,10 +1,5 @@
 package it.unive.lisa.analysis.dataflow;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import it.unive.lisa.analysis.ScopeToken;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.combination.constraints.WholeValueAnalysis;
@@ -15,6 +10,10 @@ import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.util.representation.ListRepresentation;
 import it.unive.lisa.util.representation.StringRepresentation;
 import it.unive.lisa.util.representation.StructuredRepresentation;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * An implementation of the reaching definition dataflow analysis. <br/>

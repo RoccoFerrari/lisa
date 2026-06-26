@@ -1,8 +1,5 @@
 package it.unive.lisa.analysis.informationFlow;
 
-import java.util.Collection;
-import java.util.Set;
-
 import it.unive.lisa.analysis.Lattice;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
@@ -26,6 +23,8 @@ import it.unive.lisa.symbolic.value.TernaryExpression;
 import it.unive.lisa.symbolic.value.UnaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.type.Type;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * Implementation of the non interference analysis, using annotations to detect
