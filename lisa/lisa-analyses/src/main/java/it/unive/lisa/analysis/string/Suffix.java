@@ -168,11 +168,11 @@ public class Suffix
 			ll = left.suffix;
 			rr = right.suffix;
 		} else if (left.suffix.length() > right.suffix.length()) {
-			ll = left.suffix.substring(0, right.suffix.length());
+			ll = left.suffix.substring(left.suffix.length() - right.suffix.length());
 			rr = right.suffix;
 		} else {
 			ll = left.suffix;
-			rr = right.suffix.substring(0, left.suffix.length());
+			rr = right.suffix.substring(right.suffix.length() - left.suffix.length());
 		}
 
 		Boolean b;

@@ -230,12 +230,8 @@ public class IntegerConstantPropagation
 
 		if (operator instanceof AdditionOperator)
 			return new IntegerConstant(left.value + right.value);
-		if (operator instanceof ModuloOperator) {
-			int res = left.value % right.value;
-			if ((right.value < 0 && res > 0) || (right.value > 0 && res < 0))
-				res -= Math.abs(right.value);
-			return new IntegerConstant(res);
-		}
+		if (operator instanceof ModuloOperator)
+			return new IntegerConstant(Math.floorMod(left.value, right.value));
 		if (operator instanceof RemainderOperator)
 			return new IntegerConstant(left.value % right.value);
 		if (operator instanceof SubtractionOperator)

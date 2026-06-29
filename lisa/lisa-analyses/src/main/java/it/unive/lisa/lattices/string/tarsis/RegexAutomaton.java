@@ -474,7 +474,7 @@ public class RegexAutomaton
 		Collection<RegexAutomaton> automata = new ArrayList<>();
 		boolean isSingleString = toReplace.getLanguage().size() == 1;
 		for (String s : toReplace.getLanguage())
-			automata.add(new StringReplacer(this).replace(s, str, isSingleString).collapse());
+			automata.add(new StringReplacer(this).replace(s, str, isSingleString).minimize().collapse());
 
 		if (automata.size() == 1)
 			return automata.iterator().next();

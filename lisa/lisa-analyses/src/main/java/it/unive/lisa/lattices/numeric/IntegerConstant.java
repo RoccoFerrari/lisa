@@ -136,4 +136,8 @@ public class IntegerConstant
 		return true;
 	}
 
+	@Override
+	public String toString() {
+		return representation().toString();
+	}
 }

@@ -401,7 +401,7 @@ public class BoundedStringSet
 			throws SemanticException {
 		TernaryOperator operator = expression.getOperator();
 
-		if (left.isTop() || middle.isTop())
+		if (left.isTop())
 			return top();
 
 		if (oracle.hasWholeValueAnlysis() && operator == StringSubstring.INSTANCE) {
@@ -428,7 +428,7 @@ public class BoundedStringSet
 			});
 		}
 
-		if (right.isTop())
+		if (middle.isTop() || right.isTop())
 			return top();
 
 		if (expression.getOperator() == StringReplace.INSTANCE &&

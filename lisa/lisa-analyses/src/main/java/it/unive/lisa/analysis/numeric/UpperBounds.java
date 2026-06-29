@@ -134,13 +134,13 @@ public class UpperBounds
 		Identifier y = (Identifier) right;
 
 		if (operator instanceof ComparisonLt) {
-			return Satisfiability.fromBoolean(state.getState(x).contains(y));
+			return state.getState(x).contains(y) ? Satisfiability.SATISFIED : Satisfiability.UNKNOWN;
 		} else if (operator instanceof ComparisonLe) {
 			if (state.getState(x).contains(y))
 				return Satisfiability.SATISFIED;
 			return Satisfiability.UNKNOWN;
 		} else if (operator instanceof ComparisonGt) {
-			return Satisfiability.fromBoolean(state.getState(y).contains(x));
+			return state.getState(y).contains(x) ? Satisfiability.SATISFIED : Satisfiability.UNKNOWN;
 		} else if (operator instanceof ComparisonGe) {
 			if (state.getState(y).contains(x))
 				return Satisfiability.SATISFIED;
@@ -293,6 +293,7 @@ public class UpperBounds
 							id,
 							ComparisonLt.INSTANCE,
 							e.getCodeLocation()));
+			return constraints;
 		}
 
 		return Collections.emptySet();

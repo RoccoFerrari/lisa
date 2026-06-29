@@ -9,21 +9,26 @@ import it.unive.lisa.TestParameterProvider;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
+import it.unive.lisa.events.EventQueue;
+import it.unive.lisa.lattices.ExpressionSet;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.program.type.BoolType;
 import it.unive.lisa.program.type.Int32Type;
+import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Constant;
+import it.unive.lisa.symbolic.value.TernaryExpression;
 import it.unive.lisa.symbolic.value.UnaryExpression;
+import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.symbolic.value.Variable;
+import it.unive.lisa.symbolic.value.operator.binary.BinaryOperator;
 import it.unive.lisa.symbolic.value.operator.binary.BitwiseAnd;
 import it.unive.lisa.symbolic.value.operator.binary.BitwiseOr;
 import it.unive.lisa.symbolic.value.operator.binary.BitwiseShiftLeft;
 import it.unive.lisa.symbolic.value.operator.binary.BitwiseShiftRight;
 import it.unive.lisa.symbolic.value.operator.binary.BitwiseUnsignedShiftRight;
 import it.unive.lisa.symbolic.value.operator.binary.BitwiseXor;
-import it.unive.lisa.symbolic.value.operator.binary.BinaryOperator;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonEq;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonGe;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonGt;
@@ -39,7 +44,15 @@ import it.unive.lisa.symbolic.value.operator.binary.NumericNonOverflowingMod;
 import it.unive.lisa.symbolic.value.operator.binary.NumericNonOverflowingMul;
 import it.unive.lisa.symbolic.value.operator.binary.NumericNonOverflowingRem;
 import it.unive.lisa.symbolic.value.operator.binary.NumericNonOverflowingSub;
+import it.unive.lisa.symbolic.value.operator.binary.StringIndexOf;
+import it.unive.lisa.symbolic.value.operator.binary.StringIndexOfChar;
+import it.unive.lisa.symbolic.value.operator.binary.StringLastIndexOf;
+import it.unive.lisa.symbolic.value.operator.binary.StringLastIndexOfChar;
 import it.unive.lisa.symbolic.value.operator.binary.ValueComparison;
+import it.unive.lisa.symbolic.value.operator.ternary.StringIndexOfCharFromIndex;
+import it.unive.lisa.symbolic.value.operator.ternary.StringLastIndexOfCharFromIndex;
+import it.unive.lisa.symbolic.value.operator.ternary.StringLastIndexOfFromIndex;
+import it.unive.lisa.symbolic.value.operator.ternary.TernaryOperator;
 import it.unive.lisa.symbolic.value.operator.unary.BitwiseNegation;
 import it.unive.lisa.symbolic.value.operator.unary.NumericAbs;
 import it.unive.lisa.symbolic.value.operator.unary.NumericAcos;
@@ -57,21 +70,8 @@ import it.unive.lisa.symbolic.value.operator.unary.NumericSin;
 import it.unive.lisa.symbolic.value.operator.unary.NumericSqrt;
 import it.unive.lisa.symbolic.value.operator.unary.NumericTan;
 import it.unive.lisa.symbolic.value.operator.unary.NumericToRadians;
-import it.unive.lisa.symbolic.value.operator.binary.StringIndexOf;
-import it.unive.lisa.symbolic.value.operator.binary.StringIndexOfChar;
-import it.unive.lisa.symbolic.value.operator.binary.StringLastIndexOf;
-import it.unive.lisa.symbolic.value.operator.binary.StringLastIndexOfChar;
-import it.unive.lisa.symbolic.value.operator.ternary.StringIndexOfCharFromIndex;
-import it.unive.lisa.symbolic.value.operator.ternary.StringLastIndexOfCharFromIndex;
-import it.unive.lisa.symbolic.value.operator.ternary.StringLastIndexOfFromIndex;
-import it.unive.lisa.symbolic.value.operator.ternary.TernaryOperator;
 import it.unive.lisa.symbolic.value.operator.unary.StringLength;
 import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
-import it.unive.lisa.symbolic.value.TernaryExpression;
-import it.unive.lisa.symbolic.value.ValueExpression;
-import it.unive.lisa.symbolic.SymbolicExpression;
-import it.unive.lisa.events.EventQueue;
-import it.unive.lisa.lattices.ExpressionSet;
 import it.unive.lisa.type.Type;
 import it.unive.lisa.util.numeric.InfiniteIterationException;
 import it.unive.lisa.util.numeric.IntInterval;
@@ -250,7 +250,7 @@ public class IntervalTest {
 	}
 
 	// -----------------------------------------------------------------------
-	// evalUnaryExpression – NumericSqrt 
+	// evalUnaryExpression – NumericSqrt
 	// -----------------------------------------------------------------------
 
 	@Test
@@ -261,9 +261,9 @@ public class IntervalTest {
 		assertEquals(mk(0, 2), evalUn(NumericSqrt.INSTANCE, mk(0, 4)));
 		// sqrt([-5,4]) = [0,2]
 		assertEquals(mk(0, 2), evalUn(NumericSqrt.INSTANCE, mk(-5, 4)));
-		// sqrt([0,0]) = [0,0]  
+		// sqrt([0,0]) = [0,0]
 		assertEquals(IntInterval.ZERO, evalUn(NumericSqrt.INSTANCE, mk(0)));
-		// sqrt([-5,0]) = [0,0]  
+		// sqrt([-5,0]) = [0,0]
 		assertEquals(IntInterval.ZERO, evalUn(NumericSqrt.INSTANCE, mk(-5, 0)));
 		// sqrt([-5,-1]) = BOTTOM (no non-negative values)
 		assertEquals(IntInterval.BOTTOM, evalUn(NumericSqrt.INSTANCE, mk(-5, -1)));
@@ -276,14 +276,14 @@ public class IntervalTest {
 	}
 
 	// -----------------------------------------------------------------------
-	// evalUnaryExpression – NumericExp 
+	// evalUnaryExpression – NumericExp
 	// -----------------------------------------------------------------------
 
 	@Test
 	public void testNumericExp() throws SemanticException {
 		// exp([0,0]) = [1,1]
 		assertEquals(mk(1), evalUn(NumericExp.INSTANCE, mk(0)));
-		// exp([-Inf,0]) = [0,1]  
+		// exp([-Inf,0]) = [0,1]
 		IntInterval negInf_0 = new IntInterval(MathNumber.MINUS_INFINITY, MathNumber.ZERO);
 		IntInterval expNegInf0 = evalUn(NumericExp.INSTANCE, negInf_0);
 		assertEquals(MathNumber.ZERO, expNegInf0.getLow());
@@ -293,7 +293,7 @@ public class IntervalTest {
 		IntInterval expNegInf2 = evalUn(NumericExp.INSTANCE, negInf_2);
 		assertEquals(MathNumber.ZERO, expNegInf2.getLow());
 		assertFalse(expNegInf2.getHigh().isMinusInfinity());
-		// exp(TOP) = [0,+Inf]  
+		// exp(TOP) = [0,+Inf]
 		IntInterval expTop = evalUn(NumericExp.INSTANCE, IntInterval.TOP);
 		assertEquals(MathNumber.ZERO, expTop.getLow());
 		assertTrue(expTop.highIsPlusInfinity());
@@ -497,7 +497,7 @@ public class IntervalTest {
 	}
 
 	// -----------------------------------------------------------------------
-	// evalBinaryExpression – Modulo 
+	// evalBinaryExpression – Modulo
 	// -----------------------------------------------------------------------
 
 	@Test
@@ -945,7 +945,7 @@ public class IntervalTest {
 
 	@Test
 	public void testGenerateRange() throws SemanticException {
-		// 3 <= varAux  AND  7 >= varAux  → [3, 7]
+		// 3 <= varAux AND 7 >= varAux → [3, 7]
 		Set<BinaryExpression> cs = new HashSet<>();
 		cs.add(mkConstraint(3, ComparisonLe.INSTANCE, varAux));
 		cs.add(mkConstraint(7, ComparisonGe.INSTANCE, varAux));
@@ -1022,7 +1022,8 @@ public class IntervalTest {
 
 	@Test
 	public void testStringLengthWVA_filterIgnoresNonStrlen() throws SemanticException {
-		// oracle returns {3 <= varAux}: right side is NOT strlen → filtered → TOP
+		// oracle returns {3 <= varAux}: right side is NOT strlen → filtered →
+		// TOP
 		WVAOracle wva = new WVAOracle(Set.of(mkConstraint(3, ComparisonLe.INSTANCE, varAux)));
 		UnaryExpression strlen = new UnaryExpression(Int32Type.INSTANCE, varAux, StringLength.INSTANCE,
 				pp.getLocation());
@@ -1030,7 +1031,8 @@ public class IntervalTest {
 	}
 
 	// -----------------------------------------------------------------------
-	// StringIndexOfChar / StringLastIndexOfChar / StringIndexOf / StringLastIndexOf
+	// StringIndexOfChar / StringLastIndexOfChar / StringIndexOf /
+	// StringLastIndexOf
 	// -----------------------------------------------------------------------
 
 	private void assertWVABinary(
@@ -1171,7 +1173,9 @@ public class IntervalTest {
 	// WVAOracle inner class
 	// -----------------------------------------------------------------------
 
-	private static class WVAOracle implements SemanticOracle {
+	private static class WVAOracle
+			implements
+			SemanticOracle {
 
 		private final Set<BinaryExpression> constraints;
 

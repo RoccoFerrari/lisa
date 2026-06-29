@@ -134,6 +134,8 @@ public class Parity
 			Set<BinaryExpression> constraints = oracle.constraints(
 					(ValueExpression) expression.getExpression(),
 					pp);
+			if (constraints == null)
+				return ParityLattice.BOTTOM;
 			return generate(
 					constraints.stream()
 							.filter(c -> c.getRight() instanceof UnaryExpression
@@ -275,7 +277,11 @@ public class Parity
 		if (operator == ComparisonEq.INSTANCE)
 			return left == right ? Satisfiability.UNKNOWN : Satisfiability.NOT_SATISFIED;
 		else if (operator == ComparisonNe.INSTANCE)
-			return left != right ? Satisfiability.UNKNOWN : Satisfiability.NOT_SATISFIED;
+			// same parity: might be equal or not (e.g., 2 and 4 are both even,
+			// but
+			// not equal); different parities: can never be equal (even ≠ odd
+			// always)
+			return left == right ? Satisfiability.UNKNOWN : Satisfiability.SATISFIED;
 		else
 			return Satisfiability.UNKNOWN;
 	}

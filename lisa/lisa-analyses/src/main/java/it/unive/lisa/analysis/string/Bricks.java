@@ -1010,7 +1010,7 @@ public class Bricks
 						&& first.getStrings() != null
 						&& !first.getStrings().isEmpty()) {
 					first.getStrings().forEach(s -> {
-						if (s.length() > val.value)
+						if (s.length() >= val.value)
 							result.add(s.substring((int) val.value));
 					});
 				}
@@ -1070,7 +1070,7 @@ public class Bricks
 					&& first.getStrings() != null
 					&& !first.getStrings().isEmpty()) {
 				first.getStrings().forEach(s -> {
-					if (s.length() > rig.value)
+					if (s.length() >= rig.value)
 						result.add(s.substring((int) mid.value, (int) rig.value));
 				});
 			}
@@ -1400,7 +1400,7 @@ public class Bricks
 		}
 
 		BrickList value = eval(state, e, pp, oracle);
-		if (value.isTop() || value.isFinite() || value.getReps().size() != 1)
+		if (value.isTop() || !value.isFinite() || value.getReps().size() != 1)
 			return Collections.emptySet();
 		if (value.isBottom())
 			return null;
