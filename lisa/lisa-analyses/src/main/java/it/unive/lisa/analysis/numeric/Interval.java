@@ -144,6 +144,8 @@ public class Interval
 			Set<BinaryExpression> constraints = oracle.constraints(
 					(ValueExpression) expression.getExpression(),
 					pp);
+			if (constraints == null)
+				return bottom();
 			return generate(
 					constraints.stream()
 							.filter(c -> c.getRight() instanceof UnaryExpression
@@ -239,8 +241,8 @@ public class Interval
 				return new IntInterval(new MathNumber(Math.toRadians(l)), new MathNumber(Math.toRadians(h)));
 
 		if (operator instanceof NumericSqrt)
-			if (arg.lowIsMinusInfinity() || arg.getLow().compareTo(MathNumber.ZERO) <= 0)
-				if (arg.getHigh().compareTo(MathNumber.ZERO) <= 0)
+			if (arg.lowIsMinusInfinity() || arg.getLow().compareTo(MathNumber.ZERO) < 0)
+				if (arg.getHigh().compareTo(MathNumber.ZERO) < 0)
 					return IntInterval.BOTTOM;
 				else if (arg.highIsPlusInfinity())
 					return new IntInterval(MathNumber.ZERO, MathNumber.PLUS_INFINITY);
@@ -280,9 +282,9 @@ public class Interval
 		if (operator instanceof NumericExp)
 			if (arg.lowIsMinusInfinity())
 				if (arg.highIsPlusInfinity())
-					return IntInterval.TOP;
+					return new IntInterval(MathNumber.ZERO, MathNumber.PLUS_INFINITY);
 				else
-					return new IntInterval(MathNumber.MINUS_INFINITY, new MathNumber(Math.exp(h)));
+					return new IntInterval(MathNumber.ZERO, new MathNumber(Math.exp(h)));
 			else if (arg.highIsPlusInfinity())
 				return new IntInterval(new MathNumber(Math.exp(l)), MathNumber.PLUS_INFINITY);
 			else
@@ -504,7 +506,9 @@ public class Interval
 							right.getHigh().subtract(MathNumber.ONE));
 				else
 					return new IntInterval(
-							right.getLow().add(MathNumber.ONE),
+							right.getLow().compareTo(MathNumber.ZERO) < 0
+									? right.getLow().add(MathNumber.ONE)
+									: MathNumber.ZERO,
 							right.getHigh().subtract(MathNumber.ONE));
 			}
 		else if (operator instanceof RemainderOperator)
