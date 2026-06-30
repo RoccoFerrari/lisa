@@ -275,20 +275,20 @@ public class UpperBoundsTest {
 	@Test
 	void constraintsOnBottomReturnsNull() throws SemanticException {
 		ValueEnvironment<DefiniteIdSet> bottom = domain.makeLattice().bottom();
-		assertNull(domain.constraints(bottom, x, pp, oracle));
+		assertNull(domain.constraints(null, bottom, x, pp, oracle));
 	}
 
 	@Test
 	void constraintsOnTopStateReturnsEmpty() throws SemanticException {
 		ValueEnvironment<DefiniteIdSet> top = domain.makeLattice();
-		assertTrue(domain.constraints(top, x, pp, oracle).isEmpty());
+		assertTrue(domain.constraints(null, top, x, pp, oracle).isEmpty());
 	}
 
 	@Test
 	void constraintsWithUpperBoundReturnsConstraint() throws SemanticException {
 		// x < y (y ∈ x's bounds) → constraint: y > x
 		ValueEnvironment<DefiniteIdSet> state = stateWithBound(x, y);
-		Set<BinaryExpression> constraints = domain.constraints(state, x, pp, oracle);
+		Set<BinaryExpression> constraints = domain.constraints(null, state, x, pp, oracle);
 		assertNotNull(constraints);
 		assertEquals(1, constraints.size());
 		BinaryExpression c = constraints.iterator().next();
@@ -308,7 +308,7 @@ public class UpperBoundsTest {
 		// Now query for x itself: x is not in any bounds, no constraints from
 		// loop 1
 		// BUT for loop 2: entry (y → {x}) contains x → add y < x
-		Set<BinaryExpression> constraintsForX = domain.constraints(state, x, pp, oracle);
+		Set<BinaryExpression> constraintsForX = domain.constraints(null, state, x, pp, oracle);
 		assertNotNull(constraintsForX);
 		// x has no direct upper bounds, but y < x (from loop 2: y's value
 		// contains x)
@@ -323,7 +323,7 @@ public class UpperBoundsTest {
 	void constraintsForVariableWithNoBoundsReturnsEmpty() throws SemanticException {
 		// state tracks x → {y}, but we query for z (which has no bounds info)
 		ValueEnvironment<DefiniteIdSet> state = stateWithBound(x, y);
-		Set<BinaryExpression> constraints = domain.constraints(state, z, pp, oracle);
+		Set<BinaryExpression> constraints = domain.constraints(null, state, z, pp, oracle);
 		assertNotNull(constraints);
 		assertTrue(constraints.isEmpty());
 	}
@@ -333,7 +333,7 @@ public class UpperBoundsTest {
 		ValueEnvironment<DefiniteIdSet> state = stateWithBound(x, y);
 		BinaryExpression expr = new BinaryExpression(
 				Int32Type.INSTANCE, x, mkConst(5), ComparisonGt.INSTANCE, pp.getLocation());
-		Set<BinaryExpression> constraints = domain.constraints(state, expr, pp, oracle);
+		Set<BinaryExpression> constraints = domain.constraints(null, state, expr, pp, oracle);
 		assertNotNull(constraints);
 		// satisfies(state, x > 5) = UNKNOWN → empty
 		assertTrue(constraints.isEmpty());
@@ -347,7 +347,7 @@ public class UpperBoundsTest {
 		ValueEnvironment<DefiniteIdSet> state = stateWithBound(x, y);
 		BinaryExpression expr = new BinaryExpression(
 				Int32Type.INSTANCE, x, y, ComparisonLt.INSTANCE, pp.getLocation());
-		Set<BinaryExpression> constraints = domain.constraints(state, expr, pp, oracle);
+		Set<BinaryExpression> constraints = domain.constraints(null, state, expr, pp, oracle);
 		assertNotNull(constraints);
 		// Should return a boolean equality constraint saying expr == true
 		assertEquals(1, constraints.size());

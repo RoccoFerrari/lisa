@@ -35,7 +35,7 @@ public class WholeValueAnalysis
 		implements
 		ValueDomain<WholeValue> {
 
-	private final ValueDomain<?>[] participants;
+	public final ValueDomain<?>[] participants;
 
 	/**
 	 * Builds a value with the given participants.
@@ -129,8 +129,12 @@ public class WholeValueAnalysis
 		ValueLattice<?>[] lattices = new ValueLattice<?>[participants.length];
 		for (int i = 0; i < participants.length; i++)
 			if (participants[i].canProcess(expression, pp, oracle))
-				lattices[i] = (ValueLattice<?>) ((ValueDomain) participants[i]).assign(state.get(i),
-						id, expression, pp, oracle);
+				lattices[i] = (ValueLattice<?>) ((ValueDomain) participants[i]).assign(
+						state.get(i),
+						id,
+						expression,
+						pp,
+						oracle);
 			else
 				lattices[i] = state.get(i);
 		return new WholeValue(lattices);
@@ -147,8 +151,11 @@ public class WholeValueAnalysis
 		ValueLattice<?>[] lattices = new ValueLattice<?>[participants.length];
 		for (int i = 0; i < participants.length; i++)
 			if (participants[i].canProcess(expression, pp, oracle))
-				lattices[i] = (ValueLattice<?>) ((ValueDomain) participants[i])
-						.smallStepSemantics(state.get(i), expression, pp, oracle);
+				lattices[i] = (ValueLattice<?>) ((ValueDomain) participants[i]).smallStepSemantics(
+						state.get(i),
+						expression,
+						pp,
+						oracle);
 			else
 				lattices[i] = state.get(i);
 		return new WholeValue(lattices);
@@ -163,15 +170,17 @@ public class WholeValueAnalysis
 			SemanticOracle oracle)
 			throws SemanticException {
 		Satisfiability result = null;
-		for (int i = 0; i < participants.length; i++)
-			if (participants[i].canProcess(expression, pp, oracle)) {
-				Satisfiability res = ((ValueDomain) participants[i]).satisfies(state.get(i), expression, pp,
-						oracle);
-				if (res == Satisfiability.BOTTOM)
-					return Satisfiability.BOTTOM;
-				else
-					result = result == null ? res : result.lub(res);
-			}
+		for (int i = 0; i < participants.length; i++) {
+			Satisfiability res = ((ValueDomain) participants[i]).satisfies(
+					state.get(i),
+					expression,
+					pp,
+					oracle);
+			if (res == Satisfiability.BOTTOM)
+				return Satisfiability.BOTTOM;
+			else
+				result = result == null ? res : result.glb(res);
+		}
 		return result == null ? Satisfiability.UNKNOWN : result;
 	}
 
@@ -185,12 +194,16 @@ public class WholeValueAnalysis
 			SemanticOracle oracle)
 			throws SemanticException {
 		ValueLattice<?>[] lattices = new ValueLattice<?>[participants.length];
-		for (int i = 0; i < participants.length; i++)
-			if (participants[i].canProcess(expression, src, oracle))
-				lattices[i] = (ValueLattice<?>) ((ValueDomain) participants[i]).assume(state.get(i),
-						expression, src, dest, oracle);
-			else
-				lattices[i] = state.get(i);
+		for (int i = 0; i < participants.length; i++) {
+			lattices[i] = (ValueLattice<?>) ((ValueDomain) participants[i]).assume(
+					state.get(i),
+					expression,
+					src,
+					dest,
+					oracle);
+			if (lattices[i].isBottom())
+				return state.bottom();
+		}
 		return new WholeValue(lattices);
 	}
 
@@ -230,6 +243,7 @@ public class WholeValueAnalysis
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			WholeValue state,
 			ValueExpression e,
 			ProgramPoint pp,
@@ -237,8 +251,16 @@ public class WholeValueAnalysis
 			throws SemanticException {
 		Set<BinaryExpression> result = new HashSet<>();
 		for (int i = 0; i < participants.length; i++)
-			if (participants[i].canProcess(e, pp, oracle))
-				result.addAll(((ValueDomain) participants[i]).constraints(state.get(i), e, pp, oracle));
+			if (participants[i] != requesting) {
+				Set<BinaryExpression> c = ((ValueDomain) participants[i]).constraints(
+						requesting,
+						state.get(i),
+						e,
+						pp,
+						oracle);
+				if (c != null)
+					result.addAll(c);
+			}
 		return result;
 	}
 }

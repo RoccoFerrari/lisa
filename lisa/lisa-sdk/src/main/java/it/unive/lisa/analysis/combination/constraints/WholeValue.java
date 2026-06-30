@@ -261,7 +261,7 @@ public class WholeValue
 		if (components.length != other.components.length)
 			throw new SemanticException("Cannot operate on domains with a different number of components");
 		for (int i = 0; i < components.length; i++)
-			if (!((ValueLattice) components[i]).lessOrEqual(other))
+			if (!((ValueLattice) components[i]).lessOrEqual(other.components[i]))
 				return false;
 		return true;
 	}
@@ -275,7 +275,7 @@ public class WholeValue
 			throw new SemanticException("Cannot operate on domains with a different number of components");
 		ValueLattice<?>[] lub = new ValueLattice<?>[components.length];
 		for (int i = 0; i < components.length; i++)
-			lub[i] = (ValueLattice) ((ValueLattice) components[i]).lub(other);
+			lub[i] = (ValueLattice) ((ValueLattice) components[i]).lub(other.components[i]);
 		return new WholeValue(lub);
 	}
 
@@ -288,7 +288,7 @@ public class WholeValue
 			throw new SemanticException("Cannot operate on domains with a different number of components");
 		ValueLattice<?>[] lub = new ValueLattice<?>[components.length];
 		for (int i = 0; i < components.length; i++)
-			lub[i] = (ValueLattice) ((ValueLattice) components[i]).glb(other);
+			lub[i] = (ValueLattice) ((ValueLattice) components[i]).glb(other.components[i]);
 		return new WholeValue(lub);
 	}
 
@@ -301,7 +301,7 @@ public class WholeValue
 			throw new SemanticException("Cannot operate on domains with a different number of components");
 		ValueLattice<?>[] lub = new ValueLattice<?>[components.length];
 		for (int i = 0; i < components.length; i++)
-			lub[i] = (ValueLattice) ((ValueLattice) components[i]).upchain(other);
+			lub[i] = (ValueLattice) ((ValueLattice) components[i]).upchain(other.components[i]);
 		return new WholeValue(lub);
 	}
 
@@ -314,7 +314,7 @@ public class WholeValue
 			throw new SemanticException("Cannot operate on domains with a different number of components");
 		ValueLattice<?>[] lub = new ValueLattice<?>[components.length];
 		for (int i = 0; i < components.length; i++)
-			lub[i] = (ValueLattice) ((ValueLattice) components[i]).downchain(other);
+			lub[i] = (ValueLattice) ((ValueLattice) components[i]).downchain(other.components[i]);
 		return new WholeValue(lub);
 	}
 
@@ -327,7 +327,7 @@ public class WholeValue
 			throw new SemanticException("Cannot operate on domains with a different number of components");
 		ValueLattice<?>[] lub = new ValueLattice<?>[components.length];
 		for (int i = 0; i < components.length; i++)
-			lub[i] = (ValueLattice) ((ValueLattice) components[i]).widening(other);
+			lub[i] = (ValueLattice) ((ValueLattice) components[i]).widening(other.components[i]);
 		return new WholeValue(lub);
 	}
 
@@ -340,7 +340,7 @@ public class WholeValue
 			throw new SemanticException("Cannot operate on domains with a different number of components");
 		ValueLattice<?>[] lub = new ValueLattice<?>[components.length];
 		for (int i = 0; i < components.length; i++)
-			lub[i] = (ValueLattice) ((ValueLattice) components[i]).narrowing(other);
+			lub[i] = (ValueLattice) ((ValueLattice) components[i]).narrowing(other.components[i]);
 		return new WholeValue(lub);
 	}
 

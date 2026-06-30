@@ -120,7 +120,7 @@ public class Prefix
 		UnaryOperator operator = expression.getOperator();
 
 		if (oracle.hasWholeValueAnlysis() && operator == NumericToString.INSTANCE) {
-			Set<BinaryExpression> constraints = oracle.constraints(expression, pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, expression, pp);
 			return generate(constraints, pp, oracle);
 		}
 
@@ -156,7 +156,7 @@ public class Prefix
 		if (oracle.hasWholeValueAnlysis()
 				&& (operator == StringCharAt.INSTANCE
 						|| operator == StringSubstringToEnd.INSTANCE)) {
-			Set<BinaryExpression> constraints = oracle.constraints((ValueExpression) expression.getRight(), pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, (ValueExpression) expression.getRight(), pp);
 			IntInterval val = intDomain.generate(constraints, pp, oracle);
 			if (val.isBottom())
 				return StrPrefix.BOTTOM;
@@ -215,12 +215,11 @@ public class Prefix
 						return StrPrefix.TOP;
 				}
 
+				if (common == null)
+					return StrPrefix.TOP;
 				return new StrPrefix(common);
 			}
 		}
-
-		if (left.isTop() || right.isTop())
-			return StrPrefix.TOP;
 
 		if (operator instanceof StringConcat)
 			return left;
@@ -244,9 +243,9 @@ public class Prefix
 			return StrPrefix.TOP;
 
 		if (oracle.hasWholeValueAnlysis() && operator == StringSubstring.INSTANCE) {
-			Set<BinaryExpression> cM = oracle.constraints((ValueExpression) expression.getMiddle(), pp);
+			Set<BinaryExpression> cM = oracle.constraints(this, (ValueExpression) expression.getMiddle(), pp);
 			IntInterval mid = intDomain.generate(cM, pp, oracle);
-			Set<BinaryExpression> cR = oracle.constraints((ValueExpression) expression.getRight(), pp);
+			Set<BinaryExpression> cR = oracle.constraints(this, (ValueExpression) expression.getRight(), pp);
 			IntInterval rig = intDomain.generate(cR, pp, oracle);
 			if (mid.isBottom() || rig.isBottom())
 				return StrPrefix.BOTTOM;
@@ -314,6 +313,14 @@ public class Prefix
 						throw new SemanticException("Cannot convert string index to int", e);
 					}
 
+				// by cutting the intervals short we might have made them empty
+				if (mlow > mhigh)
+					// low is the one we cut
+					mhigh = mlow;
+				if (rlow > rhigh)
+					// high is the one we cut
+					rlow = rhigh;
+
 				String common = null;
 				for (int i = mlow; i <= mhigh; i++)
 					for (int j = rlow; j <= rhigh; j++)
@@ -329,6 +336,8 @@ public class Prefix
 								return StrPrefix.TOP;
 						}
 
+				if (common == null)
+					return StrPrefix.TOP;
 				return new StrPrefix(common);
 			}
 		}
@@ -426,7 +435,7 @@ public class Prefix
 			return Satisfiability.UNKNOWN;
 
 		if (oracle.hasWholeValueAnlysis() && expression.getOperator() == StringStartsWithFromIndex.INSTANCE) {
-			Set<BinaryExpression> constraints = oracle.constraints((ValueExpression) expression.getRight(), pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, (ValueExpression) expression.getRight(), pp);
 			IntInterval val = intDomain.generate(constraints, pp, oracle);
 			if (val.isBottom())
 				return Satisfiability.BOTTOM;
@@ -575,6 +584,7 @@ public class Prefix
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			ValueEnvironment<StrPrefix> state,
 			ValueExpression e,
 			ProgramPoint pp,

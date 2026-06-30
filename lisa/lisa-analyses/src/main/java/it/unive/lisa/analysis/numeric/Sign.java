@@ -224,10 +224,18 @@ public class Sign
 		ValueExpression left = (ValueExpression) expression.getLeft();
 		ValueExpression right = (ValueExpression) expression.getRight();
 		if (left instanceof Identifier) {
+			if (!canProcess(right, src, oracle))
+				// the expression does not have a numerical value, we do not
+				// assume anything on it
+				return environment;
 			eval = eval(environment, right, src, oracle);
 			id = (Identifier) left;
 			rightIsExpr = true;
 		} else if (right instanceof Identifier) {
+			if (!canProcess(left, src, oracle))
+				// the expression does not have a numerical value, we do not
+				// assume anything on it
+				return environment;
 			eval = eval(environment, left, src, oracle);
 			id = (Identifier) right;
 			rightIsExpr = false;
@@ -237,6 +245,10 @@ public class Sign
 		SignLattice starting = environment.getState(id);
 		if (eval.isBottom() || starting.isBottom())
 			return environment.bottom();
+		if (eval.isTop())
+			// we do not know anything about the expression, so we cannot assume
+			// anything on the identifier
+			return environment;
 
 		SignLattice update = null;
 		if (operator == ComparisonEq.INSTANCE)
@@ -346,6 +358,7 @@ public class Sign
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			ValueEnvironment<SignLattice> state,
 			ValueExpression e,
 			ProgramPoint pp,

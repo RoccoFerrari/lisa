@@ -932,7 +932,7 @@ public class Bricks
 		UnaryOperator operator = expression.getOperator();
 
 		if (oracle.hasWholeValueAnlysis() && operator == NumericToString.INSTANCE) {
-			Set<BinaryExpression> constraints = oracle.constraints(expression, pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, expression, pp);
 			return generate(constraints, pp, oracle);
 		}
 
@@ -969,7 +969,7 @@ public class Bricks
 		if (oracle.hasWholeValueAnlysis()
 				&& (operator == StringCharAt.INSTANCE
 						|| operator == StringSubstringToEnd.INSTANCE)) {
-			Set<BinaryExpression> constraints = oracle.constraints((ValueExpression) expression.getRight(), pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, (ValueExpression) expression.getRight(), pp);
 			IntegerConstant val = intDomain.generate(constraints, pp, oracle);
 			if (val.isBottom())
 				return bottom();
@@ -1052,9 +1052,9 @@ public class Bricks
 			return top();
 
 		if (oracle.hasWholeValueAnlysis() && operator == StringSubstring.INSTANCE) {
-			Set<BinaryExpression> cM = oracle.constraints((ValueExpression) expression.getMiddle(), pp);
+			Set<BinaryExpression> cM = oracle.constraints(this, (ValueExpression) expression.getMiddle(), pp);
 			IntegerConstant mid = intDomain.generate(cM, pp, oracle);
-			Set<BinaryExpression> cR = oracle.constraints((ValueExpression) expression.getRight(), pp);
+			Set<BinaryExpression> cR = oracle.constraints(this, (ValueExpression) expression.getRight(), pp);
 			IntegerConstant rig = intDomain.generate(cR, pp, oracle);
 			if (mid.isBottom() || rig.isBottom())
 				return bottom();
@@ -1152,6 +1152,10 @@ public class Bricks
 		ValueExpression right = (ValueExpression) expression.getRight();
 		if (operator == ComparisonEq.INSTANCE) {
 			if (left instanceof Identifier) {
+				if (!canProcess(right, src, oracle))
+					// the expression does not have a string value, we do not
+					// assume anything on it
+					return environment;
 				BrickList eval = eval(environment, right, src, oracle);
 				if (eval.isBottom())
 					return environment.bottom();
@@ -1161,6 +1165,10 @@ public class Bricks
 				if (!eval.isTop())
 					return environment.putState((Identifier) left, eval);
 			} else if (right instanceof Identifier) {
+				if (!canProcess(left, src, oracle))
+					// the expression does not have a string value, we do not
+					// assume anything on it
+					return environment;
 				BrickList eval = eval(environment, left, src, oracle);
 				if (eval.isBottom())
 					return environment.bottom();
@@ -1295,6 +1303,7 @@ public class Bricks
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			ValueEnvironment<BrickList> state,
 			ValueExpression e,
 			ProgramPoint pp,

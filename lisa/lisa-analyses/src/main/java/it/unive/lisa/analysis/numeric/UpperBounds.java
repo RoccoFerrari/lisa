@@ -229,6 +229,7 @@ public class UpperBounds
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			ValueEnvironment<DefiniteIdSet> state,
 			ValueExpression e,
 			ProgramPoint pp,

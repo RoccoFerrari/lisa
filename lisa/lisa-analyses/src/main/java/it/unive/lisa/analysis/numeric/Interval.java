@@ -1,5 +1,9 @@
 package it.unive.lisa.analysis.numeric;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.function.Function;
+
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.combination.smash.SmashedSumIntDomain;
@@ -74,10 +78,6 @@ import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
 import it.unive.lisa.util.numeric.IntInterval;
 import it.unive.lisa.util.numeric.MathNumber;
 import it.unive.lisa.util.numeric.MathNumberConversionException;
-import java.util.Collections;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * The overflow-insensitive interval abstract domain, approximating integer
@@ -142,17 +142,13 @@ public class Interval
 
 		if (oracle.hasWholeValueAnlysis() && operator == StringLength.INSTANCE) {
 			Set<BinaryExpression> constraints = oracle.constraints(
-					(ValueExpression) expression.getExpression(),
+					this,
+					expression,
 					pp);
 			if (constraints == null)
 				return bottom();
-			return generate(
-					constraints.stream()
-							.filter(c -> c.getRight() instanceof UnaryExpression
-									&& ((UnaryExpression) c.getRight()).getOperator() == StringLength.INSTANCE)
-							.collect(Collectors.toSet()),
-					pp,
-					oracle);
+			IntInterval result = generate(constraints, pp, oracle);
+			return result;
 		}
 
 		if (expression.getOperator() == BitwiseNegation.INSTANCE)
@@ -329,7 +325,7 @@ public class Interval
 				// know anything about both operands as otherwise this might be
 				// a numerical comparison
 				|| (operator == ValueComparison.INSTANCE && left.isTop() && right.isTop()))) {
-			Set<BinaryExpression> constraints = oracle.constraints(expression, pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, expression, pp);
 			return generate(constraints, pp, oracle);
 		}
 
@@ -579,7 +575,7 @@ public class Interval
 		if (oracle.hasWholeValueAnlysis() && (operator == StringIndexOfCharFromIndex.INSTANCE
 				|| operator == StringLastIndexOfCharFromIndex.INSTANCE
 				|| operator == StringLastIndexOfFromIndex.INSTANCE)) {
-			Set<BinaryExpression> constraints = oracle.constraints(expression, pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, expression, pp);
 			return generate(constraints, pp, oracle);
 		}
 		return IntInterval.TOP;
@@ -673,10 +669,18 @@ public class Interval
 		ValueExpression left = (ValueExpression) expression.getLeft();
 		ValueExpression right = (ValueExpression) expression.getRight();
 		if (left instanceof Identifier) {
+			if (!canProcess(right, src, oracle))
+				// the expression does not have a numerical value, we do not
+				// assume anything on it
+				return environment;
 			eval = eval(environment, right, src, oracle);
 			id = (Identifier) left;
 			rightIsExpr = true;
 		} else if (right instanceof Identifier) {
+			if (!canProcess(left, src, oracle))
+				// the expression does not have a numerical value, we do not
+				// assume anything on it
+				return environment;
 			eval = eval(environment, left, src, oracle);
 			id = (Identifier) right;
 			rightIsExpr = false;
@@ -686,6 +690,10 @@ public class Interval
 		IntInterval starting = environment.getState(id);
 		if (eval.isBottom() || starting.isBottom())
 			return environment.bottom();
+		if (eval.isTop())
+			// we do not know anything about the expression, so we cannot assume
+			// anything on the identifier
+			return environment;
 
 		IntInterval update = updateValue(expression.getOperator(), rightIsExpr, starting, eval);
 
@@ -850,6 +858,7 @@ public class Interval
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			ValueEnvironment<IntInterval> state,
 			ValueExpression e,
 			ProgramPoint pp,

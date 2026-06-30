@@ -134,13 +134,16 @@ public class Pentagon
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			PentagonLattice state,
 			ValueExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle)
 			throws SemanticException {
-		Set<BinaryExpression> intv = intervals.constraints(state.first, e, pp, oracle);
-		Set<BinaryExpression> ub = upperbounds.constraints(state.second, e, pp, oracle);
+		Set<BinaryExpression> intv = requesting == intervals ? null
+				: intervals.constraints(requesting, state.first, e, pp, oracle);
+		Set<BinaryExpression> ub = requesting == upperbounds ? null
+				: upperbounds.constraints(requesting, state.second, e, pp, oracle);
 		if (intv == null && ub == null)
 			return null;
 		if (intv == null)

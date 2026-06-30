@@ -5,10 +5,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+
 import it.unive.lisa.TestParameterProvider;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
+import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.lattices.string.tarsis.RegexAutomaton;
 import it.unive.lisa.program.SyntheticLocation;
@@ -38,9 +44,6 @@ import it.unive.lisa.symbolic.value.operator.unary.StringReverse;
 import it.unive.lisa.symbolic.value.operator.unary.StringToLowerCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringToUpperCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringTrim;
-import java.util.HashSet;
-import java.util.Set;
-import org.junit.jupiter.api.Test;
 
 public class TarsisTest {
 
@@ -74,6 +77,7 @@ public class TarsisTest {
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp) {
 			return cs;
@@ -106,6 +110,7 @@ public class TarsisTest {
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp) {
 			if (e == midExpr)
@@ -229,26 +234,6 @@ public class TarsisTest {
 				StringConcat.INSTANCE, SyntheticLocation.INSTANCE);
 		RegexAutomaton result = domain.evalBinaryExpression(expr, left, right, PP, ORACLE);
 		assertTrue(result.isEqualTo(RegexAutomaton.string("helloworld")));
-	}
-
-	@Test
-	void evalBinaryTopLeftReturnsTop()
-			throws SemanticException {
-		BinaryExpression expr = new BinaryExpression(StringType.INSTANCE, VAR_X, VAR_Y,
-				StringConcat.INSTANCE, SyntheticLocation.INSTANCE);
-		RegexAutomaton result = domain.evalBinaryExpression(expr, RegexAutomaton.TOP,
-				RegexAutomaton.string("world"), PP, ORACLE);
-		assertTrue(result.isTop());
-	}
-
-	@Test
-	void evalBinaryTopRightReturnsTop()
-			throws SemanticException {
-		BinaryExpression expr = new BinaryExpression(StringType.INSTANCE, VAR_X, VAR_Y,
-				StringConcat.INSTANCE, SyntheticLocation.INSTANCE);
-		RegexAutomaton result = domain.evalBinaryExpression(expr, RegexAutomaton.string("hello"),
-				RegexAutomaton.TOP, PP, ORACLE);
-		assertTrue(result.isTop());
 	}
 
 	@Test
@@ -492,13 +477,13 @@ public class TarsisTest {
 	@Test
 	void constraintsOnBottomStateReturnsNull()
 			throws SemanticException {
-		assertNull(domain.constraints(domain.makeLattice().bottom(), VAR_X, PP, ORACLE));
+		assertNull(domain.constraints(null, domain.makeLattice().bottom(), VAR_X, PP, ORACLE));
 	}
 
 	@Test
 	void constraintsOnTopStateReturnsEmpty()
 			throws SemanticException {
-		assertTrue(domain.constraints(domain.makeLattice(), VAR_X, PP, ORACLE).isEmpty());
+		assertTrue(domain.constraints(null, domain.makeLattice(), VAR_X, PP, ORACLE).isEmpty());
 	}
 
 	@Test
@@ -506,7 +491,7 @@ public class TarsisTest {
 			throws SemanticException {
 		ValueEnvironment<RegexAutomaton> env = domain.makeLattice()
 				.putState(VAR_X, RegexAutomaton.string("hello"));
-		Set<BinaryExpression> cs = domain.constraints(env, VAR_X, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, VAR_X, PP, ORACLE);
 		assertNotNull(cs);
 		assertEquals(1, cs.size());
 		BinaryExpression c = cs.iterator().next();
@@ -519,7 +504,7 @@ public class TarsisTest {
 			throws SemanticException {
 		ValueEnvironment<RegexAutomaton> env = domain.makeLattice()
 				.putState(VAR_X, domain.top());
-		Set<BinaryExpression> cs = domain.constraints(env, VAR_X, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, VAR_X, PP, ORACLE);
 		assertNotNull(cs);
 		assertTrue(cs.isEmpty());
 	}
@@ -532,7 +517,7 @@ public class TarsisTest {
 				.putState(VAR_X, RegexAutomaton.string("hello"));
 		UnaryExpression lengthExpr = new UnaryExpression(Int32Type.INSTANCE, VAR_X,
 				StringLength.INSTANCE, SyntheticLocation.INSTANCE);
-		Set<BinaryExpression> cs = domain.constraints(env, lengthExpr, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, lengthExpr, PP, ORACLE);
 		assertNotNull(cs);
 		assertTrue(cs.size() >= 1);
 	}

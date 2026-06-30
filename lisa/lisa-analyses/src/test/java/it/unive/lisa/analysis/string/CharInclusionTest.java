@@ -5,10 +5,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+
 import it.unive.lisa.TestParameterProvider;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
+import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.program.SyntheticLocation;
 import it.unive.lisa.program.cfg.ProgramPoint;
@@ -36,9 +42,6 @@ import it.unive.lisa.symbolic.value.operator.unary.StringReverse;
 import it.unive.lisa.symbolic.value.operator.unary.StringToLowerCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringToUpperCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringTrim;
-import java.util.HashSet;
-import java.util.Set;
-import org.junit.jupiter.api.Test;
 
 public class CharInclusionTest {
 
@@ -82,6 +85,7 @@ public class CharInclusionTest {
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp) {
 			return cs;
@@ -116,6 +120,7 @@ public class CharInclusionTest {
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp) {
 			if (e == midExpr)
@@ -258,18 +263,6 @@ public class CharInclusionTest {
 		CharInclusion.CI result = domain.evalBinaryExpression(mkBin(StringConcat.INSTANCE),
 				ci(helloChars, helloChars), ci(worldChars, worldChars), PP, ORACLE);
 		assertEquals(ci(bothChars, bothChars), result);
-	}
-
-	@Test
-	void evalBinaryConcatTopLeftReturnsTop() throws SemanticException {
-		assertTrue(domain.evalBinaryExpression(mkBin(StringConcat.INSTANCE),
-				domain.top(), ci(chars("hello"), chars("hello")), PP, ORACLE).isTop());
-	}
-
-	@Test
-	void evalBinaryConcatTopRightReturnsTop() throws SemanticException {
-		assertTrue(domain.evalBinaryExpression(mkBin(StringConcat.INSTANCE),
-				ci(chars("hello"), chars("hello")), domain.top(), PP, ORACLE).isTop());
 	}
 
 	@Test
@@ -440,12 +433,12 @@ public class CharInclusionTest {
 
 	@Test
 	void constraintsOnBottomStateReturnsNull() throws SemanticException {
-		assertNull(domain.constraints(domain.makeLattice().bottom(), VAR_X, PP, ORACLE));
+		assertNull(domain.constraints(null, domain.makeLattice().bottom(), VAR_X, PP, ORACLE));
 	}
 
 	@Test
 	void constraintsOnTopStateReturnsEmpty() throws SemanticException {
-		assertTrue(domain.constraints(domain.makeLattice(), VAR_X, PP, ORACLE).isEmpty());
+		assertTrue(domain.constraints(null, domain.makeLattice(), VAR_X, PP, ORACLE).isEmpty());
 	}
 
 	@Test
@@ -454,7 +447,7 @@ public class CharInclusionTest {
 		// StringContains x
 		Set<Character> hiChars = chars("hi");
 		ValueEnvironment<CharInclusion.CI> env = domain.makeLattice().putState(VAR_X, ci(hiChars, hiChars));
-		Set<BinaryExpression> cs = domain.constraints(env, VAR_X, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, VAR_X, PP, ORACLE);
 		assertNotNull(cs);
 		// one constraint per certainly-contained char: 'h' and 'i'
 		assertEquals(hiChars.size(), cs.size());
@@ -471,7 +464,7 @@ public class CharInclusionTest {
 	void constraintsOnTopCIReturnsEmpty() throws SemanticException {
 		// top CI → no specific chars certainly contained → empty constraints
 		ValueEnvironment<CharInclusion.CI> env = domain.makeLattice().putState(VAR_X, domain.top());
-		Set<BinaryExpression> cs = domain.constraints(env, VAR_X, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, VAR_X, PP, ORACLE);
 		assertNotNull(cs);
 		assertTrue(cs.isEmpty());
 	}
@@ -483,7 +476,7 @@ public class CharInclusionTest {
 		ValueEnvironment<CharInclusion.CI> env = domain.makeLattice().putState(VAR_X, ci(hiChars, hiChars));
 		UnaryExpression lengthExpr = new UnaryExpression(Int32Type.INSTANCE, VAR_X,
 				StringLength.INSTANCE, SyntheticLocation.INSTANCE);
-		Set<BinaryExpression> cs = domain.constraints(env, lengthExpr, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, lengthExpr, PP, ORACLE);
 		assertNotNull(cs);
 		assertTrue(cs.size() >= 1);
 	}

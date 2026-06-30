@@ -109,7 +109,7 @@ public class BooleanPowerset
 						|| operator == StringStartsWith.INSTANCE
 						|| operator == StringIsPrefixOf.INSTANCE
 						|| operator == StringIsSuffixOf.INSTANCE)) {
-			Set<BinaryExpression> constraints = oracle.constraints(expression, pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, expression, pp);
 			return generate(constraints, pp, oracle);
 		}
 
@@ -153,7 +153,7 @@ public class BooleanPowerset
 			SemanticOracle oracle)
 			throws SemanticException {
 		if (oracle.hasWholeValueAnlysis() && expression.getOperator() == StringStartsWithFromIndex.INSTANCE) {
-			Set<BinaryExpression> constraints = oracle.constraints(expression, pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, expression, pp);
 			return generate(constraints, pp, oracle);
 		}
 		return Satisfiability.UNKNOWN;
@@ -231,9 +231,17 @@ public class BooleanPowerset
 		ValueExpression left = (ValueExpression) expression.getLeft();
 		ValueExpression right = (ValueExpression) expression.getRight();
 		if (left instanceof Identifier) {
+			if (!canProcess(right, src, oracle))
+				// the expression does not have a boolean value, we do not
+				// assume anything on it
+				return environment;
 			eval = eval(environment, right, src, oracle);
 			id = (Identifier) left;
 		} else if (right instanceof Identifier) {
+			if (!canProcess(left, src, oracle))
+				// the expression does not have a boolean value, we do not
+				// assume anything on it
+				return environment;
 			eval = eval(environment, left, src, oracle);
 			id = (Identifier) right;
 		} else
@@ -306,6 +314,7 @@ public class BooleanPowerset
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			ValueEnvironment<Satisfiability> state,
 			ValueExpression e,
 			ProgramPoint pp,
@@ -317,6 +326,8 @@ public class BooleanPowerset
 			return null;
 
 		Satisfiability value = eval(state, e, pp, oracle);
+		if (value == Satisfiability.UNKNOWN)
+			return Collections.emptySet();
 		return ValueDomain.makeEqConstraint(
 				pp.getProgram().getTypes().getBooleanType(),
 				value == Satisfiability.SATISFIED ? true : false,

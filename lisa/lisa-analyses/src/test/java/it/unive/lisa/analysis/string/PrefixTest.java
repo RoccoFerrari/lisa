@@ -5,10 +5,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+
 import it.unive.lisa.TestParameterProvider;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
+import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.lattices.string.StrPrefix;
 import it.unive.lisa.program.SyntheticLocation;
@@ -37,9 +43,6 @@ import it.unive.lisa.symbolic.value.operator.unary.StringReverse;
 import it.unive.lisa.symbolic.value.operator.unary.StringToLowerCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringToUpperCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringTrim;
-import java.util.HashSet;
-import java.util.Set;
-import org.junit.jupiter.api.Test;
 
 public class PrefixTest {
 
@@ -69,6 +72,7 @@ public class PrefixTest {
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp) {
 			return cs;
@@ -340,18 +344,18 @@ public class PrefixTest {
 
 	@Test
 	void constraintsOnBottomReturnsNull() throws SemanticException {
-		assertNull(domain.constraints(domain.makeLattice().bottom(), VAR_X, PP, ORACLE));
+		assertNull(domain.constraints(null, domain.makeLattice().bottom(), VAR_X, PP, ORACLE));
 	}
 
 	@Test
 	void constraintsOnTopReturnsEmpty() throws SemanticException {
-		assertTrue(domain.constraints(domain.makeLattice(), VAR_X, PP, ORACLE).isEmpty());
+		assertTrue(domain.constraints(null, domain.makeLattice(), VAR_X, PP, ORACLE).isEmpty());
 	}
 
 	@Test
 	void constraintsOnConcretePrefixReturnsPrefixConstraint() throws SemanticException {
 		ValueEnvironment<StrPrefix> env = domain.makeLattice().putState(VAR_X, new StrPrefix("hel"));
-		Set<BinaryExpression> cs = domain.constraints(env, VAR_X, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, VAR_X, PP, ORACLE);
 		assertNotNull(cs);
 		assertEquals(1, cs.size());
 		// Constraint should be: "hel" isPrefixOf x
@@ -365,7 +369,7 @@ public class PrefixTest {
 		ValueEnvironment<StrPrefix> env = domain.makeLattice().putState(VAR_X, new StrPrefix("hel"));
 		UnaryExpression lengthExpr = new UnaryExpression(Int32Type.INSTANCE, VAR_X,
 				StringLength.INSTANCE, SyntheticLocation.INSTANCE);
-		Set<BinaryExpression> cs = domain.constraints(env, lengthExpr, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, lengthExpr, PP, ORACLE);
 		assertNotNull(cs);
 		// length of prefix "hel" = 3 → constraint: length(x) >= 3
 		// The range constraint should be [3, +∞)

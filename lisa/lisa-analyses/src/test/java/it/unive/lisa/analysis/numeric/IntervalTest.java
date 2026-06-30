@@ -5,10 +5,19 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+
 import it.unive.lisa.TestParameterProvider;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
+import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.events.EventQueue;
 import it.unive.lisa.lattices.ExpressionSet;
 import it.unive.lisa.lattices.Satisfiability;
@@ -76,12 +85,6 @@ import it.unive.lisa.type.Type;
 import it.unive.lisa.util.numeric.InfiniteIterationException;
 import it.unive.lisa.util.numeric.IntInterval;
 import it.unive.lisa.util.numeric.MathNumber;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import org.junit.jupiter.api.Test;
 
 public class IntervalTest {
 
@@ -1020,16 +1023,6 @@ public class IntervalTest {
 		assertEquals(new MathNumber(5), result.getHigh());
 	}
 
-	@Test
-	public void testStringLengthWVA_filterIgnoresNonStrlen() throws SemanticException {
-		// oracle returns {3 <= varAux}: right side is NOT strlen → filtered →
-		// TOP
-		WVAOracle wva = new WVAOracle(Set.of(mkConstraint(3, ComparisonLe.INSTANCE, varAux)));
-		UnaryExpression strlen = new UnaryExpression(Int32Type.INSTANCE, varAux, StringLength.INSTANCE,
-				pp.getLocation());
-		assertEquals(IntInterval.TOP, domain.evalUnaryExpression(strlen, IntInterval.TOP, pp, wva));
-	}
-
 	// -----------------------------------------------------------------------
 	// StringIndexOfChar / StringLastIndexOfChar / StringIndexOf /
 	// StringLastIndexOf
@@ -1191,6 +1184,7 @@ public class IntervalTest {
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp) {
 			return constraints;

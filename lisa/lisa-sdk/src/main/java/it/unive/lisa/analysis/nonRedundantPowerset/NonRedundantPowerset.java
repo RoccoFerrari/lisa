@@ -138,6 +138,7 @@ public class NonRedundantPowerset<S extends NonRedundantSetDomainLattice<S, L> &
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			S state,
 			ValueExpression e,
 			ProgramPoint pp,
@@ -155,6 +156,6 @@ public class NonRedundantPowerset<S extends NonRedundantSetDomainLattice<S, L> &
 		L lub = null;
 		for (L elem : state.elements)
 			lub = lub == null ? elem : lub.lub(elem);
-		return valueDomain.constraints(lub, e, pp, oracle);
+		return valueDomain.constraints(requesting, lub, e, pp, oracle);
 	}
 }

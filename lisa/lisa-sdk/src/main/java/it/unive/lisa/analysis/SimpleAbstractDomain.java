@@ -907,11 +907,12 @@ public class SimpleAbstractDomain<H extends HeapLattice<H>, V extends ValueLatti
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp)
 				throws SemanticException {
 			if (hasWholeValueAnlysis())
-				return valueDomain.constraints(value, e, pp, this);
+				return valueDomain.constraints(requesting, value, e, pp, this);
 			return Collections.emptySet();
 		}
 

@@ -1,8 +1,12 @@
 package it.unive.lisa;
 
+import java.util.Collections;
+import java.util.Set;
+
 import it.unive.lisa.analysis.AbstractDomain;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
+import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.events.EventQueue;
 import it.unive.lisa.lattices.ExpressionSet;
 import it.unive.lisa.lattices.Satisfiability;
@@ -13,8 +17,6 @@ import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.type.Type;
 import it.unive.lisa.type.Untyped;
-import java.util.Collections;
-import java.util.Set;
 
 public class TestAbstractDomain
 		implements
@@ -143,6 +145,7 @@ public class TestAbstractDomain
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp)
 				throws SemanticException {

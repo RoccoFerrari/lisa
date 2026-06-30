@@ -772,12 +772,12 @@ public class ConstantValuePropagationTest {
 
 	@Test
 	void constraintsOnTopStateReturnsEmpty() throws SemanticException {
-		assertTrue(domain.constraints(domain.makeLattice(), variable, pp, oracle).isEmpty());
+		assertTrue(domain.constraints(null, domain.makeLattice(), variable, pp, oracle).isEmpty());
 	}
 
 	@Test
 	void constraintsOnBottomStateReturnsNull() throws SemanticException {
-		assertNull(domain.constraints(domain.makeLattice().bottom(), variable, pp, oracle));
+		assertNull(domain.constraints(null, domain.makeLattice().bottom(), variable, pp, oracle));
 	}
 
 	@Test
@@ -785,7 +785,7 @@ public class ConstantValuePropagationTest {
 		// x = 42 → constraint should be "42 == x" where left Constant holds
 		// Integer 42
 		ValueEnvironment<ConstantValue> env = envWith(mk(42));
-		Set<BinaryExpression> constraints = domain.constraints(env, variable, pp, oracle);
+		Set<BinaryExpression> constraints = domain.constraints(null, env, variable, pp, oracle);
 		assertNotNull(constraints);
 		assertEquals(1, constraints.size());
 		BinaryExpression c = constraints.iterator().next();
@@ -800,6 +800,6 @@ public class ConstantValuePropagationTest {
 	void constraintsOnTopVariableReturnsEmpty() throws SemanticException {
 		// x is TOP (unknown) → no constraint can be generated
 		ValueEnvironment<ConstantValue> env = domain.makeLattice();
-		assertTrue(domain.constraints(env, variable, pp, oracle).isEmpty());
+		assertTrue(domain.constraints(null, env, variable, pp, oracle).isEmpty());
 	}
 }

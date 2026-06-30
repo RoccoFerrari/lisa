@@ -105,17 +105,30 @@ public class StrPrefix
 	}
 
 	@Override
+	public boolean isTop() {
+		return this == TOP || (prefix != null && prefix.length() == 0);
+	}
+
+	@Override
 	public StrPrefix bottom() {
 		return BOTTOM;
+	}
+
+	@Override
+	public boolean isBottom() {
+		return this == BOTTOM || prefix == null;
 	}
 
 	@Override
 	public StructuredRepresentation representation() {
 		if (isBottom())
 			return Lattice.bottomRepresentation();
-		if (isTop())
-			return Lattice.topRepresentation();
 
 		return new StringRepresentation(prefix + '*');
+	}
+
+	@Override
+	public String toString() {
+		return representation().toString();
 	}
 }

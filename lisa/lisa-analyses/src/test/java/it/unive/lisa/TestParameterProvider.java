@@ -369,6 +369,7 @@ public class TestParameterProvider {
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp)
 				throws SemanticException {

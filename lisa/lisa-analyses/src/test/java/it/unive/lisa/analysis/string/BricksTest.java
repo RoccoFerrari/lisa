@@ -5,10 +5,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+
 import it.unive.lisa.TestParameterProvider;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
+import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.program.SyntheticLocation;
 import it.unive.lisa.program.cfg.ProgramPoint;
@@ -33,9 +39,6 @@ import it.unive.lisa.symbolic.value.operator.unary.StringReverse;
 import it.unive.lisa.symbolic.value.operator.unary.StringToLowerCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringToUpperCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringTrim;
-import java.util.HashSet;
-import java.util.Set;
-import org.junit.jupiter.api.Test;
 
 public class BricksTest {
 
@@ -72,6 +75,7 @@ public class BricksTest {
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp) {
 			return cs;
@@ -104,6 +108,7 @@ public class BricksTest {
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp) {
 			if (e == midExpr)
@@ -403,19 +408,19 @@ public class BricksTest {
 
 	@Test
 	void constraintsOnBottomStateReturnsNull() throws SemanticException {
-		assertNull(domain.constraints(domain.makeLattice().bottom(), VAR_X, PP, ORACLE));
+		assertNull(domain.constraints(null, domain.makeLattice().bottom(), VAR_X, PP, ORACLE));
 	}
 
 	@Test
 	void constraintsOnTopStateReturnsEmpty() throws SemanticException {
-		assertTrue(domain.constraints(domain.makeLattice(), VAR_X, PP, ORACLE).isEmpty());
+		assertTrue(domain.constraints(null, domain.makeLattice(), VAR_X, PP, ORACLE).isEmpty());
 	}
 
 	@Test
 	void constraintsOnSingleStringReturnsEqConstraint() throws SemanticException {
 		// x = BrickList("hello") → equality constraint "hello"
 		ValueEnvironment<Bricks.BrickList> env = domain.makeLattice().putState(VAR_X, bl("hello"));
-		Set<BinaryExpression> cs = domain.constraints(env, VAR_X, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, VAR_X, PP, ORACLE);
 		assertNotNull(cs);
 		assertEquals(1, cs.size());
 		BinaryExpression c = cs.iterator().next();
@@ -427,7 +432,7 @@ public class BricksTest {
 	void constraintsOnTopVarReturnsEmpty() throws SemanticException {
 		// x is TOP (unknown string) → no constraint
 		ValueEnvironment<Bricks.BrickList> env = domain.makeLattice().putState(VAR_X, domain.top());
-		Set<BinaryExpression> cs = domain.constraints(env, VAR_X, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, VAR_X, PP, ORACLE);
 		assertNotNull(cs);
 		assertTrue(cs.isEmpty());
 	}
@@ -438,7 +443,7 @@ public class BricksTest {
 		ValueEnvironment<Bricks.BrickList> env = domain.makeLattice().putState(VAR_X, bl("hello"));
 		UnaryExpression lengthExpr = new UnaryExpression(Int32Type.INSTANCE, VAR_X,
 				StringLength.INSTANCE, SyntheticLocation.INSTANCE);
-		Set<BinaryExpression> cs = domain.constraints(env, lengthExpr, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, lengthExpr, PP, ORACLE);
 		assertNotNull(cs);
 		assertTrue(cs.size() >= 1);
 	}

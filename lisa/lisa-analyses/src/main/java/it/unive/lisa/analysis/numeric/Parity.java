@@ -132,6 +132,7 @@ public class Parity
 
 		if (oracle.hasWholeValueAnlysis() && operator == StringLength.INSTANCE) {
 			Set<BinaryExpression> constraints = oracle.constraints(
+					this,
 					(ValueExpression) expression.getExpression(),
 					pp);
 			if (constraints == null)
@@ -191,7 +192,7 @@ public class Parity
 				// know anything about both operands as otherwise this might be
 				// a numerical comparison
 				|| (operator == ValueComparison.INSTANCE && left.isTop() && right.isTop()))) {
-			Set<BinaryExpression> constraints = oracle.constraints(expression, pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, expression, pp);
 			return generate(constraints, pp, oracle);
 		}
 
@@ -257,7 +258,7 @@ public class Parity
 		if (oracle.hasWholeValueAnlysis() && (operator == StringIndexOfCharFromIndex.INSTANCE
 				|| operator == StringLastIndexOfCharFromIndex.INSTANCE
 				|| operator == StringLastIndexOfFromIndex.INSTANCE)) {
-			Set<BinaryExpression> constraints = oracle.constraints(expression, pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, expression, pp);
 			return generate(constraints, pp, oracle);
 		}
 		return ParityLattice.TOP;
@@ -299,14 +300,30 @@ public class Parity
 		ValueExpression right = (ValueExpression) expression.getRight();
 		if (operator == ComparisonEq.INSTANCE)
 			if (left instanceof Identifier) {
+				if (!canProcess(right, src, oracle))
+					// the expression does not have a numerical value, we do not
+					// assume anything on it
+					return environment;
 				ParityLattice eval = eval(environment, right, src, oracle);
 				if (eval.isBottom())
 					return environment.bottom();
+				if (eval.isTop())
+					// we do not know anything about the expression, so we
+					// cannot assume anything on the identifier
+					return environment;
 				return environment.putState((Identifier) left, eval);
 			} else if (right instanceof Identifier) {
+				if (!canProcess(left, src, oracle))
+					// the expression does not have a numerical value, we do not
+					// assume anything on it
+					return environment;
 				ParityLattice eval = eval(environment, left, src, oracle);
 				if (eval.isBottom())
 					return environment.bottom();
+				if (eval.isTop())
+					// we do not know anything about the expression, so we
+					// cannot assume anything on the identifier
+					return environment;
 				return environment.putState((Identifier) right, eval);
 			}
 		return environment;
@@ -346,6 +363,7 @@ public class Parity
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			ValueEnvironment<ParityLattice> state,
 			ValueExpression e,
 			ProgramPoint pp,

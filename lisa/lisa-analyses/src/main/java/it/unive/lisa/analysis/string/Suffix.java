@@ -106,7 +106,7 @@ public class Suffix
 		UnaryOperator operator = expression.getOperator();
 
 		if (oracle.hasWholeValueAnlysis() && operator == NumericToString.INSTANCE) {
-			Set<BinaryExpression> constraints = oracle.constraints(expression, pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, expression, pp);
 			return generate(constraints, pp, oracle);
 		}
 
@@ -132,9 +132,6 @@ public class Suffix
 			StrSuffix right,
 			ProgramPoint pp,
 			SemanticOracle oracle) {
-		if (left.isTop() || right.isTop())
-			return StrSuffix.TOP;
-
 		// we do not exploit the whole value analysis here, as not knowing how
 		// many characters preceed the suffix prevents any meaningful reasoning
 		// and would always make us go to top
@@ -269,6 +266,7 @@ public class Suffix
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			ValueEnvironment<StrSuffix> state,
 			ValueExpression e,
 			ProgramPoint pp,

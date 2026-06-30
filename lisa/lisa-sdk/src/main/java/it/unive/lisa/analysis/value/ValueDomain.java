@@ -54,10 +54,13 @@ public interface ValueDomain<L extends ValueLattice<L>>
 	 * whose value is being constrained, corresponding to the parameter
 	 * {@code e}.<br/>
 	 * <br/>
+	 * The requesting domain is the one that is asking for the constraints, 
+	 * and it is used to avoid recursive calls to the same domain. 
 	 * The default implementation of this method returns an empty set of
 	 * constraints unless the state is bottom, in which case it returns
 	 * {@code null}.
 	 * 
+	 * @param requesting the domain that is requesting the constraints
 	 * @param state  the abstract state from which the constraints are generated
 	 * @param e      the expression whose value is being constrained
 	 * @param pp     the program point at which the constraints are being
@@ -70,6 +73,7 @@ public interface ValueDomain<L extends ValueLattice<L>>
 	 * @throws SemanticException if an error occurs during the computation
 	 */
 	default Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			L state,
 			ValueExpression e,
 			ProgramPoint pp,

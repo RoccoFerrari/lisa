@@ -1,14 +1,21 @@
 package it.unive.lisa.analysis.string;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
 
 import it.unive.lisa.TestParameterProvider;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
+import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.lattices.string.StrSuffix;
 import it.unive.lisa.program.SyntheticLocation;
@@ -34,9 +41,6 @@ import it.unive.lisa.symbolic.value.operator.unary.StringReverse;
 import it.unive.lisa.symbolic.value.operator.unary.StringToLowerCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringToUpperCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringTrim;
-import java.util.HashSet;
-import java.util.Set;
-import org.junit.jupiter.api.Test;
 
 public class SuffixTest {
 
@@ -65,6 +69,7 @@ public class SuffixTest {
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp) {
 			return cs;
@@ -165,8 +170,8 @@ public class SuffixTest {
 	}
 
 	@Test
-	void evalBinaryConcatTopEitherReturnsTop() throws SemanticException {
-		assertTrue(domain.evalBinaryExpression(mkBin(StringConcat.INSTANCE),
+	void evalBinaryConcatWithTop() throws SemanticException {
+		assertFalse(domain.evalBinaryExpression(mkBin(StringConcat.INSTANCE),
 				StrSuffix.TOP, new StrSuffix("world"), PP, ORACLE).isTop());
 		assertTrue(domain.evalBinaryExpression(mkBin(StringConcat.INSTANCE),
 				new StrSuffix("hello"), StrSuffix.TOP, PP, ORACLE).isTop());
@@ -277,18 +282,18 @@ public class SuffixTest {
 
 	@Test
 	void constraintsOnBottomReturnsNull() throws SemanticException {
-		assertNull(domain.constraints(domain.makeLattice().bottom(), VAR_X, PP, ORACLE));
+		assertNull(domain.constraints(null, domain.makeLattice().bottom(), VAR_X, PP, ORACLE));
 	}
 
 	@Test
 	void constraintsOnTopReturnsEmpty() throws SemanticException {
-		assertTrue(domain.constraints(domain.makeLattice(), VAR_X, PP, ORACLE).isEmpty());
+		assertTrue(domain.constraints(null, domain.makeLattice(), VAR_X, PP, ORACLE).isEmpty());
 	}
 
 	@Test
 	void constraintsOnConcreteSuffixReturnsSuffixConstraint() throws SemanticException {
 		ValueEnvironment<StrSuffix> env = domain.makeLattice().putState(VAR_X, new StrSuffix("rld"));
-		Set<BinaryExpression> cs = domain.constraints(env, VAR_X, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, VAR_X, PP, ORACLE);
 		assertNotNull(cs);
 		assertEquals(1, cs.size());
 		// Constraint should be: "rld" isSuffixOf x
@@ -302,7 +307,7 @@ public class SuffixTest {
 		ValueEnvironment<StrSuffix> env = domain.makeLattice().putState(VAR_X, new StrSuffix("rld"));
 		UnaryExpression lengthExpr = new UnaryExpression(Int32Type.INSTANCE, VAR_X,
 				StringLength.INSTANCE, SyntheticLocation.INSTANCE);
-		Set<BinaryExpression> cs = domain.constraints(env, lengthExpr, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, lengthExpr, PP, ORACLE);
 		assertNotNull(cs);
 		// length of suffix "rld" = 3 → constraint: length(x) >= 3
 		assertTrue(cs.size() >= 1);

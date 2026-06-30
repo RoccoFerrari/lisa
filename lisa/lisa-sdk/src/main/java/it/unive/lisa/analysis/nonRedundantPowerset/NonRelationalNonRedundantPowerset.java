@@ -1,11 +1,16 @@
 package it.unive.lisa.analysis.nonRedundantPowerset;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import it.unive.lisa.analysis.Lattice;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.value.BaseNonRelationalValueDomain;
 import it.unive.lisa.analysis.nonrelational.value.NonRelationalValueDomain;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
+import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.value.BinaryExpression;
@@ -13,9 +18,6 @@ import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.TernaryExpression;
 import it.unive.lisa.symbolic.value.UnaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * A {@link NonRelationalValueDomain} that computes
@@ -196,6 +198,7 @@ public class NonRelationalNonRedundantPowerset<S extends NonRedundantSetLattice<
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			ValueEnvironment<S> state,
 			ValueExpression e,
 			ProgramPoint pp,

@@ -223,13 +223,13 @@ public class PentagonTest {
 	@Test
 	void constraintsOnBottomReturnsNull() throws SemanticException {
 		PentagonLattice bottom = domain.makeLattice().bottom();
-		assertNull(domain.constraints(bottom, x, pp, oracle));
+		assertNull(domain.constraints(null, bottom, x, pp, oracle));
 	}
 
 	@Test
 	void constraintsOnTopReturnsEmpty() throws SemanticException {
 		PentagonLattice top = domain.makeLattice();
-		Set<BinaryExpression> constraints = domain.constraints(top, x, pp, oracle);
+		Set<BinaryExpression> constraints = domain.constraints(null, top, x, pp, oracle);
 		assertNotNull(constraints);
 		assertTrue(constraints.isEmpty());
 	}
@@ -238,7 +238,7 @@ public class PentagonTest {
 	void constraintsOnBoundedIntervalReturnsRangeConstraints() throws SemanticException {
 		// x ∈ [2, 8] → two range constraints from interval component
 		PentagonLattice state = stateWithIntervals(x, new IntInterval(2, 8), y, IntInterval.TOP);
-		Set<BinaryExpression> constraints = domain.constraints(state, x, pp, oracle);
+		Set<BinaryExpression> constraints = domain.constraints(null, state, x, pp, oracle);
 		assertNotNull(constraints);
 		// At least lower + upper bound from interval
 		assertEquals(2, constraints.size());
@@ -248,7 +248,7 @@ public class PentagonTest {
 	void constraintsBothComponentsNullReturnsNull() throws SemanticException {
 		// Bottom state → both components return null → union is null
 		PentagonLattice bottom = domain.makeLattice().bottom();
-		assertNull(domain.constraints(bottom, x, pp, oracle));
+		assertNull(domain.constraints(null, bottom, x, pp, oracle));
 	}
 
 	@Test
@@ -259,7 +259,7 @@ public class PentagonTest {
 				.putState(x, new IntInterval(1, 5));
 		ValueEnvironment<DefiniteIdSet> ub = new UpperBounds().makeLattice();
 		PentagonLattice state = new PentagonLattice(intv, ub);
-		Set<BinaryExpression> constraints = domain.constraints(state, x, pp, oracle);
+		Set<BinaryExpression> constraints = domain.constraints(null, state, x, pp, oracle);
 		assertNotNull(constraints);
 		assertEquals(2, constraints.size());
 	}
@@ -274,7 +274,7 @@ public class PentagonTest {
 		ValueEnvironment<DefiniteIdSet> ub = new UpperBounds().makeLattice()
 				.putState(x, new DefiniteIdSet(Set.of(y)));
 		PentagonLattice state = new PentagonLattice(intv, ub);
-		Set<BinaryExpression> constraints = domain.constraints(state, x, pp, oracle);
+		Set<BinaryExpression> constraints = domain.constraints(null, state, x, pp, oracle);
 		assertNotNull(constraints);
 		assertEquals(3, constraints.size());
 	}

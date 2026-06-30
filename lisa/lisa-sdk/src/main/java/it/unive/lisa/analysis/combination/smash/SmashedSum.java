@@ -1,11 +1,17 @@
 package it.unive.lisa.analysis.combination.smash;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map.Entry;
+import java.util.Set;
+
 import it.unive.lisa.analysis.Lattice;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.value.BaseNonRelationalValueDomain;
 import it.unive.lisa.analysis.nonrelational.value.BooleanPowerset;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
+import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.program.SyntheticLocation;
 import it.unive.lisa.program.cfg.ProgramPoint;
@@ -33,9 +39,6 @@ import it.unive.lisa.symbolic.value.operator.unary.StringLength;
 import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
 import it.unive.lisa.type.Untyped;
 import it.unive.lisa.util.numeric.IntInterval;
-import java.util.Collections;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * The smashed-sum abstract domain between {@link BooleanPowerset}, a
@@ -308,6 +311,7 @@ public class SmashedSum<I extends Lattice<I>,
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			ValueEnvironment<SmashedValue<I, S>> state,
 			ValueExpression e,
 			ProgramPoint pp,
@@ -317,13 +321,23 @@ public class SmashedSum<I extends Lattice<I>,
 			return null;
 		if (state.isTop())
 			return Collections.emptySet();
-		if (intDom.canProcess(e, pp, oracle))
-			return intDom.constraints(makeIntState(state), e, pp, oracle);
-		if (strDom.canProcess(e, pp, oracle))
-			return strDom.constraints(makeStrState(state), e, pp, oracle);
-		if (boolDom.canProcess(e, pp, oracle))
-			return boolDom.constraints(makeBoolState(state), e, pp, oracle);
-		return Collections.emptySet();
+		Set<BinaryExpression> constraints = new HashSet<>();
+		if (intDom != requesting) {
+			Set<BinaryExpression> tmp = intDom.constraints(requesting, makeIntState(state), e, pp, oracle);
+			if (tmp != null)
+				constraints.addAll(tmp);
+		}
+		if (strDom != requesting) {
+			Set<BinaryExpression> tmp = strDom.constraints(requesting, makeStrState(state), e, pp, oracle);
+			if (tmp != null)
+				constraints.addAll(tmp);
+		}
+		if (boolDom != requesting) {
+			Set<BinaryExpression> tmp = boolDom.constraints(requesting, makeBoolState(state), e, pp, oracle);
+			if (tmp != null)
+				constraints.addAll(tmp);
+		}
+		return constraints;
 	}
 
 	private ValueEnvironment<Satisfiability> makeBoolState(

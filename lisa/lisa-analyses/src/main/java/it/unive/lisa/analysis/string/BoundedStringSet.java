@@ -328,7 +328,7 @@ public class BoundedStringSet
 		UnaryOperator operator = expression.getOperator();
 
 		if (oracle.hasWholeValueAnlysis() && operator == NumericToString.INSTANCE) {
-			Set<BinaryExpression> constraints = oracle.constraints(expression, pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, expression, pp);
 			return generate(constraints, pp, oracle);
 		}
 
@@ -362,7 +362,7 @@ public class BoundedStringSet
 		if (oracle.hasWholeValueAnlysis()
 				&& (operator == StringCharAt.INSTANCE
 						|| operator == StringSubstringToEnd.INSTANCE)) {
-			Set<BinaryExpression> constraints = oracle.constraints((ValueExpression) expression.getRight(), pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, (ValueExpression) expression.getRight(), pp);
 			IntInterval val = interval.generate(constraints, pp, oracle);
 			if (val.isBottom())
 				return bottom();
@@ -405,9 +405,9 @@ public class BoundedStringSet
 			return top();
 
 		if (oracle.hasWholeValueAnlysis() && operator == StringSubstring.INSTANCE) {
-			Set<BinaryExpression> cM = oracle.constraints((ValueExpression) expression.getMiddle(), pp);
+			Set<BinaryExpression> cM = oracle.constraints(this, (ValueExpression) expression.getMiddle(), pp);
 			IntInterval mid = interval.generate(cM, pp, oracle);
-			Set<BinaryExpression> cR = oracle.constraints((ValueExpression) expression.getRight(), pp);
+			Set<BinaryExpression> cR = oracle.constraints(this, (ValueExpression) expression.getRight(), pp);
 			IntInterval rig = interval.generate(cR, pp, oracle);
 			if (mid.isBottom() || rig.isBottom())
 				return bottom();
@@ -506,7 +506,7 @@ public class BoundedStringSet
 			return Satisfiability.UNKNOWN;
 
 		if (oracle.hasWholeValueAnlysis() && expression.getOperator() == StringStartsWithFromIndex.INSTANCE) {
-			Set<BinaryExpression> constraints = oracle.constraints((ValueExpression) expression.getRight(), pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, (ValueExpression) expression.getRight(), pp);
 			IntInterval val = interval.generate(constraints, pp, oracle);
 			if (val.isBottom())
 				return Satisfiability.NOT_SATISFIED;
@@ -536,6 +536,12 @@ public class BoundedStringSet
 			ProgramPoint dest,
 			SemanticOracle oracle)
 			throws SemanticException {
+		Satisfiability sat = satisfies(environment, expression, src, oracle);
+		if (sat == Satisfiability.NOT_SATISFIED)
+			return environment.bottom();
+		if (sat == Satisfiability.SATISFIED)
+			return environment;
+
 		BinaryOperator operator = expression.getOperator();
 		if (operator != ComparisonEq.INSTANCE && operator != ComparisonNe.INSTANCE)
 			return environment;
@@ -545,9 +551,17 @@ public class BoundedStringSet
 		Identifier id;
 		BSS rhsVal;
 		if (left instanceof Identifier) {
+			if (!canProcess(left, src, oracle))
+				// the expression does not have a string value, we do not
+				// assume anything on it
+				return environment;
 			id = (Identifier) left;
 			rhsVal = eval(environment, right, src, oracle);
 		} else if (right instanceof Identifier) {
+			if (!canProcess(left, src, oracle))
+				// the expression does not have a string value, we do not
+				// assume anything on it
+				return environment;
 			id = (Identifier) right;
 			rhsVal = eval(environment, left, src, oracle);
 		} else {
@@ -701,6 +715,7 @@ public class BoundedStringSet
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			ValueEnvironment<BSS> state,
 			ValueExpression e,
 			ProgramPoint pp,
@@ -865,6 +880,7 @@ public class BoundedStringSet
 				BSS left = eval(state, (ValueExpression) ((TernaryExpression) e).getLeft(), pp, oracle);
 				BSS middle = eval(state, (ValueExpression) ((TernaryExpression) e).getMiddle(), pp, oracle);
 				Set<BinaryExpression> constraints = oracle.constraints(
+						this,
 						(ValueExpression) ((TernaryExpression) e).getRight(),
 						pp);
 				IntInterval right = interval.generate(constraints, pp, oracle);

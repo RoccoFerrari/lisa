@@ -166,20 +166,20 @@ public class NonRedundantIntervalsTest {
 	@Test
 	void constraintsOnBottomStateReturnsNull() throws SemanticException {
 		ValueEnvironment<NonRedundantIntervalSet> bottomState = domain.makeLattice().bottom();
-		assertNull(domain.constraints(bottomState, variable, pp, oracle));
+		assertNull(domain.constraints(null, bottomState, variable, pp, oracle));
 	}
 
 	@Test
 	void constraintsOnTopStateReturnsEmpty() throws SemanticException {
 		ValueEnvironment<NonRedundantIntervalSet> topState = domain.makeLattice();
-		assertTrue(domain.constraints(topState, variable, pp, oracle).isEmpty());
+		assertTrue(domain.constraints(null, topState, variable, pp, oracle).isEmpty());
 	}
 
 	@Test
 	void constraintsOnBoundedValueReturnsNonEmpty() throws SemanticException {
 		// x ∈ {[2,8]}: should produce lower=2 and upper=8 constraints
 		ValueEnvironment<NonRedundantIntervalSet> state = stateWith(mkSet(2, 8));
-		Set<BinaryExpression> constraints = domain.constraints(state, variable, pp, oracle);
+		Set<BinaryExpression> constraints = domain.constraints(null, state, variable, pp, oracle);
 		assertNotNull(constraints);
 		// Two range constraints: lower bound and upper bound
 		assertEquals(2, constraints.size());
@@ -190,7 +190,7 @@ public class NonRedundantIntervalsTest {
 		// x ∈ {[-Inf,5]}: upper=5, lower=null → one constraint
 		NonRedundantIntervalSet val = mkSet(new IntInterval(null, 5));
 		ValueEnvironment<NonRedundantIntervalSet> state = stateWith(val);
-		Set<BinaryExpression> constraints = domain.constraints(state, variable, pp, oracle);
+		Set<BinaryExpression> constraints = domain.constraints(null, state, variable, pp, oracle);
 		assertNotNull(constraints);
 		assertEquals(1, constraints.size());
 	}
@@ -200,7 +200,7 @@ public class NonRedundantIntervalsTest {
 		// x ∈ {[-Inf,+Inf]}: no finite bounds → empty set
 		NonRedundantIntervalSet val = mkSet(IntInterval.TOP);
 		ValueEnvironment<NonRedundantIntervalSet> state = stateWith(val);
-		Set<BinaryExpression> constraints = domain.constraints(state, variable, pp, oracle);
+		Set<BinaryExpression> constraints = domain.constraints(null, state, variable, pp, oracle);
 		assertNotNull(constraints);
 		assertTrue(constraints.isEmpty());
 	}

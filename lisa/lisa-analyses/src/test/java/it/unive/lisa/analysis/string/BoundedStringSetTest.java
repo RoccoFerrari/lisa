@@ -5,10 +5,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+
 import it.unive.lisa.TestParameterProvider;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
+import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.program.SyntheticLocation;
 import it.unive.lisa.program.cfg.ProgramPoint;
@@ -37,10 +44,6 @@ import it.unive.lisa.symbolic.value.operator.unary.StringReverse;
 import it.unive.lisa.symbolic.value.operator.unary.StringToLowerCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringToUpperCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringTrim;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import org.junit.jupiter.api.Test;
 
 public class BoundedStringSetTest {
 
@@ -76,6 +79,7 @@ public class BoundedStringSetTest {
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp) {
 			return cs;
@@ -110,6 +114,7 @@ public class BoundedStringSetTest {
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp) {
 			if (e == midExpr)
@@ -495,18 +500,18 @@ public class BoundedStringSetTest {
 
 	@Test
 	void constraintsOnBottomStateReturnsNull() throws SemanticException {
-		assertNull(domain.constraints(domain.makeLattice().bottom(), VAR_X, PP, ORACLE));
+		assertNull(domain.constraints(null, domain.makeLattice().bottom(), VAR_X, PP, ORACLE));
 	}
 
 	@Test
 	void constraintsOnTopStateReturnsEmpty() throws SemanticException {
-		assertTrue(domain.constraints(domain.makeLattice(), VAR_X, PP, ORACLE).isEmpty());
+		assertTrue(domain.constraints(null, domain.makeLattice(), VAR_X, PP, ORACLE).isEmpty());
 	}
 
 	@Test
 	void constraintsOnSingletonBSSReturnsEqConstraint() throws SemanticException {
 		ValueEnvironment<BoundedStringSet.BSS> env = domain.makeLattice().putState(VAR_X, bss("hello"));
-		Set<BinaryExpression> cs = domain.constraints(env, VAR_X, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, VAR_X, PP, ORACLE);
 		assertNotNull(cs);
 		assertEquals(1, cs.size());
 		BinaryExpression c = cs.iterator().next();
@@ -518,7 +523,7 @@ public class BoundedStringSetTest {
 	void constraintsOnMultipleElementsReturnsEmpty() throws SemanticException {
 		// Multiple values → no precise constraint
 		ValueEnvironment<BoundedStringSet.BSS> env = domain.makeLattice().putState(VAR_X, bss("hello", "world"));
-		Set<BinaryExpression> cs = domain.constraints(env, VAR_X, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, VAR_X, PP, ORACLE);
 		assertNotNull(cs);
 		assertTrue(cs.isEmpty());
 	}
@@ -529,7 +534,7 @@ public class BoundedStringSetTest {
 		ValueEnvironment<BoundedStringSet.BSS> env = domain.makeLattice().putState(VAR_X, bss("hi", "hello"));
 		UnaryExpression lengthExpr = new UnaryExpression(Int32Type.INSTANCE, VAR_X,
 				StringLength.INSTANCE, SyntheticLocation.INSTANCE);
-		Set<BinaryExpression> cs = domain.constraints(env, lengthExpr, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, lengthExpr, PP, ORACLE);
 		assertNotNull(cs);
 		assertTrue(cs.size() >= 1);
 	}
@@ -540,7 +545,7 @@ public class BoundedStringSetTest {
 		ValueEnvironment<BoundedStringSet.BSS> env = domain.makeLattice().putState(VAR_X, bss("hello"));
 		UnaryExpression lengthExpr = new UnaryExpression(Int32Type.INSTANCE, VAR_X,
 				StringLength.INSTANCE, SyntheticLocation.INSTANCE);
-		Set<BinaryExpression> cs = domain.constraints(env, lengthExpr, PP, ORACLE);
+		Set<BinaryExpression> cs = domain.constraints(null, env, lengthExpr, PP, ORACLE);
 		assertNotNull(cs);
 		assertTrue(cs.size() >= 1);
 	}

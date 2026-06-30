@@ -257,6 +257,12 @@ public class CharInclusion
 					+ (maybeContained == null ? "Σ" : StringUtils.join(this.maybeContained, ", "))
 					+ "}";
 		}
+
+		@Override
+		public String toString() {
+			return representation().toString();
+		}
+
 	}
 
 	/**
@@ -296,7 +302,7 @@ public class CharInclusion
 		UnaryOperator operator = expression.getOperator();
 
 		if (oracle.hasWholeValueAnlysis() && operator == NumericToString.INSTANCE) {
-			Set<BinaryExpression> constraints = oracle.constraints(expression, pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, expression, pp);
 			return generate(constraints, pp, oracle);
 		}
 
@@ -333,13 +339,10 @@ public class CharInclusion
 			throws SemanticException {
 		BinaryOperator operator = expression.getOperator();
 
-		if (left.isTop())
-			return CI.TOP;
-
 		if (oracle.hasWholeValueAnlysis()
 				&& (operator == StringCharAt.INSTANCE
 						|| operator == StringSubstringToEnd.INSTANCE)) {
-			Set<BinaryExpression> constraints = oracle.constraints((ValueExpression) expression.getRight(), pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, (ValueExpression) expression.getRight(), pp);
 			IntegerConstant val = intDomain.generate(constraints, pp, oracle);
 			if (val.isBottom())
 				return CI.BOTTOM;
@@ -350,9 +353,6 @@ public class CharInclusion
 				all.addAll(left.maybeContained);
 			return new CI(new TreeSet<>(), all);
 		}
-
-		if (right.isTop())
-			return CI.TOP;
 
 		if (operator == StringConcat.INSTANCE) {
 			Set<Character> resultCertainlyContained = new TreeSet<>(left.certainlyContained);
@@ -387,9 +387,9 @@ public class CharInclusion
 			return CI.TOP;
 
 		if (oracle.hasWholeValueAnlysis() && operator == StringSubstring.INSTANCE) {
-			Set<BinaryExpression> cM = oracle.constraints((ValueExpression) expression.getMiddle(), pp);
+			Set<BinaryExpression> cM = oracle.constraints(this, (ValueExpression) expression.getMiddle(), pp);
 			IntegerConstant mid = intDomain.generate(cM, pp, oracle);
-			Set<BinaryExpression> cR = oracle.constraints((ValueExpression) expression.getRight(), pp);
+			Set<BinaryExpression> cR = oracle.constraints(this, (ValueExpression) expression.getRight(), pp);
 			IntegerConstant rig = intDomain.generate(cR, pp, oracle);
 			if (mid.isBottom() || rig.isBottom())
 				return CI.BOTTOM;
@@ -525,7 +525,7 @@ public class CharInclusion
 			return Satisfiability.UNKNOWN;
 
 		if (oracle.hasWholeValueAnlysis() && expression.getOperator() == StringStartsWithFromIndex.INSTANCE) {
-			Set<BinaryExpression> constraints = oracle.constraints((ValueExpression) expression.getRight(), pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, (ValueExpression) expression.getRight(), pp);
 			IntegerConstant val = intDomain.generate(constraints, pp, oracle);
 			if (val.isBottom())
 				return Satisfiability.BOTTOM;
@@ -556,6 +556,10 @@ public class CharInclusion
 		ValueExpression right = (ValueExpression) expression.getRight();
 		if (operator == ComparisonEq.INSTANCE) {
 			if (left instanceof Identifier) {
+				if (!canProcess(right, src, oracle))
+					// the expression does not have a string value, we do not
+					// assume anything on it
+					return environment;
 				CI eval = eval(environment, right, src, oracle);
 				if (eval.isBottom())
 					return environment.bottom();
@@ -565,6 +569,10 @@ public class CharInclusion
 				if (!eval.isTop())
 					return environment.putState((Identifier) left, eval);
 			} else if (right instanceof Identifier) {
+				if (!canProcess(left, src, oracle))
+					// the expression does not have a string value, we do not
+					// assume anything on it
+					return environment;
 				CI eval = eval(environment, left, src, oracle);
 				if (eval.isBottom())
 					return environment.bottom();
@@ -627,6 +635,7 @@ public class CharInclusion
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			ValueEnvironment<CI> state,
 			ValueExpression e,
 			ProgramPoint pp,
@@ -737,6 +746,7 @@ public class CharInclusion
 				CI left = eval(state, (ValueExpression) ((TernaryExpression) e).getLeft(), pp, oracle);
 				CI middle = eval(state, (ValueExpression) ((TernaryExpression) e).getMiddle(), pp, oracle);
 				Set<BinaryExpression> constraints = oracle.constraints(
+						this,
 						(ValueExpression) ((TernaryExpression) e).getRight(),
 						pp);
 				IntegerConstant right = intDomain.generate(constraints, pp, oracle);

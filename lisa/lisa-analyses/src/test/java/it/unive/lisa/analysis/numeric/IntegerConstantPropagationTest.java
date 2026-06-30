@@ -3,10 +3,16 @@ package it.unive.lisa.analysis.numeric;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collections;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+
 import it.unive.lisa.TestParameterProvider;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
+import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.events.EventQueue;
 import it.unive.lisa.lattices.ExpressionSet;
 import it.unive.lisa.lattices.Satisfiability;
@@ -56,9 +62,6 @@ import it.unive.lisa.symbolic.value.operator.unary.NumericSqrt;
 import it.unive.lisa.symbolic.value.operator.unary.StringLength;
 import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
 import it.unive.lisa.type.Type;
-import java.util.Collections;
-import java.util.Set;
-import org.junit.jupiter.api.Test;
 
 public class IntegerConstantPropagationTest {
 
@@ -157,6 +160,7 @@ public class IntegerConstantPropagationTest {
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp) {
 			return constraints;

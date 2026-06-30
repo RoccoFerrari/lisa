@@ -118,7 +118,7 @@ public class Tarsis
 		UnaryOperator operator = expression.getOperator();
 
 		if (oracle.hasWholeValueAnlysis() && operator == NumericToString.INSTANCE) {
-			Set<BinaryExpression> constraints = oracle.constraints(expression, pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, expression, pp);
 			return generate(constraints, pp, oracle);
 		}
 
@@ -147,13 +147,10 @@ public class Tarsis
 			throws SemanticException {
 		BinaryOperator operator = expression.getOperator();
 
-		if (left.isTop())
-			return RegexAutomaton.TOP;
-
 		if (oracle.hasWholeValueAnlysis()
 				&& (operator == StringCharAt.INSTANCE
 						|| operator == StringSubstringToEnd.INSTANCE)) {
-			Set<BinaryExpression> constraints = oracle.constraints((ValueExpression) expression.getRight(), pp);
+			Set<BinaryExpression> constraints = oracle.constraints(this, (ValueExpression) expression.getRight(), pp);
 			IntInterval val = intDomain.generate(constraints, pp, oracle);
 			if (val.isBottom() || val.getHigh().compareTo(MathNumber.ZERO) < 0)
 				return RegexAutomaton.BOTTOM;
@@ -232,9 +229,6 @@ public class Tarsis
 			}
 		}
 
-		if (right.isTop())
-			return RegexAutomaton.TOP;
-
 		if (operator instanceof StringConcat)
 			return left.concat(right);
 
@@ -256,9 +250,9 @@ public class Tarsis
 			return RegexAutomaton.TOP;
 
 		if (oracle.hasWholeValueAnlysis() && operator == StringSubstring.INSTANCE) {
-			Set<BinaryExpression> cM = oracle.constraints((ValueExpression) expression.getMiddle(), pp);
+			Set<BinaryExpression> cM = oracle.constraints(this, (ValueExpression) expression.getMiddle(), pp);
 			IntInterval mid = intDomain.generate(cM, pp, oracle);
-			Set<BinaryExpression> cR = oracle.constraints((ValueExpression) expression.getRight(), pp);
+			Set<BinaryExpression> cR = oracle.constraints(this, (ValueExpression) expression.getRight(), pp);
 			IntInterval rig = intDomain.generate(cR, pp, oracle);
 			if (mid.isBottom()
 					|| mid.getHigh().compareTo(MathNumber.ZERO) < 0
@@ -383,6 +377,10 @@ public class Tarsis
 		ValueExpression right = (ValueExpression) expression.getRight();
 		if (operator == ComparisonEq.INSTANCE) {
 			if (left instanceof Identifier) {
+				if (!canProcess(right, src, oracle))
+					// the expression does not have a string value, we do not
+					// assume anything on it
+					return environment;
 				RegexAutomaton eval = eval(environment, right, src, oracle);
 				if (eval.isBottom())
 					return environment.bottom();
@@ -392,6 +390,10 @@ public class Tarsis
 				if (!eval.isTop())
 					return environment.putState((Identifier) left, eval);
 			} else if (right instanceof Identifier) {
+				if (!canProcess(left, src, oracle))
+					// the expression does not have a string value, we do not
+					// assume anything on it
+					return environment;
 				RegexAutomaton eval = eval(environment, left, src, oracle);
 				if (eval.isBottom())
 					return environment.bottom();
@@ -735,6 +737,7 @@ public class Tarsis
 
 	@Override
 	public Set<BinaryExpression> constraints(
+			ValueDomain<?> requesting,
 			ValueEnvironment<RegexAutomaton> state,
 			ValueExpression e,
 			ProgramPoint pp,

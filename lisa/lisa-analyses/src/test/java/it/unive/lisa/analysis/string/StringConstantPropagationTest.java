@@ -5,9 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+
 import it.unive.lisa.TestParameterProvider;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
+import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.lattices.string.StringConstant;
 import it.unive.lisa.program.SyntheticLocation;
@@ -39,9 +45,6 @@ import it.unive.lisa.symbolic.value.operator.unary.StringReverse;
 import it.unive.lisa.symbolic.value.operator.unary.StringToLowerCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringToUpperCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringTrim;
-import java.util.HashSet;
-import java.util.Set;
-import org.junit.jupiter.api.Test;
 
 public class StringConstantPropagationTest {
 
@@ -109,6 +112,7 @@ public class StringConstantPropagationTest {
 
 		@Override
 		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
 				ValueExpression e,
 				ProgramPoint pp) {
 			return cs;
@@ -431,14 +435,14 @@ public class StringConstantPropagationTest {
 	@Test
 	public void constraintsOnBottomStateReturnsNull() throws SemanticException {
 		StringConstantPropagation domain = new StringConstantPropagation();
-		assertNull(domain.constraints(domain.makeLattice().bottom(), VAR_X, PP,
+		assertNull(domain.constraints(null, domain.makeLattice().bottom(), VAR_X, PP,
 				new TestParameterProvider.FakeOracle()));
 	}
 
 	@Test
 	public void constraintsOnTopStateReturnsEmpty() throws SemanticException {
 		StringConstantPropagation domain = new StringConstantPropagation();
-		assertTrue(domain.constraints(domain.makeLattice(), VAR_X, PP,
+		assertTrue(domain.constraints(null, domain.makeLattice(), VAR_X, PP,
 				new TestParameterProvider.FakeOracle()).isEmpty());
 	}
 
@@ -446,7 +450,7 @@ public class StringConstantPropagationTest {
 	public void constraintsOnConcreteStringReturnsEqConstraint() throws SemanticException {
 		StringConstantPropagation domain = new StringConstantPropagation();
 		ValueEnvironment<StringConstant> env = domain.makeLattice().putState(VAR_X, new StringConstant("hello"));
-		Set<BinaryExpression> cs = domain.constraints(env, VAR_X, PP, new TestParameterProvider.FakeOracle());
+		Set<BinaryExpression> cs = domain.constraints(null, env, VAR_X, PP, new TestParameterProvider.FakeOracle());
 		assertNotNull(cs);
 		assertEquals(1, cs.size());
 		BinaryExpression c = cs.iterator().next();
@@ -460,7 +464,7 @@ public class StringConstantPropagationTest {
 		ValueEnvironment<StringConstant> env = domain.makeLattice().putState(VAR_X, new StringConstant("hello"));
 		UnaryExpression lengthExpr = new UnaryExpression(Int32Type.INSTANCE, VAR_X,
 				StringLength.INSTANCE, SyntheticLocation.INSTANCE);
-		Set<BinaryExpression> cs = domain.constraints(env, lengthExpr, PP, new TestParameterProvider.FakeOracle());
+		Set<BinaryExpression> cs = domain.constraints(null, env, lengthExpr, PP, new TestParameterProvider.FakeOracle());
 		assertNotNull(cs);
 		// length of "hello" = 5 → should produce {5 == length(x)}
 		assertEquals(1, cs.size());

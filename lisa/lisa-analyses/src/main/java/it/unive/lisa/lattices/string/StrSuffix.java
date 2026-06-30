@@ -105,18 +105,30 @@ public class StrSuffix
 	}
 
 	@Override
+	public boolean isTop() {
+		return this == TOP || (suffix != null && suffix.length() == 0);
+	}
+
+	@Override
 	public StrSuffix bottom() {
 		return BOTTOM;
+	}
+
+	@Override
+	public boolean isBottom() {
+		return this == BOTTOM || suffix == null;
 	}
 
 	@Override
 	public StructuredRepresentation representation() {
 		if (isBottom())
 			return Lattice.bottomRepresentation();
-		if (isTop())
-			return Lattice.topRepresentation();
 
 		return new StringRepresentation('*' + suffix);
 	}
 
+	@Override
+	public String toString() {
+		return representation().toString();
+	}
 }
