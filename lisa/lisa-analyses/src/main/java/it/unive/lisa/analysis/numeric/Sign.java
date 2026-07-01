@@ -395,7 +395,7 @@ public class Sign
 				if (value.isZero())
 					return ValueDomain.makeEqConstraint(
 							pp.getProgram().getTypes().getStringType(),
-							0,
+							"0",
 							e,
 							pp);
 			}

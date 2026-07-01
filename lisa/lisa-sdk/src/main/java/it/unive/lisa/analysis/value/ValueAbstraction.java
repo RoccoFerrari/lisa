@@ -5,7 +5,7 @@ import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.value.ValueExpression;
 
 /**
- * An abstrction for the values of program variables. This interface is used as
+ * An abstraction for the values of program variables. This interface is used as
  * a container for defining the
  * {@link #canProcess(ValueExpression, ProgramPoint, SemanticOracle)} method,
  * which is used to determine if a given expression can be processed by the

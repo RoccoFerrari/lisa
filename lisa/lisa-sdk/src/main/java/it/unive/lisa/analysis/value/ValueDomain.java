@@ -165,8 +165,11 @@ public interface ValueDomain<L extends ValueLattice<L>>
 		if (low == null && high == null)
 			return Collections.emptySet();
 
-		BinaryExpression lb = makeConstraint(constantType, low, ComparisonGe.INSTANCE, expr, pp).iterator().next();
-		BinaryExpression ub = makeConstraint(constantType, high, ComparisonLe.INSTANCE, expr, pp).iterator().next();
+		BinaryExpression lb = null, ub = null;
+		if (low != null)
+			lb = makeConstraint(constantType, low, ComparisonGe.INSTANCE, expr, pp).iterator().next();
+		if (high != null)
+			ub = makeConstraint(constantType, high, ComparisonLe.INSTANCE, expr, pp).iterator().next();
 
 		if (low == null)
 			return Collections.singleton(ub);

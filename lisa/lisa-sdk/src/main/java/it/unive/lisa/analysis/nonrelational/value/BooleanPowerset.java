@@ -115,7 +115,7 @@ public class BooleanPowerset
 
 		if (operator == TypeCheck.INSTANCE) {
 			Set<Type> types = oracle.getRuntimeTypesOf(expression.getLeft(), pp);
-			Set<Type> target = oracle.getRuntimeTypesOf(expression.getLeft(), pp);
+			Set<Type> target = oracle.getRuntimeTypesOf(expression.getRight(), pp);
 			if (target.equals(types) || target.containsAll(types))
 				// all expression types are allowed
 				return Satisfiability.SATISFIED;
