@@ -1,14 +1,5 @@
 package it.unive.lisa.cron;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Test;
-
 import it.unive.lisa.AnalysisExecutionException;
 import it.unive.lisa.AnalysisSetupException;
 import it.unive.lisa.analysis.AbstractDomain;
@@ -58,6 +49,13 @@ import it.unive.lisa.program.cfg.statement.literal.StringLiteral;
 import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.util.testing.TestConfiguration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 
 public class WholeValueAnalysesTest
 		extends
@@ -164,7 +162,8 @@ public class WholeValueAnalysesTest
 							env = (ValueEnvironment<?>) target.getExecutionState()
 									.getLatticeInstance(WholeValue.class)
 									.get(i);
-							// fine since all domains involved in the tests are smashed sum domains
+							// fine since all domains involved in the tests are
+							// smashed sum domains
 							dom = (SmashedSumStringDomain) participants[i];
 						}
 					Lattice<?> state = env.getState((Identifier) expr);

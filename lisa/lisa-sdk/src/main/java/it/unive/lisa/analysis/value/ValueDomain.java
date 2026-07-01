@@ -30,7 +30,7 @@ import java.util.Set;
  * constant on the left-hand side and an expression on the right-hand side). To
  * enable this cooperation the methods
  * {@link #canProcess(ValueExpression, ProgramPoint, SemanticOracle)} and
- * {@link #constraints(ValueLattice, ValueExpression, ProgramPoint, SemanticOracle)}
+ * {@link #constraints(ValueDomain, ValueLattice, ValueExpression, ProgramPoint, SemanticOracle)}
  * must be overridden with the actual logic for the generation of constraints.
  * 
  * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
@@ -54,18 +54,18 @@ public interface ValueDomain<L extends ValueLattice<L>>
 	 * whose value is being constrained, corresponding to the parameter
 	 * {@code e}.<br/>
 	 * <br/>
-	 * The requesting domain is the one that is asking for the constraints, 
-	 * and it is used to avoid recursive calls to the same domain. 
-	 * The default implementation of this method returns an empty set of
-	 * constraints unless the state is bottom, in which case it returns
-	 * {@code null}.
+	 * The requesting domain is the one that is asking for the constraints, and
+	 * it is used to avoid recursive calls to the same domain. The default
+	 * implementation of this method returns an empty set of constraints unless
+	 * the state is bottom, in which case it returns {@code null}.
 	 * 
 	 * @param requesting the domain that is requesting the constraints
-	 * @param state  the abstract state from which the constraints are generated
-	 * @param e      the expression whose value is being constrained
-	 * @param pp     the program point at which the constraints are being
-	 *                   generated
-	 * @param oracle the oracle for inter-domain communication
+	 * @param state      the abstract state from which the constraints are
+	 *                       generated
+	 * @param e          the expression whose value is being constrained
+	 * @param pp         the program point at which the constraints are being
+	 *                       generated
+	 * @param oracle     the oracle for inter-domain communication
 	 * 
 	 * @return a set of constraints modeling the possible values of {@code e} in
 	 *             the state {@code state}

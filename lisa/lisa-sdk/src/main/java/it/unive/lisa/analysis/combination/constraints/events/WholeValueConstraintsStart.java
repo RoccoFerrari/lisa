@@ -7,8 +7,8 @@ import it.unive.lisa.events.StartEvent;
 import it.unive.lisa.symbolic.value.ValueExpression;
 
 /**
- * An event signaling the start of the computation of the constraints
- * by the {@link it.unive.lisa.analysis.combination.constraints.WholeValueAnalysis}.
+ * An event signaling the start of the computation of the constraints by the
+ * {@link it.unive.lisa.analysis.combination.constraints.WholeValueAnalysis}.
  * 
  * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
  */

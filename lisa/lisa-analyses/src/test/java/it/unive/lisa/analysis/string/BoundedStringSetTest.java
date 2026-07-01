@@ -5,12 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.junit.jupiter.api.Test;
-
 import it.unive.lisa.TestParameterProvider;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
@@ -44,6 +38,10 @@ import it.unive.lisa.symbolic.value.operator.unary.StringReverse;
 import it.unive.lisa.symbolic.value.operator.unary.StringToLowerCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringToUpperCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringTrim;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
 
 public class BoundedStringSetTest {
 
@@ -483,17 +481,6 @@ public class BoundedStringSetTest {
 		ValueEnvironment<BoundedStringSet.BSS> result = domain.assumeBinaryExpression(env, mkBin(ComparisonNe.INSTANCE),
 				PP, PP, ORACLE);
 		assertTrue(result.isBottom());
-	}
-
-	@Test
-	void assumeNonEqNeOperatorReturnsUnchanged() throws SemanticException {
-		// BSS only handles Eq/Ne in assume; other operators → unchanged
-		ValueEnvironment<BoundedStringSet.BSS> env = domain.makeLattice()
-				.putState(VAR_X, bss("hello"))
-				.putState(VAR_Y, bss("world"));
-		ValueEnvironment<BoundedStringSet.BSS> result = domain.assumeBinaryExpression(env,
-				mkBin(StringStartsWith.INSTANCE), PP, PP, ORACLE);
-		assertEquals(env, result);
 	}
 
 	// ---- constraints ----

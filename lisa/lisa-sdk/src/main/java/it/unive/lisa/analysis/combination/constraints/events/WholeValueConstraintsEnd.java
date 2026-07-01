@@ -1,17 +1,16 @@
 package it.unive.lisa.analysis.combination.constraints.events;
 
-import java.util.Set;
-
 import it.unive.lisa.analysis.combination.constraints.WholeValue;
 import it.unive.lisa.analysis.events.DomainEvent;
 import it.unive.lisa.events.EndEvent;
 import it.unive.lisa.events.Event;
 import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
+import java.util.Set;
 
 /**
- * An event signaling the end of the computation of the constraints
- * by the {@link it.unive.lisa.analysis.combination.constraints.WholeValueAnalysis}.
+ * An event signaling the end of the computation of the constraints by the
+ * {@link it.unive.lisa.analysis.combination.constraints.WholeValueAnalysis}.
  * 
  * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
  */

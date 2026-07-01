@@ -27,7 +27,7 @@ public interface ValueAbstraction {
 	 * it applies also to produce facts about the value (e.g, its relation to
 	 * other program variables or the location of its definition) or the
 	 * generation of constraints over that value (as defined by
-	 * {@link ValueDomain#constraints(ValueLattice, ValueExpression, ProgramPoint, SemanticOracle)}).
+	 * {@link ValueDomain#constraints(ValueDomain, ValueLattice, ValueExpression, ProgramPoint, SemanticOracle)}).
 	 *
 	 * @param e      the expression
 	 * @param pp     the program point where this method is queried

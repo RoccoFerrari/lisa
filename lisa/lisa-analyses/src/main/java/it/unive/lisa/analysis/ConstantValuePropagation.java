@@ -1,8 +1,5 @@
 package it.unive.lisa.analysis;
 
-import java.util.Collections;
-import java.util.Set;
-
 import it.unive.lisa.analysis.nonrelational.value.BaseNonRelationalValueDomain;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
 import it.unive.lisa.analysis.value.ValueDomain;
@@ -99,6 +96,8 @@ import it.unive.lisa.symbolic.value.operator.unary.StringToUpperCase;
 import it.unive.lisa.symbolic.value.operator.unary.StringTrim;
 import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
 import it.unive.lisa.type.Type;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * A non-relational value domain tracking {@link ConstantValue}s of variables

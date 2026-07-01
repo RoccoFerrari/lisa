@@ -2,11 +2,6 @@ package it.unive.lisa.analysis.numeric;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Collections;
-import java.util.Set;
-
-import org.junit.jupiter.api.Test;
-
 import it.unive.lisa.TestParameterProvider;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
@@ -59,6 +54,9 @@ import it.unive.lisa.symbolic.value.operator.unary.NumericSqrt;
 import it.unive.lisa.symbolic.value.operator.unary.StringLength;
 import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
 import it.unive.lisa.type.Type;
+import java.util.Collections;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
 
 public class ParityTest {
 

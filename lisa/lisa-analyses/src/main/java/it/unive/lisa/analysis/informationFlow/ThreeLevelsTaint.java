@@ -1,5 +1,6 @@
 package it.unive.lisa.analysis.informationFlow;
 
+import it.unive.lisa.analysis.combination.constraints.WholeValueAnalysis;
 import it.unive.lisa.lattices.informationFlow.ThreeTaint;
 
 /**

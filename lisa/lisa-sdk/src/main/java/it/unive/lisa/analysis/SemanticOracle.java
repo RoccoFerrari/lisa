@@ -1,7 +1,5 @@
 package it.unive.lisa.analysis;
 
-import java.util.Set;
-
 import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.events.EventQueue;
 import it.unive.lisa.lattices.ExpressionSet;
@@ -13,6 +11,7 @@ import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.type.Type;
+import java.util.Set;
 
 /**
  * An oracle that can be queried for semantic information on the program under
@@ -40,9 +39,9 @@ public interface SemanticOracle {
 	/**
 	 * Yields whether or not this oracle is able to provide whole value analysis
 	 * constraints through the method
-	 * {@link #constraints(ValueExpression, ProgramPoint)}. If this method
-	 * returns {@code false}, then the latter always returns an empty set of
-	 * constraints, meaning that no information about the concrete values of
+	 * {@link #constraints(ValueDomain, ValueExpression, ProgramPoint)}. If this
+	 * method returns {@code false}, then the latter always returns an empty set
+	 * of constraints, meaning that no information about the concrete values of
 	 * expressions is available. For this method to return {@code true}, the
 	 * analysis has to be set up to use a
 	 * {@link it.unive.lisa.analysis.combination.constraints.WholeValueAnalysis}
@@ -65,15 +64,16 @@ public interface SemanticOracle {
 	 * whole value analysis is available, all domains involved in it are queried
 	 * for constraints if they can handle the target expression.<br/>
 	 * <br/>
-	 * The requesting domain is the one that is asking for the constraints, 
-	 * and it is used to avoid recursive calls to the same domain. 
-	 * Each constraint is given as a {@link BinaryExpression}, where the left
-	 * operand is a constant and the right operand is the expression whose value
-	 * is being constrained, corresponding to the parameter {@code e}.
+	 * The requesting domain is the one that is asking for the constraints, and
+	 * it is used to avoid recursive calls to the same domain. Each constraint
+	 * is given as a {@link BinaryExpression}, where the left operand is a
+	 * constant and the right operand is the expression whose value is being
+	 * constrained, corresponding to the parameter {@code e}.
 	 * 
 	 * @param requesting the domain that is requesting the constraints
-	 * @param e  the expression whose value is being constrained
-	 * @param pp the program point at which the constraints are being generated
+	 * @param e          the expression whose value is being constrained
+	 * @param pp         the program point at which the constraints are being
+	 *                       generated
 	 * 
 	 * @return a set of constraints modeling the possible values of {@code e} in
 	 *             the state modeled by this oracle

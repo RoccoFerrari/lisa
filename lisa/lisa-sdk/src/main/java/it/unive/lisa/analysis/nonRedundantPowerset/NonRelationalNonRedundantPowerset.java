@@ -1,9 +1,5 @@
 package it.unive.lisa.analysis.nonRedundantPowerset;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import it.unive.lisa.analysis.Lattice;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
@@ -18,6 +14,9 @@ import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.TernaryExpression;
 import it.unive.lisa.symbolic.value.UnaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A {@link NonRelationalValueDomain} that computes

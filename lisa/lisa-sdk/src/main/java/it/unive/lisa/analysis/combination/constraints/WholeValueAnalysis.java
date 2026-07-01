@@ -1,8 +1,5 @@
 package it.unive.lisa.analysis.combination.constraints;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.combination.constraints.events.WholeValueConstraintsEnd;
@@ -15,6 +12,8 @@ import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.ValueExpression;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The constraint-based whole-value analysis among an arbitrary number of client
@@ -39,6 +38,11 @@ public class WholeValueAnalysis
 		implements
 		ValueDomain<WholeValue> {
 
+	/**
+	 * The domains that take part in this whole-value analysis. The order of the
+	 * participants is important, as it is used to index the {@link WholeValue}
+	 * instances that are produced by this analysis.
+	 */
 	public final ValueDomain<?>[] participants;
 
 	/**
