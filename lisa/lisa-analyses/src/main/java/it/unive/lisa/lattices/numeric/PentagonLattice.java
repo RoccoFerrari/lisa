@@ -144,9 +144,13 @@ public class PentagonLattice
 		for (Identifier id1 : first.getKeys()) {
 			Set<Identifier> closure = new HashSet<>();
 			for (Identifier id2 : first.getKeys())
-				if (!id1.equals(id2))
-					if (first.getState(id1).getHigh().compareTo(first.getState(id2).getLow()) < 0)
+				if (!id1.equals(id2)) {
+					IntInterval i1 = first.getState(id1);
+					IntInterval i2 = first.getState(id2);
+					if (!i1.isBottom() && !i2.isBottom()
+							&& i1.getHigh().compareTo(i2.getLow()) < 0)
 						closure.add(id2);
+				}
 			if (!closure.isEmpty())
 				// glb is the union
 				newBounds = newBounds.putState(id1, newBounds.getState(id1).glb(new DefiniteIdSet(closure)));
