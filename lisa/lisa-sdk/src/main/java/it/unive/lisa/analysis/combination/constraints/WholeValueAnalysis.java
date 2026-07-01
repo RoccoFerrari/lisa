@@ -1,16 +1,20 @@
 package it.unive.lisa.analysis.combination.constraints;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
+import it.unive.lisa.analysis.combination.constraints.events.WholeValueConstraintsEnd;
+import it.unive.lisa.analysis.combination.constraints.events.WholeValueConstraintsStart;
 import it.unive.lisa.analysis.value.ValueDomain;
 import it.unive.lisa.analysis.value.ValueLattice;
+import it.unive.lisa.events.EventQueue;
 import it.unive.lisa.lattices.Satisfiability;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.ValueExpression;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * The constraint-based whole-value analysis among an arbitrary number of client
@@ -249,6 +253,9 @@ public class WholeValueAnalysis
 			ProgramPoint pp,
 			SemanticOracle oracle)
 			throws SemanticException {
+		EventQueue events = oracle.getEventQueue();
+		if (events != null)
+			events.post(new WholeValueConstraintsStart(state, e));
 		Set<BinaryExpression> result = new HashSet<>();
 		for (int i = 0; i < participants.length; i++)
 			if (participants[i] != requesting) {
@@ -261,6 +268,8 @@ public class WholeValueAnalysis
 				if (c != null)
 					result.addAll(c);
 			}
+		if (events != null)
+			events.post(new WholeValueConstraintsEnd(state, e, result));
 		return result;
 	}
 }
