@@ -1,11 +1,9 @@
 package it.unive.lisa.lattices.heap.allocations;
 
-import it.unive.lisa.analysis.DomainLattice;
 import it.unive.lisa.analysis.SemanticException;
-import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.heap.HeapDomain.HeapReplacement;
 import it.unive.lisa.analysis.nonrelational.heap.HeapValue;
-import it.unive.lisa.analysis.value.ValueDomain;
+import it.unive.lisa.analysis.value.LatticeWithReplacement;
 import it.unive.lisa.lattices.FunctionalLattice;
 import it.unive.lisa.lattices.SetLattice;
 import it.unive.lisa.program.cfg.ProgramPoint;
@@ -159,7 +157,7 @@ public class AllocationSites
 	/**
 	 * Applies a substitution to the contents of this set of allocation sites,
 	 * similarly to
-	 * {@link ValueDomain#applyReplacement(DomainLattice, HeapReplacement, ProgramPoint, SemanticOracle)}.
+	 * {@link LatticeWithReplacement#applyReplacement(HeapReplacement, ProgramPoint)}.
 	 * 
 	 * @param r  the substitution
 	 * @param pp the program point where the substitution is applied

@@ -235,6 +235,17 @@ public class AnalysisState<A extends AbstractLattice<A>>
 	}
 
 	/**
+	 * Yields a copy of this state where the additional fixpoint information
+	 * ({@link #getExecutionInformation()}) of the normal execution has been
+	 * removed.
+	 *
+	 * @return a new instance with an empty execution fixpoint info.
+	 */
+	public AnalysisState<A> clearExecutionInfo() {
+		return new AnalysisState<>(execution.clearInfo(), halt, smashedErrors, smashedErrorsState, errors);
+	}
+
+	/**
 	 * Yields the program state corresponding to the normal execution. This is
 	 * the state that represents the program's normal behavior during its
 	 * execution, and it is the only one that evolves through assignments,
