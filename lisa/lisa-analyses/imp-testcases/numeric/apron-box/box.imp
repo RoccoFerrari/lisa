@@ -159,6 +159,35 @@ class tutorial {
         return result;
     }
 
+    dead_code_4() {
+            def x = 10;
+            def y = 2 * x;
+            def z = x + y; // z=30, and z = 3x
+            def result = 0;
+
+            if (z != 3 * x) {
+                // Expected: Dead branch
+                result = -999;
+            } else {
+                result = 42;
+            }
+            return result;
+        }
+
+        dead_code_5(a, b, c, d, result) {
+                if (a <= b + c) {
+                    if (b + c <= d) {
+                        if (a > d) {
+                            // Expected: Dead branch
+                            result = -1;
+                        } else {
+                            result = 1;
+                        }
+                    }
+                }
+                return result;
+            }
+
     // Nested Loops Stress Test
 
     nested_while() {
@@ -352,7 +381,6 @@ class tutorial {
             result = 0;
         }
         // Expected: [0,1]
-        // Returned: 1
         return result;
     }
 
