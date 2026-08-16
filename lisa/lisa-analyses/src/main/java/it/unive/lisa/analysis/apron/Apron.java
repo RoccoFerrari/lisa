@@ -505,11 +505,9 @@ public class Apron
 
 			// Operators mapping - apron supports only OP_NEG, OP_SQRT, OP_CAST
 			if (op == NumericNegation.INSTANCE) {
-				return new Texpr1UnNode(Texpr1UnNode.OP_NEG, Texpr1UnNode.RTYPE_INT, Texpr1UnNode.RDIR_ZERO,
-						rewrittenExp);
+				return new Texpr1UnNode(Texpr1UnNode.OP_NEG, rewrittenExp);
 			} else if (op == NumericSqrt.INSTANCE) {
-				return new Texpr1UnNode(Texpr1UnNode.OP_SQRT, Texpr1UnNode.RTYPE_INT, Texpr1UnNode.RDIR_ZERO,
-						rewrittenExp);
+				return new Texpr1UnNode(Texpr1UnNode.OP_SQRT, rewrittenExp);
 			}
 
 			return null;
@@ -518,8 +516,8 @@ public class Apron
 		if (exp instanceof BinaryExpression) {
 			BinaryExpression bin = (BinaryExpression) exp;
 			BinaryOperator op = bin.getOperator();
+
 			if (op == TypeCast.INSTANCE || op == TypeConv.INSTANCE) {
-				// check if the expr has a static type assigned
 				if (exp.getStaticType() != null)
 					return toApronExpression(bin.getLeft());
 			} else {
@@ -531,20 +529,11 @@ public class Apron
 				if (rewrittenRight == null)
 					return null;
 
-				if (op == ComparisonLt.INSTANCE)
-					return new Texpr1BinNode(Tcons1.SUP, rewrittenRight, rewrittenLeft);
-
-				if (op == ComparisonLe.INSTANCE)
-					return new Texpr1BinNode(Tcons1.SUPEQ, rewrittenRight, rewrittenLeft);
-
 				if (!canBeConvertedToApronOperator(bin.getOperator()))
-					// we are not able to translate the expression
 					return null;
 
 				return new Texpr1BinNode(
 						toApronOperator(bin.getOperator()),
-						Texpr1BinNode.RTYPE_INT,
-						Texpr1BinNode.RDIR_ZERO,
 						rewrittenLeft,
 						rewrittenRight);
 			}
@@ -571,9 +560,6 @@ public class Apron
 				|| op == NumericNonOverflowingSub.INSTANCE
 				|| op == NumericNonOverflowingMod.INSTANCE
 				|| op == NumericNonOverflowingRem.INSTANCE
-				|| op == ComparisonEq.INSTANCE
-				|| op == ComparisonNe.INSTANCE
-				|| op == ComparisonGe.INSTANCE
 				|| op == Numeric8BitAdd.INSTANCE
 				|| op == Numeric16BitAdd.INSTANCE
 				|| op == Numeric32BitAdd.INSTANCE
@@ -597,8 +583,7 @@ public class Apron
 				|| op == Numeric8BitRem.INSTANCE
 				|| op == Numeric16BitRem.INSTANCE
 				|| op == Numeric32BitRem.INSTANCE
-				|| op == Numeric64BitRem.INSTANCE
-				|| op == ComparisonGt.INSTANCE;
+				|| op == Numeric64BitRem.INSTANCE;
 	}
 
 	/**
@@ -650,17 +635,8 @@ public class Apron
 				|| op == Numeric32BitRem.INSTANCE
 				|| op == Numeric64BitRem.INSTANCE)
 			return Texpr1BinNode.OP_MOD;
-		else if (op == ComparisonEq.INSTANCE)
-			return Tcons1.EQ;
-		else if (op == ComparisonNe.INSTANCE)
-			return Tcons1.DISEQ;
-		else if (op == ComparisonGe.INSTANCE)
-			return Tcons1.SUPEQ;
-		else if (op == ComparisonGt.INSTANCE)
-			return Tcons1.SUP;
 
 		throw new UnsupportedOperationException("Operator " + op + " not yet supported by Apron interface");
-
 	}
 
 	/**
@@ -1661,8 +1637,20 @@ public class Apron
 
 			BinaryOperator op = bin.getOperator();
 			if (op == NumericNonOverflowingDiv.INSTANCE
+					|| op == Numeric8BitDiv.INSTANCE
+					|| op == Numeric16BitDiv.INSTANCE
+					|| op == Numeric32BitDiv.INSTANCE
+					|| op == Numeric64BitDiv.INSTANCE
 					|| op == NumericNonOverflowingMod.INSTANCE
-					|| op == NumericNonOverflowingRem.INSTANCE) {
+					|| op == Numeric8BitMod.INSTANCE
+					|| op == Numeric16BitMod.INSTANCE
+					|| op == Numeric32BitMod.INSTANCE
+					|| op == Numeric64BitMod.INSTANCE
+					|| op == NumericNonOverflowingRem.INSTANCE
+					|| op == Numeric8BitRem.INSTANCE
+					|| op == Numeric16BitRem.INSTANCE
+					|| op == Numeric32BitRem.INSTANCE
+					|| op == Numeric64BitRem.INSTANCE) {
 				denominators.add((ValueExpression) bin.getRight());
 			}
 		}
