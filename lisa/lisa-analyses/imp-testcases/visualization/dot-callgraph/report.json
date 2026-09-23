@@ -1,0 +1,42 @@
+{
+  "warnings" : [ ],
+  "notices" : [ ],
+  "files" : [ "callgraph.dot", "report.json" ],
+  "info" : {
+    "cfgs" : "6",
+    "duration" : "300ms",
+    "end" : "2026-01-29T11:02:27.171+01:00",
+    "expressions" : "49",
+    "files" : "1",
+    "globals" : "0",
+    "members" : "6",
+    "notices" : "0",
+    "programs" : "1",
+    "start" : "2026-01-29T11:02:26.871+01:00",
+    "statements" : "21",
+    "units" : "2",
+    "version" : "0.1",
+    "warnings" : "0"
+  },
+  "configuration" : {
+    "asynchronousListeners" : "",
+    "backwardDescendingFixpoint" : "unset",
+    "backwardFixpoint" : "BackwardAscendingFixpoint",
+    "dumpForcesUnwinding" : "false",
+    "fixpointWorkingSet" : "OrderBasedWorkingSet",
+    "forwardDescendingFixpoint" : "unset",
+    "forwardFixpoint" : "ForwardAscendingFixpoint",
+    "glbThreshold" : "5",
+    "hotspots" : "unset",
+    "openCallPolicy" : "TopExecutionPolicy",
+    "outputs" : "DotCallGraph, JSONReportDumper",
+    "recursionWideningThreshold" : "5",
+    "semanticChecks" : "",
+    "shouldSmashError" : "unset",
+    "synchronousListeners" : "",
+    "syntacticChecks" : "",
+    "useWideningPoints" : "true",
+    "wideningThreshold" : "5",
+    "workdir" : "test-outputs/visualization/dot-callgraph"
+  }
+}

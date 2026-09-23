@@ -1,5 +1,6 @@
 package it.unive.lisa.analysis;
 
+import it.unive.lisa.analysis.combination.constraints.WholeValueAnalysis;
 import it.unive.lisa.analysis.events.DomainAssignEnd;
 import it.unive.lisa.analysis.events.DomainAssignStart;
 import it.unive.lisa.analysis.events.DomainAssumeEnd;
@@ -26,9 +27,11 @@ import it.unive.lisa.lattices.SimpleAbstractState;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.heap.MemoryAllocation;
+import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.type.Type;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
@@ -216,8 +219,8 @@ public class SimpleAbstractDomain<H extends HeapLattice<H>, V extends ValueLatti
 				events.post(new SADSubsStart<>(v0, t0, subs));
 
 			for (HeapReplacement repl : subs) {
-				T t = typeDomain.applyReplacement(mo.type, repl, pp, mo);
-				V v = valueDomain.applyReplacement(mo.value, repl, pp, mo);
+				T t = mo.type.applyReplacement(repl, pp);
+				V v = mo.value.applyReplacement(repl, pp);
 				// we update the oracle after both replacements have been
 				// applied to not lose info on the sources that will be removed
 				mo.type = t;
@@ -895,6 +898,22 @@ public class SimpleAbstractDomain<H extends HeapLattice<H>, V extends ValueLatti
 				ProgramPoint pp)
 				throws SemanticException {
 			return heapDomain.areMutuallyReachable(heap, x, y, pp, this);
+		}
+
+		@Override
+		public boolean hasWholeValueAnlysis() {
+			return valueDomain instanceof WholeValueAnalysis;
+		}
+
+		@Override
+		public Set<BinaryExpression> constraints(
+				ValueDomain<?> requesting,
+				ValueExpression e,
+				ProgramPoint pp)
+				throws SemanticException {
+			if (hasWholeValueAnlysis())
+				return valueDomain.constraints(requesting, value, e, pp, this);
+			return Collections.emptySet();
 		}
 
 	}

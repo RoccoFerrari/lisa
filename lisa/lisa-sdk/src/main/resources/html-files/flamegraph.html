@@ -15,13 +15,12 @@
 
 <body>
 	<div class="box">
-		<header class="row header">
+		<header class="row header" id="lisa-header">
 			<img src="https://raw.githubusercontent.com/lisa-analyzer/lisa/master/logo.png" alt="LiSA logo" />
 			<h1>Analysis Flame Graph</h1>
 			<input id="search" type="text" class="searchbar" placeholder="Search node..." />
 			<input id="next" type="button" value="Next" class="button" disabled />
 			<input id="prev" type="button" value="Previous" class="button" disabled />
-			<button id="centerButton" class="button">Reset zoom &amp; recenter</button>
 			<button id="legendButton" class="button">Legend</button>
 		</header>
 		<div id="legend" class="modal">
@@ -34,6 +33,9 @@
 				<b>The lighter the color, the shorter the execution time</b>
 			</div>
 		</div>
+		<div id="overview-map-container">
+			<svg id="overview-map"></svg>
+		</div>
 		<div id="heatmap-chart"></div>
 		<div class="heatmap-tooltip" id="heatmap-tooltip"></div>
 	</div>
@@ -42,7 +44,9 @@
 		const graph = /*[[${graphContent}]]*/ "default placeholder";
 		/*]]>*/
 
-		// flatten tree
+		// ---------------------------------------------------------------
+		// FLATTENING THE GRAPH FOR POPULATING THE NODES LIST
+		// ---------------------------------------------------------------
 		const nodes = [];
 		function walk(node, depth = 0) {
 			const text = String(node.text);
@@ -66,31 +70,156 @@
 		}
 		walk(JSON.parse(graph));
 
-		// layout
+		// ---------------------------------------------------------------
+		// CONSTANTS AND SETUP
+		// ---------------------------------------------------------------
+		let width = window.innerWidth;
+		const headerHeight = document.getElementById("lisa-header").offsetHeight;
+		const overviewHeight = 100;
+		let height = window.innerHeight - headerHeight - overviewHeight - 5;
 		const rowHeight = 22;
-		const width = window.innerWidth;
-		const height = window.innerHeight;
+		let overviewRowHeight = Math.max(2, rowHeight * overviewHeight / height);
+		const axisHeight = 24;
 		const minTime = d3.min(nodes, d => d.start);
 		const maxTime = d3.max(nodes, d => d.end);
 		const xScale = d3.scaleLinear()
 			.domain([minTime, maxTime])
 			.range([0, width]);
+		const scrollZoomSpeed = 1.1;
 
-		// SVG & zoom
+		// ---------------------------------------------------------------
+		// MAIN SVG AND LAYERS
+		// ---------------------------------------------------------------
+		const overviewSvg = d3.select("#overview-map")
+			.attr("width", width)
+			.attr("height", overviewHeight);
 		const svg = d3.select("#heatmap-chart")
 			.append("svg")
 			.attr("width", width)
 			.attr("height", height);
-		const zoomLayer = svg.append("g");
+
+		const zoomLayer = svg.append("g")
+			.attr("transform", `translate(0, ${axisHeight})`);
+
+		// ---------------------------------------------------------------
+		// BUILDING THE AXIS AND GRID TO DRAW ON TOP OF THE GRAPH 
+		// ---------------------------------------------------------------
+		function formatAxisTicks(d) {
+			// d is nanoseconds offset from minTime
+			const ms = (d - minTime) / 1e6;
+			if (ms < 1) return ((d - minTime) / 1e3).toFixed(0) + " μs";
+			if (ms < 1000) return ms.toFixed(0) + " ms";
+			const s = ms / 1000;
+			if (s < 60) return s.toFixed(2) + " s";
+			const m = Math.floor(s / 60);
+			const sec = s % 60;
+			if (m < 60) return `${m}m ${sec.toFixed(1)}s`;
+			const h = Math.floor(m / 60);
+			const min = m % 60;
+			return `${h}h ${min}m`;
+		}
+		const axis = d3.axisTop(xScale)
+			.ticks(Math.max(5, width / 180))
+			.tickFormat(formatAxisTicks);
+		// white background behind the axis to prevent the graph from overflowing in the axis
+		const axisBG = svg.append("rect")
+			.attr("id", "axis-bg")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", width)
+			.attr("height", axisHeight);
+		const axisGroup = svg.append("g")
+			.attr("transform", `translate(0,${axisHeight})`)
+			.call(axis);
+		// drawing grid lines based on the visible ticks
+		function drawGridLines(currentScale) {
+			axisGroup.selectAll(".grid-line").remove();
+			axisGroup.selectAll(".tick").each(function (d) {
+				axisGroup.append("line")
+					.attr("class", "grid-line")
+					.attr("x1", currentScale(d))
+					.attr("x2", currentScale(d))
+					.attr("y1", 0)
+					.attr("y2", height);
+			});
+		}
+		drawGridLines(xScale);
+
+		// ---------------------------------------------------------------
+		// CONFIGURING ZOOM AND PAN BEHAVIOR
+		// ---------------------------------------------------------------
 		const zoom = d3.zoom()
-			.scaleExtent([0.1, 50])
+			// min zoom of 1 (cannot reduce graph size), max zoom of 100 (arbitrary, can be adjusted)
+			.scaleExtent([1, 100])
 			.on("zoom", (event) => {
-				zoomLayer.attr("transform", event.transform);
+				const t = event.transform;
+				const scale = t.k;
+
+				// set up clamping so we cannot pan the graph out of view
+				const maxX = 0;
+				const maxY = 0;
+				const minX = Math.min(width - width * scale, 0);
+				const viewportHeight = Math.max(height - axisHeight, 0);
+				const contentNode = zoomLayer.node();
+				const contentHeight = contentNode ? contentNode.getBBox().height : viewportHeight;
+				const minY = Math.min(viewportHeight - contentHeight * scale, 0);
+
+				const clampedX = Math.max(Math.min(t.x, maxX), minX);
+				const clampedY = Math.max(Math.min(t.y, maxY), minY);
+				const clamped = t.x !== clampedX || t.y !== clampedY;
+
+				// apply zoom and pan: always offset by the axis height
+				zoomLayer.attr("transform", `translate(${clampedX},${clampedY + axisHeight}) scale(${scale})`);
+				// clamp the transform on the zoom layer as well:
+				// otherwise the transforms would be inconsistent 
+				// and the panning would break 
+				if (clamped)
+					svg.call(zoom.transform, d3.zoomIdentity.translate(clampedX, clampedY).scale(scale));
+
+				// zoom and pan the axis as well
+				const newTransform = d3.zoomIdentity.translate(clampedX, 0).scale(scale);
+				const newX = newTransform.rescaleX(xScale);
+				const domain = newX.domain();
+				if (domain[0] < minTime || domain[1] > maxTime) {
+					// if out of bounds, reset axis to [minTime, maxTime]
+					axisGroup.call(axis.scale(xScale));
+					drawGridLines(xScale);
+				} else {
+					axisGroup.call(axis.scale(newX));
+					drawGridLines(newX);
+				}
+
+				// update the labels that are visible inside each bar in the graph
 				updateLabels();
+				// update the viewport rectangle in the overview map
+				updateOverviewViewport();
 			});
 		svg.call(zoom);
 
-		// draw nodes
+		// ---------------------------------------------------------------
+		// SCROLL WITH WHEEL, ZOOM WITH CTRL + WHEEL
+		// ---------------------------------------------------------------
+		svg.on("wheel.zoom", null);
+		svg.on("wheel.custom", function (event) {
+			event.preventDefault();
+			if (event.ctrlKey) {
+				d3.select(this).call(
+					zoom.scaleBy,
+					event.deltaY < 0 ? scrollZoomSpeed : 1 / scrollZoomSpeed,
+					[event.offsetX, event.offsetY]
+				);
+			} else {
+				d3.select(this).call(
+					zoom.translateBy,
+					-event.deltaX,
+					-event.deltaY
+				);
+			}
+		});
+
+		// ---------------------------------------------------------------
+		// LOGIC FOR MOVING THE TOOLTIP AROUND ON NODE HOVER
+		// ---------------------------------------------------------------
 		const tooltip = d3.select("#heatmap-tooltip");
 		function showTooltip(event, d) {
 			tooltip
@@ -115,6 +244,10 @@
 		function hideTooltip() {
 			tooltip.style("opacity", 0);
 		}
+
+		// ---------------------------------------------------------------
+		// MAIN LOGIC FOR DRAWING THE HEATMAP GRAPH
+		// ---------------------------------------------------------------
 		const categoryHue = {
 			Interprocedural: 0, // red
 			Fixpoint: 210,      // blue
@@ -150,7 +283,9 @@
 			.on("mousemove", moveTooltip)
 			.on("mouseleave", hideTooltip);
 
-		// labels (elided)
+		// ---------------------------------------------------------------
+		// LABELS TO DISPLAY INSIDE EACH NODE, HIDDEN IF TOO LONG
+		// ---------------------------------------------------------------
 		const labels = zoomLayer.selectAll("text")
 			.data(nodes)
 			.enter()
@@ -166,7 +301,6 @@
 			d._textWidth = this.getBBox().width;
 		});
 
-		// Hide labels that don't fit
 		function updateLabels() {
 			labels.each(function (d) {
 				const text = d3.select(this);
@@ -176,7 +310,130 @@
 		}
 		updateLabels();
 
-		// search
+		// ---------------------------------------------------------------
+		// DRAWING THE OVERVIEW MAP
+		// ---------------------------------------------------------------
+		const overviewRects = overviewSvg.selectAll("rect")
+			.data(nodes)
+			.enter()
+			.append("rect")
+			.attr("class", "overview-node")
+			.attr("x", d => xScale(d.start))
+			.attr("y", d => d.depth * overviewRowHeight)
+			.attr("width", d => xScale(d.end) - xScale(d.start))
+			.attr("height", overviewRowHeight - 1)
+			.attr("fill", nodeColor);
+
+		const mask = overviewSvg.append("defs")
+			.append("mask")
+			.attr("id", "overview-mask");
+		mask.append("rect")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", width)
+			.attr("height", overviewHeight)
+			.attr("fill", "white");
+		const maskHole = mask.append("rect")
+			.attr("id", "overview-mask-hole")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", 10)
+			.attr("height", overviewHeight)
+			.attr("fill", "black");
+		const overlay = overviewSvg.append("rect")
+			.attr("id", "overview-overlay")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", width)
+			.attr("height", overviewHeight)
+			.attr("mask", "url(#overview-mask)");
+		const overviewViewport = overviewSvg.append("rect")
+			.attr("id", "overview-viewport")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", 10)
+			.attr("height", overviewHeight);
+
+		function updateOverviewViewport() {
+			const t = d3.zoomTransform(svg.node());
+			const scale = t.k;
+			const tx = t.x;
+			const ty = t.y;
+
+			const visibleMin = xScale.invert(-tx / scale);
+			const visibleMax = xScale.invert((width - tx) / scale);
+			const x1 = xScale(Math.max(minTime, visibleMin));
+			const x2 = xScale(Math.min(maxTime, visibleMax));
+
+			const graphViewportHeight = Math.max(0, height - axisHeight);
+			const svgBounds = svg.node().getBBox();
+			const contentHeight = Math.max(
+				graphViewportHeight,
+				Math.max(0, svgBounds.height - axisHeight)
+			);
+			const visibleYMin = Math.max(0, -ty / scale);
+			const visibleYMax = Math.min(contentHeight, visibleYMin + graphViewportHeight / scale);
+			const y1 = contentHeight === 0 ? 0 : Math.max(0, visibleYMin / contentHeight * overviewHeight);
+			const y2 = contentHeight === 0 ? overviewHeight : Math.min(overviewHeight, visibleYMax / contentHeight * overviewHeight);
+
+			overviewViewport
+				.attr("x", x1)
+				.attr("width", Math.max(10, x2 - x1))
+				.attr("y", y1)
+				.attr("height", Math.max(5, y2 - y1));
+			overviewSvg.select("#overview-mask-hole")
+				.attr("x", x1)
+				.attr("y", y1)
+				.attr("width", Math.max(10, x2 - x1))
+				.attr("height", Math.max(5, y2 - y1));
+			overlay
+				.attr("width", width)
+				.attr("height", overviewHeight);
+		}
+		updateOverviewViewport();
+
+		// ---------------------------------------------------------------
+		// LISTENING FOR RESIZE EVENTS
+		// ---------------------------------------------------------------
+		window.addEventListener("resize", () => {
+			width = window.innerWidth;
+			height = window.innerHeight - headerHeight - overviewHeight - 5;
+			overviewRowHeight = Math.max(2, rowHeight * overviewHeight / height);
+
+			xScale.range([0, width]);
+			svg.attr("width", width).attr("height", height);
+			overviewSvg.attr("width", width);
+
+			// Update axis and grid
+			axis.ticks(Math.max(5, width / 180));
+			axisGroup.call(axis.scale(xScale));
+			drawGridLines(xScale);
+
+			// Update main graph rectangles and labels
+			rects
+				.attr("x", d => xScale(d.start))
+				.attr("width", d => xScale(d.end) - xScale(d.start))
+				.attr("y", d => d.depth * rowHeight)
+				.attr("height", rowHeight - 2);
+			labels
+				.attr("x", d => xScale(d.start) + 4)
+				.attr("y", d => d.depth * rowHeight + rowHeight * 0.7);
+			overviewRects
+				.attr("x", d => xScale(d.start))
+				.attr("width", d => xScale(d.end) - xScale(d.start))
+				.attr("y", d => d.depth * overviewRowHeight)
+				.attr("height", overviewRowHeight - 1);
+
+			axisBG.attr("width", width);
+
+			updateLabels();
+			updateOverviewViewport();
+			svg.call(zoom.transform, d3.zoomTransform(svg.node()));
+		});
+
+		// ---------------------------------------------------------------
+		// SEARCH TO FIND NODES BY TEXT
+		// ---------------------------------------------------------------
 		d3.select("#search").node().value = "";
 		var hits = [];
 		var hit = -1;
@@ -230,15 +487,9 @@
 			}
 		});
 
-		// recenter button
-		d3.select("#centerButton").on("click", function () {
-			svg.transition().duration(400).call(
-				zoom.transform,
-				d3.zoomIdentity
-			);
-		});
-
-		/* Legend modal */
+		// ---------------------------------------------------------------
+		// LEGEND MODAL LOGIC
+		// ---------------------------------------------------------------
 		var modal = d3.select("#legend").on("click", function () {
 			d3.select(this).style("display", "none");
 		});

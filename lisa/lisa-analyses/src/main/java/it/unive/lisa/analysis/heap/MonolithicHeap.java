@@ -43,16 +43,6 @@ public class MonolithicHeap
 	}
 
 	@Override
-	public ExpressionSet rewrite(
-			Monolith state,
-			SymbolicExpression expression,
-			ProgramPoint pp,
-			SemanticOracle oracle)
-			throws SemanticException {
-		return expression.accept(Rewriter.SINGLETON, pp);
-	}
-
-	@Override
 	public Pair<Monolith, List<HeapReplacement>> assign(
 			Monolith state,
 			Identifier id,
@@ -83,113 +73,104 @@ public class MonolithicHeap
 		return Pair.of(state, Collections.emptyList());
 	}
 
-	/**
-	 * A {@link it.unive.lisa.analysis.heap.BaseHeapDomain.Rewriter} for the
-	 * {@link MonolithicHeap} domain.
-	 * 
-	 * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
-	 */
-	public static class Rewriter
-			extends
-			BaseHeapDomain.Rewriter {
+	@Override
+	public ExpressionSet rewriteAccessChild(
+			AccessChild expression,
+			ExpressionSet receiver,
+			ExpressionSet child,
+			Monolith state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		if (receiver.size() != 1)
+			throw new SemanticException("Rewriting of receiver led to more than one expression");
 
-		/**
-		 * The singleton instance of this rewriter.
-		 */
-		public static final Rewriter SINGLETON = new Rewriter();
+		// any expression accessing an area of the heap or instantiating a
+		// new one is modeled through the monolith
+		Set<Type> acc = new HashSet<>();
+		child.forEach(e -> acc.add(e.getStaticType()));
+		Type refType = Type.commonSupertype(acc, Untyped.INSTANCE);
 
-		@Override
-		public ExpressionSet visit(
-				AccessChild expression,
-				ExpressionSet receiver,
-				ExpressionSet child,
-				Object... params)
-				throws SemanticException {
-			if (receiver.size() != 1)
-				throw new SemanticException("Rewriting of receiver led to more than one expression");
-
-			// any expression accessing an area of the heap or instantiating a
-			// new one is modeled through the monolith
-			Set<Type> acc = new HashSet<>();
-			child.forEach(e -> acc.add(e.getStaticType()));
-			Type refType = Type.commonSupertype(acc, Untyped.INSTANCE);
-
-			HeapLocation e = new HeapLocation(refType, MONOLITH_NAME, true, expression.getCodeLocation());
-			if (receiver.elements.iterator().next() instanceof HeapLocation) {
-				HeapLocation loc = (HeapLocation) receiver.elements.iterator().next();
-				e.setAllocation(loc.isAllocation());
-			}
-			return new ExpressionSet(e);
+		HeapLocation e = new HeapLocation(refType, MONOLITH_NAME, true, expression.getCodeLocation());
+		if (receiver.elements.iterator().next() instanceof HeapLocation) {
+			HeapLocation loc = (HeapLocation) receiver.elements.iterator().next();
+			e.setAllocation(loc.isAllocation());
 		}
+		return new ExpressionSet(e);
+	}
 
-		@Override
-		public ExpressionSet visit(
-				MemoryAllocation expression,
-				Object... params)
-				throws SemanticException {
-			// any expression accessing an area of the heap or instantiating a
-			// new one is modeled through the monolith
-			HeapLocation e = new HeapLocation(
-					expression.getStaticType(),
-					MONOLITH_NAME,
-					true,
-					expression.getCodeLocation());
-			e.setAllocation(true);
-			return new ExpressionSet(e);
-		}
+	@Override
+	public ExpressionSet rewriteMemoryAllocation(
+			MemoryAllocation expression,
+			Monolith state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		// any expression accessing an area of the heap or instantiating a
+		// new one is modeled through the monolith
+		HeapLocation e = new HeapLocation(
+				expression.getStaticType(),
+				MONOLITH_NAME,
+				true,
+				expression.getCodeLocation());
+		e.setAllocation(true);
+		return new ExpressionSet(e);
+	}
 
-		@Override
-		public ExpressionSet visit(
-				HeapReference expression,
-				ExpressionSet ref,
-				Object... params)
-				throws SemanticException {
-			if (ref.size() != 1)
-				throw new SemanticException("Rewriting of receiver led to more than one expression");
+	@Override
+	public ExpressionSet rewriteHeapReference(
+			HeapReference expression,
+			ExpressionSet ref,
+			Monolith state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		if (ref.size() != 1)
+			throw new SemanticException("Rewriting of receiver led to more than one expression");
 
-			// any expression accessing an area of the heap or instantiating a
-			// new one is modeled through the monolith
-			Set<Type> acc = new HashSet<>();
-			ref.forEach(e -> acc.add(e.getStaticType()));
-			Type refType = Type.commonSupertype(acc, Untyped.INSTANCE);
+		// any expression accessing an area of the heap or instantiating a
+		// new one is modeled through the monolith
+		Set<Type> acc = new HashSet<>();
+		ref.forEach(e -> acc.add(e.getStaticType()));
+		Type refType = Type.commonSupertype(acc, Untyped.INSTANCE);
 
-			HeapLocation loc = (HeapLocation) ref.elements.iterator().next();
-			ProgramPoint pp = (ProgramPoint) params[0];
-			MemoryPointer e = new MemoryPointer(pp.getProgram().getTypes().getReference(refType), loc,
-					expression.getCodeLocation());
-			return new ExpressionSet(e);
-		}
+		HeapLocation loc = (HeapLocation) ref.elements.iterator().next();
+		MemoryPointer e = new MemoryPointer(pp.getProgram().getTypes().getReference(refType), loc,
+				expression.getCodeLocation());
+		return new ExpressionSet(e);
+	}
 
-		@Override
-		public ExpressionSet visit(
-				HeapDereference expression,
-				ExpressionSet deref,
-				Object... params)
-				throws SemanticException {
-			// any expression accessing an area of the heap or instantiating a
-			// new one is modeled through the monolith
-			return deref;
-		}
+	@Override
+	public ExpressionSet rewriteHeapDereference(
+			HeapDereference expression,
+			ExpressionSet deref,
+			Monolith state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		// any expression accessing an area of the heap or instantiating a
+		// new one is modeled through the monolith
+		return deref;
+	}
 
-		@Override
-		public ExpressionSet visit(
-				NullConstant expression,
-				Object... params)
-				throws SemanticException {
-			ProgramPoint pp = (ProgramPoint) params[0];
-			HeapLocation e = new HeapLocation(
-					expression.getStaticType(),
-					MONOLITH_NAME,
-					true,
-					expression.getCodeLocation());
-			e.setAllocation(false);
-			MemoryPointer mp = new MemoryPointer(
-					pp.getProgram().getTypes().getReference(NullType.INSTANCE),
-					e,
-					expression.getCodeLocation());
-			return new ExpressionSet(mp);
-		}
-
+	@Override
+	public ExpressionSet rewriteNullConstant(
+			NullConstant expression,
+			Monolith state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		HeapLocation e = new HeapLocation(
+				expression.getStaticType(),
+				MONOLITH_NAME,
+				true,
+				expression.getCodeLocation());
+		e.setAllocation(false);
+		MemoryPointer mp = new MemoryPointer(
+				pp.getProgram().getTypes().getReference(NullType.INSTANCE),
+				e,
+				expression.getCodeLocation());
+		return new ExpressionSet(mp);
 	}
 
 	@Override

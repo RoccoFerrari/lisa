@@ -17,7 +17,7 @@ import java.util.TreeMap;
 import java.util.function.Predicate;
 
 /**
- * An unit of the program to analyze that is part of a hierarchical structure.
+ * A unit of the program to analyze that is part of a hierarchical structure.
  * 
  * @author <a href="mailto:vincenzo.arceri@unipr.it">VincenzoArceri</a>
  */
@@ -51,14 +51,14 @@ public abstract class CompilationUnit
 
 	/**
 	 * Whether or not this compilation unit is sealed, meaning that it cannot be
-	 * used as super unit of other compilation units
+	 * used as a super unit of other compilation units
 	 */
 	private final boolean sealed;
 
 	/**
-	 * Builds an unit with super unit.
+	 * Builds a unit with super unit.
 	 * 
-	 * @param location the location where the unit is define within the source
+	 * @param location the location where the unit is defined within the source
 	 *                     file
 	 * @param program  the program where this unit is defined
 	 * @param name     the name of the unit
@@ -78,8 +78,32 @@ public abstract class CompilationUnit
 	}
 
 	/**
+	 * Builds a unit with super unit.
+	 *
+	 * @param location    the location where the unit is defined within the
+	 *                        source file
+	 * @param program     the program where this unit is defined
+	 * @param name        the name of the unit
+	 * @param annotations the annotations associated with the unit
+	 * @param sealed      whether or not this unit can be inherited from
+	 */
+	protected CompilationUnit(
+			CodeLocation location,
+			Program program,
+			String name,
+			Annotations annotations,
+			boolean sealed) {
+		super(location, program, name);
+		this.annotations = annotations;
+		this.sealed = sealed;
+		instanceCodeMembers = new TreeMap<>();
+		instanceGlobals = new TreeMap<>();
+		instances = new HashSet<>();
+	}
+
+	/**
 	 * Yields whether or not this unit is sealed, meaning that it cannot be used
-	 * as super unit of other compilation units.
+	 * as a super unit of other compilation units.
 	 * 
 	 * @return {@code true} if this unit is sealed
 	 */
@@ -243,6 +267,15 @@ public abstract class CompilationUnit
 	 */
 	public Annotations getAnnotations() {
 		return annotations;
+	}
+
+	/**
+	 * Yields the list of annotations.
+	 *
+	 * @return the list of annotations
+	 */
+	public Collection<Annotation> getAnnotationList() {
+		return annotations.getAnnotations();
 	}
 
 	/**

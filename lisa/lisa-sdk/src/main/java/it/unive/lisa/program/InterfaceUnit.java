@@ -1,5 +1,6 @@
 package it.unive.lisa.program;
 
+import it.unive.lisa.program.annotations.Annotations;
 import it.unive.lisa.program.cfg.CodeLocation;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -7,7 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * A interface unit of the program to analyze. A interface unit is a
+ * An interface unit of the program to analyze. An interface unit is a
  * {@link Unit} that only defines instance members, from which other units (both
  * {@link ClassUnit} and {@link InterfaceUnit}) can inherit from
  * 
@@ -25,7 +26,7 @@ public class InterfaceUnit
 	/**
 	 * Builds an interface unit, defined at the given location.
 	 * 
-	 * @param location the location where the unit is define within the source
+	 * @param location the location where the unit is defined within the source
 	 *                     file
 	 * @param program  the program where this unit is defined
 	 * @param name     the name of the unit
@@ -37,6 +38,26 @@ public class InterfaceUnit
 			String name,
 			boolean sealed) {
 		super(location, program, name, sealed);
+		superinterfaces = new LinkedList<>();
+	}
+
+	/**
+	 * Builds an interface unit, defined at the given location.
+	 *
+	 * @param location    the location where the unit is defined within the
+	 *                        source file
+	 * @param program     the program where this unit is defined
+	 * @param name        the name of the unit
+	 * @param annotations the annotations associated with the unit
+	 * @param sealed      whether or not this unit can be inherited from
+	 */
+	public InterfaceUnit(
+			CodeLocation location,
+			Program program,
+			String name,
+			Annotations annotations,
+			boolean sealed) {
+		super(location, program, name, annotations, sealed);
 		superinterfaces = new LinkedList<>();
 	}
 
