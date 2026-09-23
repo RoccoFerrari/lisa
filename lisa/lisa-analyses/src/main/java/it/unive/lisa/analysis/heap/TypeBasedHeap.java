@@ -45,16 +45,6 @@ public class TypeBasedHeap
 	}
 
 	@Override
-	public ExpressionSet rewrite(
-			AllocatedTypes state,
-			SymbolicExpression expression,
-			ProgramPoint pp,
-			SemanticOracle oracle)
-			throws SemanticException {
-		return expression.accept(Rewriter.SINGLETON, pp, oracle);
-	}
-
-	@Override
 	public Pair<AllocatedTypes, List<HeapReplacement>> assign(
 			AllocatedTypes state,
 			Identifier id,
@@ -110,129 +100,110 @@ public class TypeBasedHeap
 		return Pair.of(state.top(), Collections.emptyList());
 	}
 
-	/**
-	 * A {@link it.unive.lisa.analysis.heap.BaseHeapDomain.Rewriter} for the
-	 * {@link TypeBasedHeap} domain.
-	 * 
-	 * @author <a href="mailto:luca.negrini@unive.it">Luca Negrini</a>
-	 */
-	public static class Rewriter
-			extends
-			BaseHeapDomain.Rewriter {
-
-		/**
-		 * The singleton instance of this rewriter.
-		 */
-		public static final Rewriter SINGLETON = new Rewriter();
-
-		@Override
-		public ExpressionSet visit(
-				AccessChild expression,
-				ExpressionSet receiver,
-				ExpressionSet child,
-				Object... params)
-				throws SemanticException {
-			// we use the container because we are not field-sensitive
-			Set<SymbolicExpression> result = new HashSet<>();
-
-			ProgramPoint pp = (ProgramPoint) params[0];
-			SemanticOracle oracle = (SemanticOracle) params[1];
-
-			for (SymbolicExpression ch : child)
-				for (Type t : oracle.getRuntimeTypesOf(ch, pp)) {
-					HeapLocation e = new HeapLocation(t, t.toString(), true, expression.getCodeLocation());
-					result.add(e);
-				}
-			return new ExpressionSet(result);
-		}
-
-		@Override
-		public ExpressionSet visit(
-				MemoryAllocation expression,
-				Object... params)
-				throws SemanticException {
-			Set<SymbolicExpression> result = new HashSet<>();
-			Type t = expression.getStaticType();
-			if (t.isInMemoryType()) {
+	@Override
+	public ExpressionSet rewriteAccessChild(
+			AccessChild expression,
+			ExpressionSet receiver,
+			ExpressionSet child,
+			AllocatedTypes state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		// we use the container because we are not field-sensitive
+		Set<SymbolicExpression> result = new HashSet<>();
+		for (SymbolicExpression ch : child)
+			for (Type t : oracle.getRuntimeTypesOf(ch, pp)) {
 				HeapLocation e = new HeapLocation(t, t.toString(), true, expression.getCodeLocation());
-				e.setAllocation(true);
 				result.add(e);
 			}
-			return new ExpressionSet(result);
+		return new ExpressionSet(result);
+	}
+
+	@Override
+	public ExpressionSet rewriteMemoryAllocation(
+			MemoryAllocation expression,
+			AllocatedTypes state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		Set<SymbolicExpression> result = new HashSet<>();
+		Type t = expression.getStaticType();
+		if (t.isInMemoryType()) {
+			HeapLocation e = new HeapLocation(t, t.toString(), true, expression.getCodeLocation());
+			e.setAllocation(true);
+			result.add(e);
 		}
+		return new ExpressionSet(result);
+	}
 
-		@Override
-		public ExpressionSet visit(
-				HeapReference expression,
-				ExpressionSet ref,
-				Object... params)
-				throws SemanticException {
-			Set<SymbolicExpression> result = new HashSet<>();
-
-			ProgramPoint pp = (ProgramPoint) params[0];
-			SemanticOracle oracle = (SemanticOracle) params[1];
-
-			for (SymbolicExpression refExp : ref) {
-				refExp = refExp.removeTypingExpressions();
-				if (refExp instanceof HeapLocation) {
-					Set<Type> rt = oracle.getRuntimeTypesOf(refExp, pp);
-					Type sup = Type.commonSupertype(rt, Untyped.INSTANCE);
-					MemoryPointer e = new MemoryPointer(
-							pp.getProgram().getTypes().getReference(sup),
-							(HeapLocation) refExp,
-							refExp.getCodeLocation());
-					result.add(e);
-				}
+	@Override
+	public ExpressionSet rewriteHeapReference(
+			HeapReference expression,
+			ExpressionSet ref,
+			AllocatedTypes state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		Set<SymbolicExpression> result = new HashSet<>();
+		for (SymbolicExpression refExp : ref) {
+			refExp = refExp.removeTypingExpressions();
+			if (refExp instanceof HeapLocation) {
+				Set<Type> rt = oracle.getRuntimeTypesOf(refExp, pp);
+				Type sup = Type.commonSupertype(rt, Untyped.INSTANCE);
+				MemoryPointer e = new MemoryPointer(
+						pp.getProgram().getTypes().getReference(sup),
+						(HeapLocation) refExp,
+						refExp.getCodeLocation());
+				result.add(e);
 			}
-
-			return new ExpressionSet(result);
 		}
 
-		@Override
-		public ExpressionSet visit(
-				HeapDereference expression,
-				ExpressionSet deref,
-				Object... params)
-				throws SemanticException {
-			Set<SymbolicExpression> result = new HashSet<>();
-			ProgramPoint pp = (ProgramPoint) params[0];
-			SemanticOracle oracle = (SemanticOracle) params[1];
+		return new ExpressionSet(result);
+	}
 
-			for (SymbolicExpression derefExp : deref) {
-				derefExp = derefExp.removeTypingExpressions();
-				if (derefExp instanceof Variable) {
-					Variable var = (Variable) derefExp;
-					for (Type t : oracle.getRuntimeTypesOf(var, pp))
-						if (t.isPointerType()) {
-							Type inner = t.asPointerType().getInnerType();
-							HeapLocation loc = new HeapLocation(inner, inner.toString(), true, var.getCodeLocation());
-							MemoryPointer pointer = new MemoryPointer(t, loc, var.getCodeLocation());
-							result.add(pointer);
-						}
-				}
+	@Override
+	public ExpressionSet rewriteHeapDereference(
+			HeapDereference expression,
+			ExpressionSet deref,
+			AllocatedTypes state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		Set<SymbolicExpression> result = new HashSet<>();
+		for (SymbolicExpression derefExp : deref) {
+			derefExp = derefExp.removeTypingExpressions();
+			if (derefExp instanceof Variable) {
+				Variable var = (Variable) derefExp;
+				for (Type t : oracle.getRuntimeTypesOf(var, pp))
+					if (t.isPointerType()) {
+						Type inner = t.asPointerType().getInnerType();
+						HeapLocation loc = new HeapLocation(inner, inner.toString(), true, var.getCodeLocation());
+						MemoryPointer pointer = new MemoryPointer(t, loc, var.getCodeLocation());
+						result.add(pointer);
+					}
 			}
-
-			return new ExpressionSet(result);
 		}
 
-		@Override
-		public ExpressionSet visit(
-				NullConstant expression,
-				Object... params)
-				throws SemanticException {
-			ProgramPoint pp = (ProgramPoint) params[1];
-			HeapLocation loc = new HeapLocation(
-					NullType.INSTANCE,
-					NullType.INSTANCE.toString(),
-					true,
-					expression.getCodeLocation());
-			MemoryPointer mp = new MemoryPointer(
-					pp.getProgram().getTypes().getReference(NullType.INSTANCE),
-					loc,
-					expression.getCodeLocation());
-			return new ExpressionSet(mp);
-		}
+		return new ExpressionSet(result);
+	}
 
+	@Override
+	public ExpressionSet rewriteNullConstant(
+			NullConstant expression,
+			AllocatedTypes state,
+			ProgramPoint pp,
+			SemanticOracle oracle)
+			throws SemanticException {
+		HeapLocation loc = new HeapLocation(
+				NullType.INSTANCE,
+				NullType.INSTANCE.toString(),
+				true,
+				expression.getCodeLocation());
+		MemoryPointer mp = new MemoryPointer(
+				pp.getProgram().getTypes().getReference(NullType.INSTANCE),
+				loc,
+				expression.getCodeLocation());
+		return new ExpressionSet(mp);
 	}
 
 	@Override

@@ -1,10 +1,11 @@
 package it.unive.lisa.analysis.type;
 
+import it.unive.lisa.analysis.SemanticComponent;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
-import it.unive.lisa.analysis.value.DomainWithReplacement;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.SymbolicExpression;
+import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.type.Type;
 import java.util.Set;
@@ -21,7 +22,7 @@ import java.util.Set;
  */
 public interface TypeDomain<L extends TypeLattice<L>>
 		extends
-		DomainWithReplacement<L, ValueExpression> {
+		SemanticComponent<L, L, ValueExpression, Identifier> {
 
 	/**
 	 * Yields the runtime types that this analysis infers for the given

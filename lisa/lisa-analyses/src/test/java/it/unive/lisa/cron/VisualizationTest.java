@@ -6,7 +6,9 @@ import it.unive.lisa.interprocedural.context.ContextBasedAnalysis;
 import it.unive.lisa.listeners.FlameGraphListener;
 import it.unive.lisa.listeners.TracingListener;
 import it.unive.lisa.listeners.TracingListener.TraceLevel;
+import it.unive.lisa.outputs.DotCallGraph;
 import it.unive.lisa.outputs.DotResults;
+import it.unive.lisa.outputs.HtmlCallGraph;
 import it.unive.lisa.outputs.HtmlInputs;
 import it.unive.lisa.outputs.HtmlResults;
 import it.unive.lisa.outputs.JSONInputs;
@@ -46,6 +48,16 @@ public class VisualizationTest
 	}
 
 	@Test
+	public void testDOTCallGraph() {
+		TestConfiguration conf = config();
+		conf.outputs.add(new DotCallGraph<>());
+		conf.testDir = "visualization";
+		conf.testSubDir = "dot-callgraph";
+		conf.programFile = "visualization.imp";
+		perform(conf);
+	}
+
+	@Test
 	public void testHTML() {
 		TestConfiguration conf = config();
 		conf.outputs.add(new HtmlResults<>(false));
@@ -61,6 +73,16 @@ public class VisualizationTest
 		conf.outputs.add(new HtmlResults<>(true));
 		conf.testDir = "visualization";
 		conf.testSubDir = "html-sub";
+		conf.programFile = "visualization.imp";
+		perform(conf);
+	}
+
+	@Test
+	public void testHTMLCallGraph() {
+		TestConfiguration conf = config();
+		conf.outputs.add(new HtmlCallGraph<>());
+		conf.testDir = "visualization";
+		conf.testSubDir = "html-callgraph";
 		conf.programFile = "visualization.imp";
 		perform(conf);
 	}
